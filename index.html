@@ -176,6 +176,9 @@
   .project-banner.alt {
     background: linear-gradient(135deg, #2a1a4a 0%, #4a2d7a 55%, #8a4fb8 100%);
   }
+  .project-banner.alt2 {
+    background: linear-gradient(135deg, #0b3d2e 0%, #126e54 55%, #1ea378 100%);
+  }
   .project-tag {
     display: inline-block;
     font-size: 0.7rem;
@@ -327,7 +330,7 @@
 
   <div class="section-title">
     <h2>Projects</h2>
-    <span class="count">2 live</span>
+    <span class="count">3 live</span>
   </div>
 
   <div class="projects">
@@ -370,6 +373,27 @@
         <div class="project-actions">
           <a class="btn primary" href="https://daddyinvolts.github.io/Copilot-Metric-Impact/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
           <a class="btn secondary" href="https://github.com/DaddyInVolts/Copilot-Metric-Impact" target="_blank" rel="noopener">Source ↗</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="project-banner alt2">
+        <span class="project-tag">Product Spec · Prototype</span>
+        <h3>One-off Scorecard</h3>
+        <p class="subtitle">Self-service custom-window scorecard requests</p>
+      </div>
+      <div class="project-body">
+        <p>A self-service drawer inside Expedite that lets experiment owners request a scorecard run over any UTC time window — without filing a DS ticket or writing SQL. Owners pick an existing scorecard, an assignment unit (User Id, Tenant Id, or Device Id), and a custom start/end, and the request appears as a "Requested" row in the rollout's existing scorecard table. On completion it flips to "Completed" and links into the same scorecard surface as cadence runs. The result: hours-not-days turnaround on custom-window analysis, DS partners freed from operational work, and every one-off captured as a first-class rollout artifact.</p>
+        <div class="project-meta">
+          <span class="chip">Self-service</span>
+          <span class="chip">Custom window</span>
+          <span class="chip">Rollout panel</span>
+          <span class="chip">Fluent UI</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/oneoff-scorecard/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/oneoff-scorecard" target="_blank" rel="noopener">Source ↗</a>
         </div>
       </div>
     </article>

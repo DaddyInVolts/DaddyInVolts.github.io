@@ -12,6 +12,8 @@ prototypes hosted in this account's other repositories.
   ([source](https://github.com/DaddyInVolts/Expedite-Experiment-Detail))
 - [Copilot Metric Impact Page](https://daddyinvolts.github.io/Copilot-Metric-Impact/)
   ([source](https://github.com/DaddyInVolts/Copilot-Metric-Impact))
+- [One-off Scorecard](https://daddyinvolts.github.io/oneoff-scorecard/)
+  ([source](https://github.com/DaddyInVolts/oneoff-scorecard))
 
 ## Editing
 
