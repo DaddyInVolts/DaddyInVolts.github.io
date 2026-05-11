@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>David Lydston — Principal Product Manager, AI-Powered</title>
+<meta name="description" content="Portfolio of product specifications and clickable prototypes by David Lydston, Principal Product Manager — built with AI as a force multiplier.">
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-dark: #1557b0;
+    --primary-light: #e8f0fe;
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --success-green: #1e8e3e;
+    --success-bg: #e6f4ea;
+    --accent: #8a4fb8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  a { color: var(--primary); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #1a2332 0%, #2d4a6f 60%, var(--primary) 100%);
+    color: #fff;
+    padding: 72px 40px 88px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 85% 20%, rgba(255,255,255,0.08) 0, transparent 40%),
+      radial-gradient(circle at 15% 85%, rgba(255,255,255,0.05) 0, transparent 40%);
+    pointer-events: none;
+  }
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .eyebrow {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 6px 12px;
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 999px;
+    margin-bottom: 22px;
+    opacity: 0.95;
+  }
+  .header h1 {
+    font-size: clamp(2rem, 4.5vw, 3rem);
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 14px;
+    letter-spacing: -0.01em;
+  }
+  .header .tagline {
+    font-size: clamp(1rem, 1.6vw, 1.18rem);
+    opacity: 0.92;
+    font-weight: 400;
+    max-width: 760px;
+  }
+  .meta-bar {
+    display: flex;
+    gap: 28px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+    font-size: 0.92rem;
+    opacity: 0.92;
+  }
+  .meta-bar a { color: #fff; opacity: 0.95; }
+  .meta-bar a:hover { opacity: 1; }
+  .meta-bar .dot { opacity: 0.5; }
+
+  /* ── About ── */
+  .content {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 56px 40px 80px;
+  }
+  .about {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px 36px;
+    margin-top: -56px;
+    margin-bottom: 48px;
+    box-shadow: 0 8px 32px rgba(26, 35, 50, 0.08);
+    position: relative;
+    z-index: 2;
+  }
+  .about h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  .about p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+  .about p + p { margin-top: 10px; }
+
+  /* ── Section heading ── */
+  .section-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-title h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .section-title .count {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  /* ── Project grid ── */
+  .projects {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 24px;
+  }
+  .project {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  }
+  .project:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 32px rgba(26, 35, 50, 0.10);
+    border-color: #c8d4e6;
+  }
+  .project-banner {
+    background: linear-gradient(135deg, #1a2332 0%, #2d4a6f 60%, var(--primary) 100%);
+    color: #fff;
+    padding: 22px 28px 18px;
+    position: relative;
+  }
+  .project-banner.alt {
+    background: linear-gradient(135deg, #2a1a4a 0%, #4a2d7a 55%, #8a4fb8 100%);
+  }
+  .project-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 3px 10px;
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  .project-banner h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.005em;
+  }
+  .project-banner .subtitle {
+    font-size: 0.9rem;
+    opacity: 0.85;
+    margin-top: 4px;
+  }
+  .project-body {
+    padding: 22px 28px 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .project-body p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.65;
+    flex: 1;
+  }
+  .project-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 18px;
+  }
+  .chip {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 4px 10px;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    border-radius: 999px;
+  }
+  .project-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 120ms, box-shadow 120ms, background 120ms;
+  }
+  .btn.primary {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(26, 115, 232, 0.25);
+  }
+  .btn.primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+    text-decoration: none;
+  }
+  .btn.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn.secondary:hover {
+    background: var(--bg);
+    border-color: #b8c4d6;
+    text-decoration: none;
+  }
+  .btn .arrow { transition: transform 120ms; }
+  .btn:hover .arrow { transform: translateX(3px); }
+
+  /* ── Footer ── */
+  .footer {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding: 28px 40px;
+    margin-top: 40px;
+  }
+  .footer-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+  }
+  .footer a { color: var(--text-secondary); }
+  .footer a:hover { color: var(--primary); }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .header { padding: 56px 24px 72px; }
+    .content { padding: 40px 20px 60px; }
+    .about { padding: 24px; margin-left: 0; margin-right: 0; }
+    .projects { grid-template-columns: 1fr; }
+    .project-banner, .project-body { padding-left: 22px; padding-right: 22px; }
+    .meta-bar { gap: 14px; }
+    .meta-bar .dot { display: none; }
+    .footer-inner { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <span class="eyebrow">Portfolio</span>
+    <h1>David Lydston</h1>
+    <p class="tagline">Principal Product Manager — building decision-grade product surfaces for the M365 Copilot portfolio, with AI as a force multiplier across spec, prototype, and ship.</p>
+    <div class="meta-bar">
+      <span><strong>Focus</strong> Experimentation &amp; Measurement</span>
+      <span class="dot">·</span>
+      <span><strong>Org</strong> IDEAS Experimentation</span>
+      <span class="dot">·</span>
+      <a href="https://github.com/DaddyInVolts" target="_blank" rel="noopener">github.com/DaddyInVolts ↗</a>
+    </div>
+  </div>
+</header>
+
+<main class="content">
+
+  <section class="about">
+    <h2>About this portfolio</h2>
+    <p>This site collects live, clickable product specifications I've authored for the M365 Copilot experimentation platform. Each project is a self-contained PM artifact — problem statement, success metrics, user scenarios, designs, and risks — paired with an interactive prototype where reviewers can experience the proposed UX rather than just read about it.</p>
+    <p>The artifacts here were drafted, prototyped, and refined with AI in the loop end-to-end. They reflect how I work as an AI-powered Principal PM: faster from problem to convincing artifact, with higher density of decision-quality detail per page.</p>
+  </section>
+
+  <div class="section-title">
+    <h2>Projects</h2>
+    <span class="count">2 live</span>
+  </div>
+
+  <div class="projects">
+
+    <article class="project">
+      <div class="project-banner">
+        <span class="project-tag">Product Spec · Prototype</span>
+        <h3>Expedite — Experiment Detail Page</h3>
+        <p class="subtitle">A decision-grade view for ship / iterate / stop calls</p>
+      </div>
+      <div class="project-body">
+        <p>A decision-grade detail view that turns dense experimentation scorecards into glanceable ship/iterate/stop calls. The page surfaces an advisory Copilot recommendation, the owner's actual decision, and the guardrail evidence behind it — on a single URL. A structured exception flow captures rationale when owners ship over a failed guardrail, producing a fully auditable record of every call. The result: faster, more consistent decisions across the M365 Copilot portfolio and a single source of truth for "is this ready to ship, and why?" Replaces ad-hoc scorecard reading and email threads as the deciding artifact for experiment owners and leadership.</p>
+        <div class="project-meta">
+          <span class="chip">Experimentation</span>
+          <span class="chip">Decision UX</span>
+          <span class="chip">Guardrails</span>
+          <span class="chip">Auditability</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/Expedite-Experiment-Detail/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/Expedite-Experiment-Detail" target="_blank" rel="noopener">Source ↗</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="project-banner alt">
+        <span class="project-tag">Product Spec · Prototype</span>
+        <h3>Copilot Metric Impact Page</h3>
+        <p class="subtitle">A metric-first lens on the experiment portfolio</p>
+      </div>
+      <div class="project-body">
+        <p>A metric-first lens for the Expedite experimentation platform that answers an executive's most common question: "Which experiments moved this metric?" Leaders pick a Copilot business metric — like Chat Seen WAU — apply ring and audience filters, and instantly see a ranked, statistically rigorous chart of every experiment that improved or degraded it. Drill-through links route to full scorecards, making it trivial to recognize a metric win or investigate a regression. The view flips the existing experiment-centric Impact page to a metric-centric perspective, replacing manual cross-referencing of scorecards with an instant, filterable, leadership-ready answer about portfolio-level impact on key business outcomes.</p>
+        <div class="project-meta">
+          <span class="chip">Leadership view</span>
+          <span class="chip">Metric impact</span>
+          <span class="chip">Stat-sig</span>
+          <span class="chip">Drill-through</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/Copilot-Metric-Impact/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/Copilot-Metric-Impact" target="_blank" rel="noopener">Source ↗</a>
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span>© <span id="year"></span> David Lydston · Principal Product Manager</span>
+    <span><a href="https://github.com/DaddyInVolts" target="_blank" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>
