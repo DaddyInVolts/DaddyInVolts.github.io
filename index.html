@@ -179,6 +179,9 @@
   .project-banner.alt2 {
     background: linear-gradient(135deg, #0b3d2e 0%, #126e54 55%, #1ea378 100%);
   }
+  .project-banner.alt3 {
+    background: linear-gradient(135deg, #3d1f0a 0%, #7a3e14 55%, #d97a2b 100%);
+  }
   .project-tag {
     display: inline-block;
     font-size: 0.7rem;
@@ -330,7 +333,7 @@
 
   <div class="section-title">
     <h2>Projects</h2>
-    <span class="count">3 live</span>
+    <span class="count">4 live</span>
   </div>
 
   <div class="projects">
@@ -394,6 +397,27 @@
         <div class="project-actions">
           <a class="btn primary" href="https://daddyinvolts.github.io/oneoff-scorecard/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
           <a class="btn secondary" href="https://github.com/DaddyInVolts/oneoff-scorecard" target="_blank" rel="noopener">Source ↗</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="project-banner alt3">
+        <span class="project-tag">Product Spec</span>
+        <h3>Guardrail Decision Framework</h3>
+        <p class="subtitle">A deterministic 🟢 / 🟡 / 🔴 verdict for every guardrail</p>
+      </div>
+      <div class="project-body">
+        <p>A guardrails-only decision framework that turns raw scorecard confidence intervals and power into a deterministic Red / Yellow / Green verdict for every guardrail metric. Standardizes how teams interpret stat-sig vs. underpowered results, applies CI-based safety checks (CI upper bound below +Δ for harm-direction metrics; CI lower bound above −Δ otherwise), handles the "no guardrails configured" empty state, and captures rationale for every override in a fully auditable record. Replaces inconsistent team-by-team judgment with a single shared rule dictionary so the same scorecard yields the same verdict across PMs, DS, and leadership reviews.</p>
+        <div class="project-meta">
+          <span class="chip">Decision logic</span>
+          <span class="chip">Guardrails</span>
+          <span class="chip">Auditability</span>
+          <span class="chip">Rule dictionary</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/Guardrail-Decision-Framework/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/Guardrail-Decision-Framework" target="_blank" rel="noopener">Source ↗</a>
         </div>
       </div>
     </article>
