@@ -405,10 +405,10 @@
       <div class="project-banner alt3">
         <span class="project-tag">Product Spec</span>
         <h3>Guardrail Decision Framework</h3>
-        <p class="subtitle">A deterministic 🟢 / 🟡 / 🔴 verdict for every guardrail</p>
+        <p class="subtitle">A deterministic safe / extend / not-safe verdict for every guardrail</p>
       </div>
       <div class="project-body">
-        <p>A guardrails-only decision framework that turns raw scorecard confidence intervals and power into a deterministic Red / Yellow / Green verdict for every guardrail metric. Standardizes how teams interpret stat-sig vs. underpowered results, applies CI-based safety checks (CI upper bound below +Δ for harm-direction metrics; CI lower bound above −Δ otherwise), handles the "no guardrails configured" empty state, and captures rationale for every override in a fully auditable record. Replaces inconsistent team-by-team judgment with a single shared rule dictionary so the same scorecard yields the same verdict across PMs, DS, and leadership reviews.</p>
+        <p>A guardrails-only decision framework that turns raw scorecard confidence intervals and pre-experiment power into a deterministic per-guardrail verdict — <strong>safe</strong>, <strong>extend</strong>, or <strong>not-safe</strong> — and a single scorecard-level roll-up of <strong>Ship</strong>, <strong>Hold</strong>, or <strong>Stop</strong>. Each guardrail declares a direction (higher-is-better or lower-is-better) and a practical-significance threshold Δ; the framework runs a CI-based safety check (CI upper bound below +Δ for lower-is-better metrics; CI lower bound above −Δ otherwise), classifies powered vs. underpowered against MDE at 80% power, and treats underpowered guardrails as genuinely uninformative — closing the gap that today lets ~11% of experiments ship on signals that are statistically uninformative on harm. Multi-variant experiments are evaluated per T/C cell, every verdict carries a single-line reason, and any owner override of a not-safe ruling requires a written justification, mitigation, and follow-up captured in an auditable record. Replaces inconsistent team-by-team judgment with a single shared rule dictionary so the same scorecard yields the same verdict across PMs, DS, and leadership reviews.</p>
         <div class="project-meta">
           <span class="chip">Decision logic</span>
           <span class="chip">Guardrails</span>
