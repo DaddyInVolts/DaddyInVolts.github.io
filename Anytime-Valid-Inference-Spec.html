@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Spec — Anytime-Valid Inference for ExP</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-light: #e8f0fe;
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --risk-red: #d93025;
+    --risk-bg: #fce8e6;
+    --success-green: #1e8e3e;
+    --success-bg: #e6f4ea;
+    --warn-amber: #e37400;
+    --warn-bg: #fef7e0;
+    --p0: #d93025;
+    --p1: #e37400;
+    --p2: #1a73e8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #1a2332 0%, #2d4a6f 60%, var(--primary) 100%);
+    color: #fff;
+    padding: 48px 40px 36px;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.85;
+    font-weight: 400;
+  }
+  .meta-bar {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+  .meta-item strong {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.65;
+    margin-bottom: 2px;
+  }
+
+  /* ── Content ── */
+  .content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 60px;
+  }
+
+  /* ── Section ── */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .section-number {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .section h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 20px 0 10px;
+    color: var(--text);
+  }
+  .section p, .section li {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .section ul, .section ol {
+    padding-left: 22px;
+  }
+
+  /* ── Placeholder / fill-in text ── */
+  .placeholder {
+    background: var(--primary-light);
+    border-left: 3px solid var(--primary);
+    padding: 12px 16px;
+    border-radius: 0 6px 6px 0;
+    font-style: italic;
+    color: var(--primary);
+    font-size: 0.9rem;
+    margin: 12px 0;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.9rem;
+  }
+  thead th {
+    background: var(--bg);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ── Priority badges ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-p0 { background: #fce8e6; color: var(--p0); }
+  .badge-p1 { background: var(--warn-bg); color: var(--p1); }
+  .badge-p2 { background: var(--primary-light); color: var(--p2); }
+
+  /* ── Metric cards ── */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .metric-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .metric-card .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .metric-card .value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .metric-card .target {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* ── Scenario cards ── */
+  .scenario-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .scenario-card .persona {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .scenario-card .narrative {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  /* ── Risk / Open Q cards ── */
+  .risk-card {
+    border-left: 4px solid var(--risk-red);
+    background: var(--risk-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .risk-card .risk-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--risk-red);
+    margin-bottom: 4px;
+  }
+  .risk-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .question-card {
+    border-left: 4px solid var(--warn-amber);
+    background: var(--warn-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .question-card .q-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--warn-amber);
+    margin-bottom: 4px;
+  }
+  .question-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  /* ── UX Flow box ── */
+  .ux-flow {
+    background: var(--bg);
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 32px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin: 14px 0;
+  }
+
+  /* ── Nongoal chip ── */
+  .nongoal {
+    background: #f1f3f4;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 6px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nongoal::before {
+    content: '✕';
+    color: var(--risk-red);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  /* ── Print ── */
+  @media print {
+    body { background: #fff; }
+    .content { padding: 0 20px; }
+    .section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- HEADER                                                       -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="header">
+  <h1>Anytime-Valid Inference for ExP</h1>
+  <div class="subtitle">Continuous-Monitoring Safety Detection for Microsoft A/B Experiments &mdash; Product Specification</div>
+  <div class="meta-bar">
+    <div class="meta-item"><strong>PM Owner</strong> dalyds</div>
+    <div class="meta-item"><strong>Team</strong> Experimentation Platform (ExP) &middot; Analysis &amp; Inference</div>
+    <div class="meta-item"><strong>Last Updated</strong> June 9, 2026</div>
+    <div class="meta-item"><strong>Status</strong> Draft v1</div>
+    <div class="meta-item"><strong>Stakeholders</strong> ExP Eng, Data Science, Release Engineering, RAM/NRT, Reliability/SRE, Privacy &amp; Compliance</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 1 — Problem & Opportunity           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 1</div>
+  <h2>Problem &amp; Opportunity</h2>
+
+  <h3>Problem Statement</h3>
+  <p>Microsoft runs tens of thousands of online controlled experiments per year across Windows, Office, Bing, Edge, Xbox, Teams, and Copilot via the Experimentation Platform (ExP). For safety-critical guardrails &mdash; crash rate, hang rate, latency p95/p99, sign-in success, error rates &mdash; teams need to detect regressions <em>while the flight is ramping</em>, not after the experiment closes. Today's ExP analysis pipeline is "fixed-<em>n</em>": metrics are valid only at a pre-declared sample size, recomputed on a daily Scorecard cadence. This forces two failure modes:</p>
+  <ol>
+    <li><strong>The peeking problem.</strong> Analysts and PMs do look at intermediate Scorecards and do act on apparent regressions &mdash; but the math underneath was not built for repeated looks. Naive sequential peeking inflates the Type-I error rate from a nominal 5% to roughly 70% across many looks, producing false rollbacks, wasted releases, and a steady erosion of trust in the data.</li>
+    <li><strong>The waiting problem.</strong> If teams stay disciplined and wait for the fixed-<em>n</em> readout, real regressions continue harming real users for hours or days while a flight ramps. The blast radius of every bad ship is bounded only by the daily scorecard cadence.</li>
+  </ol>
+  <p>The replication crisis literature (Ioannidis 2005; HBS WP 24-060) names "optional stopping" and peeking as primary culprits in modern false-positive rates. Microsoft pays this cost in two currencies at once: false rollbacks <em>and</em> slow rollbacks.</p>
+
+  <h3>Opportunity</h3>
+  <p>Anytime-valid inference &mdash; built on mixture martingales and confidence sequences &mdash; provides Type-I error control at <em>every</em> sample size simultaneously. The math has matured: Lindon, Ham, Tingley &amp; Bojinov (2024) give closed-form sequential <em>F</em>-tests and confidence sequences for linear models with regression adjustment &mdash; computable directly from the same regression tables ExP already produces. Lindon &amp; Malek (NeurIPS 2022) extend the framework to multinomial and count data, including a direct anytime-valid Sample Ratio Mismatch (SRM) test. Netflix has shipped this in production: ~50% reduction in average sample size and ~60-second time-to-detect on play-delay regressions during canary, gating every client release.</p>
+
+  <h3>Evidence</h3>
+  <ul>
+    <li><strong>HBS Working Paper 24-060 + HBS AI Institute (Bojinov):</strong> Documents that under naive repeated testing the false-positive rate climbs from 5% to ~70% across many looks, and frames anytime-valid inference as the operational fix.</li>
+    <li><strong>Lindon, Ham, Tingley &amp; Bojinov (2024) &mdash; "Anytime-Valid Inference in Linear Models with Regression Adjustment":</strong> Closed-form sequential tests and confidence sequences that match fixed-<em>n</em> properties at the planned sample size while remaining valid for all <em>n</em>. Empirically ~50% sample-size savings on Netflix A/B experiments.</li>
+    <li><strong>Lindon &amp; Malek (NeurIPS 2022) &mdash; "Anytime-Valid Inference for Multinomial Count Data":</strong> Sequential multinomial test, confidence sequences for category probabilities and contrasts, with a worked SRM detection application.</li>
+    <li><strong>Netflix Tech Blog (Lindon, Atwal, Dimakopoulou et al.):</strong> Production rollout case study. Anytime-valid confidence sequences power their canary gating and called experiments roughly twice as fast as fixed-<em>n</em> with preserved error control.</li>
+    <li><strong>Windows NRT Service Walking Deck (RAM Data &amp; AI Team, Feb 2026):</strong> Internal evidence that NRT data is only valuable when wired to a tight "detect &rarr; page &rarr; rollback" action loop with measurable time-to-detect and time-to-mitigate KPIs. The 4T-events/mo Vortex&rarr;AKS&rarr;Synapse&rarr;Kusto&rarr;Fabric pipeline (~$63K/mo for Windows Update Adoption, &leq;2 min E2E SLA) is the operational template this product will reuse.</li>
+    <li><strong>Internal ExP signal:</strong> Safety-driven flight pauses today are gated by daily Scorecard reads; informal interviews with Release Engineering indicate routine 12&ndash;24-hour delays between regression onset and rollback decision.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 2 — Goals & Success Metrics          -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 2</div>
+  <h2>Goals &amp; Success Metrics</h2>
+
+  <h3>Goals</h3>
+  <ol>
+    <li>Cut median time-to-detect (T2D) on safety-critical guardrail regressions during flighted rollouts from ~12&ndash;24 hours (daily Scorecard cadence) to under 15 minutes &mdash; a ~98% reduction.</li>
+    <li>Eliminate the peeking penalty &mdash; deliver provably time-uniform &geq;95% coverage on every published confidence sequence, validated empirically across the top 100 ExP guardrail metric/segment combinations.</li>
+    <li>Reduce the sample size required to call a safety verdict (rollback vs. ship) by 40&ndash;50% on average vs. fixed-<em>n</em>, matching the Netflix-published baseline and returning experimentation slots to teams.</li>
+    <li>Reach 50 onboarded feature teams within 6 months of GA, with the majority of high-blast-radius Microsoft 1P rings (Canary, OSG-internal, Insider Beta) covered.</li>
+  </ol>
+
+  <h3>Success Metrics</h3>
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="label">Primary Metric</div>
+      <div class="value">Median Time-to-Detect (T2D)</div>
+      <div class="target">Target: &lt;15 min on injected/known regressions &middot; Baseline: ~14 hrs (daily Scorecard)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">% of Safety Rollbacks Backed by Anytime-Valid Evidence</div>
+      <div class="target">Target: 60% within 6 months of GA &middot; Baseline: 0%</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Average Sample-Size Savings</div>
+      <div class="target">Target: 40&ndash;50% reduction vs. fixed-<em>n</em> for safety calls &middot; Baseline: 0%</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">False-Rollback Rate (FPR under continuous monitoring)</div>
+      <div class="target">Must not exceed 5% across A/A simulation streams</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Live-Inference E2E Latency (P95)</div>
+      <div class="target">Must remain &leq;15 min event-to-dashboard</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Adoption Metric</div>
+      <div class="value">Teams Onboarded</div>
+      <div class="target">Target: 50 feature teams in 6 months &middot; Baseline: 0</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Cost Guardrail</div>
+      <div class="value">Incremental Compute vs. Existing Scorecard Pipeline</div>
+      <div class="target">Must remain &leq;15% delta for the same metric/segment set</div>
+    </div>
+  </div>
+
+  <h3>Explicit Non-Goals</h3>
+  <div class="nongoal">Replace fixed-<em>n</em> analysis for final experiment readouts &mdash; fixed-<em>n</em> remains the system of record for power calculations and the final Scorecard verdict.</div>
+  <div class="nongoal">Cover non-randomized observational data &mdash; V1 assumes IID streams under a randomized assignment.</div>
+  <div class="nongoal">Real-time experiment design, power calculations, or randomization &mdash; those live in existing ExP Onboarding flows.</div>
+  <div class="nongoal">Build a separate experimentation platform &mdash; this ships as a capability layered on ExP, not a replacement.</div>
+  <div class="nongoal">Cover causal-inference scenarios outside Bernoulli, multinomial, count (Poisson), and continuous (linear/regression-adjusted) families in V1 &mdash; quantile and ratio-of-means treatments are V1.5+.</div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 3 — User Scenarios                   -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 3</div>
+  <h2>User Scenarios</h2>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 1 &mdash; "The Release Engineer on a Friday Push" (Primary)</div>
+    <div class="narrative">
+      <p>Marcus is on-call for an Edge flight ramping from 1% &rarr; 10% on Friday afternoon. With today's fixed-<em>n</em> Scorecard pipeline he would have to wait until Monday morning to see whether crash-rate has regressed. With Anytime-Valid Inference, at minute 9 of the ramp the live confidence sequence on crash-rate fully crosses the regression threshold for treatment and stays crossed through the configured hold-time. A page fires through ICM. Marcus opens the dashboard, sees the shrinking-bands timeseries, confirms with the side-panel transcript ("sequential <em>p</em> &lt; 0.001 since 14:42:31, <em>n</em> = 1.8M sessions, effect = +14% crash rate"), and one-clicks "Pause Flight" via the existing ExP Flight Mgmt integration. Total blast radius: 11 minutes instead of three days.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 2 &mdash; "The PM Watching a Risky Experiment"</div>
+    <div class="narrative">
+      <p>Priya owns a Teams call-quality experiment with a new audio codec on the treatment arm. Historically she'd wait seven days for the Scorecard. With Anytime-Valid she opens the live dashboard each morning. On day 1 the confidence band for play-delay-p95 brackets zero &mdash; not actionable. On day 2 it's still bracketing zero, but narrower. On day 3 the upper bound has shrunk 30ms below baseline; she has solid evidence the treatment is better and decides to start the next ramp early, returning Teams users to the better build sooner. Crucially: she peeked daily and lost no Type-I error guarantee, because the confidence sequence is time-uniform by construction.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 3 &mdash; "The Data Scientist Tuning Safety Thresholds"</div>
+    <div class="narrative">
+      <p>Anya supports Xbox Cloud Gaming guardrails. She uses the dashboard's "back-test" mode to replay historical experiments (including known past regressions) through the anytime-valid pipeline, sees how T2D would have behaved across alternative mixture priors, and tunes the prior to match Xbox's empirical effect-size distribution. She exports a per-metric anytime-valid configuration that the platform applies to all Xbox guardrails going forward, and publishes a one-pager justifying the prior choice to her data-science peers.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 4 &mdash; "SRM Detection During Ramp" (multinomial path)</div>
+    <div class="narrative">
+      <p>An experiment ramps to a planned 5% / 95% split but a routing bug sends 4.2% of treated users back to control. The anytime-valid multinomial test on the live assignment counts crosses the SRM threshold at minute 22 with sequential <em>p</em> &lt; 1e-6 at <em>n</em> = 2.1M assignments. ICM page fires, the ramp auto-pauses via the ExP integration, and the dashboard shows the exact crossing event &mdash; no waiting for the morning Scorecard, no manual peeking.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case &mdash; "Low-Traffic Experiment, Insufficient Power"</div>
+    <div class="narrative">
+      <p>A &lt;0.5% flight in a niche audience produces too few events for the confidence sequence to shrink below the actionable threshold. The dashboard displays a clear "Power building &mdash; confidence sequence width still 4&times; actionable threshold" watermark on the metric, suppresses alerting, and tells the user when the band is projected to tighten given the current event rate. No spurious page, no false confidence either way.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case &mdash; "Pipeline Lag / Stale Inference"</div>
+    <div class="narrative">
+      <p>Upstream Kusto ingestion lags by 23 minutes. Live Inference detects the staleness, shows a "Live inference delayed &mdash; last update 23 min ago" banner across affected dashboards, and automatically suppresses new alerts until E2E latency returns under SLA &mdash; preventing stale-data pages from waking on-call.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 4 — Requirements                     -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 4</div>
+  <h2>Requirements</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:70px">Priority</th>
+        <th style="width:50px">ID</th>
+        <th>Requirement</th>
+        <th style="width:200px">Acceptance Criteria</th>
+        <th style="width:120px">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-01</td>
+        <td>Sequential confidence sequences and sequential <em>F</em>-tests for continuous metrics with regression adjustment, using the closed-form construction in Lindon, Ham, Tingley &amp; Bojinov (2024). Computed directly from the same regression tables ExP scorecards already emit.</td>
+        <td>Closed-form output matches reference paper within 1e-6 on simulated data; runs in &lt;1 sec per metric/segment refresh at p95</td>
+        <td>Methodology owned by ExP Data Science; inference code reusable across metric families</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-02</td>
+        <td>Anytime-valid multinomial test (Lindon &amp; Malek, NeurIPS 2022) for live SRM detection on assignment counts. Fires within 5 minutes of an SRM appearing in the event stream.</td>
+        <td>Detects an injected 0.5pp SRM at &leq;5 min P95 across 1K simulated flights at Microsoft scale</td>
+        <td>Co-design with ExP Trustworthiness team that owns existing offline SRM checks</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-03</td>
+        <td>Near-real-time data pipeline reaching &leq;15 min end-to-end SLA from event emission to dashboard. Modeled on the Windows NRT Service pattern: Vortex/Event Forwarders &rarr; Kubernetes (AKS) micro-batch &rarr; Synapse Spark &rarr; Kusto materialized view &rarr; Fabric semantic model &rarr; Power BI / Live dashboard.</td>
+        <td>P95 E2E latency &leq;15 min sustained for 4 weeks across pilot tenants; pipeline auto-scales to top-4 ExP-onboarded products at GA</td>
+        <td>Capacity partnership with RAM/NRT team; subscription-level isolation per scenario family</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-04</td>
+        <td>Empirical validation of time-uniform coverage. Run &geq;10,000 A/A simulations across the top 100 ExP guardrail metric/segment combinations and confirm observed false-rollback rate stays &leq;5% under continuous monitoring.</td>
+        <td>Public internal validation report; observed FPR &leq;5% with 95% CI; methodology peer-reviewed by ExP Data Science</td>
+        <td>Mandatory pre-GA gate</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-05</td>
+        <td>Live dashboard renders a "shrinking confidence band" timeseries per monitored metric &mdash; effect estimate plus confidence-sequence bounds at every observed sample size &mdash; alongside a sequential <em>p</em>-value timeline and the actionable threshold line.</td>
+        <td>Renders &leq;3 sec on 30-day historical view at p95; visual matches Figma spec; hover tooltips include n, effect, bounds, p_seq</td>
+        <td>Reuses Fabric/Power BI surface where possible</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-06</td>
+        <td>Native ExP Scorecard integration &mdash; any metric onboarded to a Scorecard can be promoted to "Anytime-Valid Monitored" with a single configuration flag, no separate metric onboarding.</td>
+        <td>Single-flag promotion verified end-to-end on at least 3 distinct ExP tenants pre-GA</td>
+        <td>Spec'd with ExP Onboarding team</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-07</td>
+        <td>Alert integration with existing on-call surfaces (ICM, Geneva). A threshold crossing fires a page that includes the metric, the experiment ID, sample size at crossing, sequential <em>p</em>-value, and a deep link to the Live Inference timeseries view.</td>
+        <td>Alert payload schema agreed with Release Engineering; end-to-end page-fire test in pre-prod ring; deep links resolve in &lt;5 sec</td>
+        <td>Honors existing on-call routing per team</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-08</td>
+        <td>Subscription-level isolation per scenario family (Windows, Office, Bing, Edge, Xbox, Teams, Copilot). Independent compute pools, independent cost attribution, independent SLA dashboards.</td>
+        <td>Per-tenant cost dashboard live at GA; noisy-neighbor isolation verified via injected load tests</td>
+        <td>Direct lift from NRT High-Level Flow architecture (Slide 6)</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-09</td>
+        <td>"Shadow mode" for the first 90 days per onboarded tenant: anytime-valid alerts are computed and logged but do not page on-call. Owners review the logs and explicitly graduate to paging.</td>
+        <td>Shadow-mode toggle per tenant; graduation runbook published; no on-call page fires from a tenant in shadow mode</td>
+        <td>Critical mitigation for alert fatigue (Risk 2)</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-10</td>
+        <td>Bernoulli and Poisson counting-process anytime-valid tests for crash, hang, error-rate, sign-in-failure metrics &mdash; closed-form constructions from the same methodological family.</td>
+        <td>Reference implementations + unit tests; back-tested on a curated set of 20 historical Microsoft regressions</td>
+        <td>Extends R-01 to discrete families</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-11</td>
+        <td>Back-test / replay mode &mdash; analysts can replay any historical experiment through the anytime-valid pipeline and inspect what T2D would have been.</td>
+        <td>Replays a 30-day historical experiment in &leq;5 min wall-clock; matches live results when same parameters are used</td>
+        <td>Critical for analyst trust + prior-tuning workflows</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-12</td>
+        <td>Mixture-prior configuration per metric &mdash; sensible global default (normal mixture matched to typical Microsoft effect sizes), with per-metric and per-tenant overrides for power users.</td>
+        <td>Default prior published with rationale; override path documented; back-test mode (R-11) lets owners compare priors</td>
+        <td>Owned jointly with Data Science</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-13</td>
+        <td>One-click rollback / flight-pause action from a fired alert &mdash; calls the existing ExP Flight Mgmt API with the experiment ID and a structured reason ("anytime-valid threshold crossing on metric X").</td>
+        <td>API contract signed with Flight Mgmt; one-click pause verified end-to-end in pre-prod; audit-logged</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-14</td>
+        <td>Quantile-treatment-effect view for latency p95/p99 metrics, following the Netflix approach.</td>
+        <td>Quantile bands render alongside the mean band; methodology peer-reviewed</td>
+        <td>Latency is a top safety concern for Bing/Edge/Teams</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-15</td>
+        <td>Per-team "Anytime-Valid Health" weekly digest &mdash; metrics monitored, alerts fired, rollbacks executed, false-rollback estimates.</td>
+        <td>Digest sent Monday 8 AM local; user can unsubscribe; rendered in &lt;30 sec</td>
+        <td>V1.1 candidate</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-16</td>
+        <td>Public internal API surface so partner systems (Mission Control, Shiproom, FlightOps, Branch Health) can subscribe to anytime-valid signals.</td>
+        <td>OpenAPI spec published; at least 2 partner integrations live within 90 days of GA</td>
+        <td>Mirrors NRT scenarios (Slide 2)</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-17</td>
+        <td>Education and documentation surface embedded in the dashboard &mdash; short explainers of confidence sequences, sequential <em>p</em>-values, and the mixture prior, plus links to the source papers.</td>
+        <td>In-product tooltips + "Learn more" panel; office-hours schedule published; analyst certification optional but available</td>
+        <td>Critical for trust + correct interpretation</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 5 — Design Direction                 -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 5</div>
+  <h2>Design Direction</h2>
+
+  <h3>UX Flow</h3>
+  <div class="ux-flow">
+    Experiment Created in ExP &rarr; Owner enables "Anytime-Valid Monitor" toggle, selects guardrail metrics &rarr; Treatment ramps begin &rarr; Events stream through NRT pipeline (Vortex &rarr; AKS &rarr; Synapse &rarr; Kusto &rarr; Fabric, &leq;15 min E2E) &rarr; Confidence sequences refresh every micro-batch &rarr; Live dashboard updates &rarr; On threshold crossing (plus hold-time): ICM page fires &rarr; On-call opens dashboard, reviews evidence, clicks "Pause Flight" &rarr; Post-incident: replay timeline shows exact crossing moment + transcript<br><br>
+    <small>Figma link placeholder: <a href="#">figma.com/file/anytime-valid-exp-v1</a> &middot; Architecture diagram placeholder &middot; Mock pack to be linked here pre-design review</small>
+  </div>
+
+  <h3>Key Interaction Notes</h3>
+  <ul>
+    <li><strong>Live Inference tab</strong> appears on every experiment detail page in ExP, alongside the existing "Scorecard" and "Setup" tabs. A pulsing dot indicates an active monitored ramp.</li>
+    <li><strong>The signature visualization</strong> is the shrinking confidence band: a timeseries where the central line is the effect estimate, the shaded band is the anytime-valid confidence sequence, and a dashed horizontal line marks the actionable threshold. As more data accumulates the band tightens around the estimate; when the band has fully crossed the threshold and stayed crossed for the configured hold-time, the panel flips red and the alert fires.</li>
+    <li><strong>Sequential <em>p</em>-value sparkline</strong> renders next to each metric card &mdash; monotonically non-increasing under the alternative, color-codes at &leq;0.01 and &leq;0.001 thresholds.</li>
+    <li><strong>Hover any point on the band</strong> shows a tooltip with sample size, effect estimate, lower/upper bound, sequential <em>p</em>-value, and the wall-clock time.</li>
+    <li><strong>"Why was this triggered?" panel</strong> on every fired alert shows the exact crossing event, the metric, the effect size, the underlying transcript of micro-batches that drove the crossing, and a one-click link to the historical Scorecard for cross-validation.</li>
+    <li><strong>"Pause Flight" / "Rollback" actions</strong> live inline on the alert detail; they call into existing ExP Flight Mgmt APIs and are audit-logged.</li>
+    <li><strong>Back-test mode</strong> swaps the live data stream for a historical replay; the dashboard explicitly labels itself "Replay &mdash; not a live experiment" with an orange chrome.</li>
+  </ul>
+
+  <h3>Edge Cases &amp; Empty States</h3>
+  <ul>
+    <li><strong>Insufficient power:</strong> render bands with a watermark "Power building &mdash; confidence sequence width still 4&times; actionable threshold. Projected to tighten in ~6 hours at current event rate." Alerts suppressed automatically.</li>
+    <li><strong>Pipeline lag / stale inference:</strong> if measured E2E latency exceeds the 15-min SLA, show a banner "Live inference delayed &mdash; last update [N] min ago" and suppress new alerts until the lag clears, to prevent stale-data pages.</li>
+    <li><strong>Metric not eligible:</strong> not every metric maps to a known anytime-valid family. Show "This metric is not yet enabled for anytime-valid monitoring &mdash; [Request enablement]" with a link to ExP Onboarding.</li>
+    <li><strong>A/A regime:</strong> if the experiment is a sanity A/A, show "Monitoring A/A &mdash; expect time-uniform coverage; alerts disabled by default" and surface a coverage-tracking widget useful for self-validation.</li>
+    <li><strong>Tenant in shadow mode:</strong> dashboard renders fully, alerts are computed and logged, but the "page on-call" channel is muted. A persistent yellow banner reads "Shadow mode &mdash; no pages will fire from this tenant. Graduate when ready."</li>
+  </ul>
+
+  <h3>Accessibility</h3>
+  <ul>
+    <li>Confidence bands and threshold lines meet WCAG 2.2 AA contrast (4.5:1) against the dashboard background; threshold line is <em>dashed</em> as well as red-coded so colorblind users perceive the geometry without relying on hue.</li>
+    <li>All timeseries are keyboard-navigable: Tab through metric cards, Enter expands the detailed timeseries, arrow keys scrub the time cursor with tooltip readout.</li>
+    <li>Screen readers announce: "Metric Crash Rate, treatment effect 1.4 percent higher than control, 95 percent confidence sequence lower bound 0.2 percent, upper bound 2.6 percent, sequential p-value 0.003, actionable threshold crossed 4 minutes ago, alert fired."</li>
+    <li>Alert payloads include plain-text summaries usable by ICM TTS readouts during on-call handoff.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 6 — Open Questions & Risks           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 6</div>
+  <h2>Open Questions &amp; Risks</h2>
+
+  <h3>Open Questions</h3>
+  <div class="question-card">
+    <div class="q-title">Q1: Mixture-prior default &mdash; uniform vs. matched-to-historical effect distribution?</div>
+    <p>The mixture prior on the alternative effect distribution directly controls power and T2D. A uniform prior is the safest theoretical default; a prior matched to the historical Microsoft effect-size distribution recovers the Netflix-style ~50% sample-size savings. <strong>Owner:</strong> dalyds + ExP Data Science. <strong>Current leaning:</strong> ship a sensible matched-prior global default at GA, expose per-metric overrides in V1.1.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q2: When should anytime-valid be the default vs. opt-in?</div>
+    <p>Defaulting on safety guardrails for top-tier rings (Canary, OSG-internal, Insider Beta) is a clear early win. Defaulting on production experiments across the long tail of ExP-onboarded products needs more migration support and education. <strong>Owner:</strong> dalyds. <strong>ETA for decision:</strong> pre-GA design review.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q3: Backward compatibility &mdash; what is the system of record when anytime-valid evidence disagrees with the final fixed-<em>n</em> Scorecard?</div>
+    <p>Disagreement will be rare (both methods control Type-I error) but it will happen, particularly near decision boundaries. We need a documented policy for which is the system of record in each lifecycle phase &mdash; current strawman: anytime-valid governs safety calls during ramp, fixed-<em>n</em> governs final readout. <strong>Owner:</strong> ExP Eng + Data Science.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q4: Compute cost at Microsoft scale?</div>
+    <p>The NRT deck shows ~$63K/mo Azure for Windows Update Adoption alone. The anytime-valid math is closed-form on existing regression tables (low marginal cost), but the underlying NRT pipeline is the cost driver. We need a per-tenant cost model and an FY budget envelope before broad rollout. <strong>Owner:</strong> ExP Eng + Finance + RAM/NRT.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q5: Analyst education &mdash; what is the minimum training/documentation we must ship?</div>
+    <p>Anytime-valid <em>p</em>-values and confidence sequences behave differently from fixed-<em>n</em> &mdash; e.g., naively applying a Bonferroni correction on top of a sequential <em>p</em>-value over-corrects and destroys power. Without explicit guidance, sophisticated users will misinterpret outputs in subtle ways. <strong>Owner:</strong> dalyds + ExP DX. <strong>Strawman:</strong> ship an in-product explainer (R-17), an internal whitepaper, and host bi-weekly office hours for the first 6 months post-GA.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q6: SRM detection &mdash; supplement or replace today's offline SRM checks?</div>
+    <p>ExP already runs offline SRM checks on closed experiments. The anytime-valid multinomial test (R-02) catches SRMs live during ramp. Open question: do we deprecate the offline check, run both for a transition period, or treat them as complementary indefinitely? <strong>Owner:</strong> ExP Trustworthiness + dalyds.</p>
+  </div>
+
+  <h3>Risks</h3>
+  <div class="risk-card">
+    <div class="risk-title">Risk 1 &mdash; Mis-tuned prior under-detects real regressions (slow T2D)</div>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> Medium. If the chosen mixture prior puts too much mass on small effects, genuinely large regressions take longer than expected to detect &mdash; partially negating the headline T2D win. <strong>Mitigation:</strong> (1) Empirically benchmark the chosen prior against a curated set of historical Windows/Office/Bing/Edge safety incidents and publish per-domain power curves; (2) Ship back-test mode (R-11) so owners can validate priors on their own incident history; (3) Ship per-metric override path (R-12) from V1 so tenants are never stuck with a bad default.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 2 &mdash; Alert fatigue on Release Engineering</div>
+    <p><strong>Likelihood:</strong> High &middot; <strong>Impact:</strong> High. Putting anytime-valid alerts on every guardrail across hundreds of concurrent ExP flights risks paging Release Engineering dozens of times per day, eroding trust in the system. <strong>Mitigation:</strong> (1) Mandatory 90-day shadow mode per tenant (R-09) &mdash; alerts logged but no pages until owners explicitly graduate; (2) Minimum-effect-size filters per metric so trivially-small "true" effects don't page; (3) Configurable hold-time so the band must stay crossed for N minutes before paging; (4) Per-team digest (R-15) gives owners visibility into alert volume before they go live.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 3 &mdash; NRT pipeline reliability is a single point of failure</div>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> High. The RAM/NRT pipeline capacity is finite, and an outage in the NRT path silently breaks live inference. <strong>Mitigation:</strong> (1) Hard SLA + active monitoring on E2E latency (R-03); (2) Stale-data banner + automatic alert suppression on lag (Section 5 edge cases); (3) Graceful fallback to "last known Scorecard" view so the dashboard never goes blank; (4) Joint capacity planning agreement with RAM team and explicit cost attribution per ExP tenant (R-08).</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 4 &mdash; Methodological resistance from senior analysts and data scientists</div>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> Medium. Anytime-valid inference is well-established academically but newer in industry. Senior analysts trained on fixed-<em>n</em> may distrust sequential outputs or push to ignore them. <strong>Mitigation:</strong> (1) Co-author rollout with ExP Data Science leads as named partners on the spec; (2) Publish an internal whitepaper citing Lindon et al. (2024), Lindon &amp; Malek (2022), the Netflix production case study, and HBS WP 24-060; (3) Office hours and back-test transparency for skeptics; (4) Run a high-visibility pilot on a known historical regression and publish the result.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 5 &mdash; Privacy &amp; sovereign-tenant compliance review</div>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> High. Moving event-level telemetry into a lower-latency pipeline may surface new data-residency or compliance questions, particularly for EU sovereign and government tenants. <strong>Mitigation:</strong> (1) Inherit ExP's existing data classification and residency model unchanged in V1 &mdash; introduce no new data classes; (2) Engage Privacy + EU sovereign compliance early in design; (3) Ship per-region / per-tenant pipeline isolation as part of R-08 so sovereign tenants can be carved out cleanly; (4) Make "no live inference" a supported configuration so a tenant can opt out entirely if compliance can't clear.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 6 &mdash; Over-fitting to safety/canary; experiment-call use case left underserved</div>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> Medium. V1 is explicitly scoped to safety/canary detection. PMs and DSes asking "can I call my experiment early?" will want similar tooling soon after &mdash; without a clear V1.5+ roadmap the platform risks looking incomplete. <strong>Mitigation:</strong> (1) Architect the inference engine and dashboard so experiment-call workflows reuse 90%+ of V1; (2) Document a public V1.5 roadmap entry for "Anytime-Valid Experiment Call" alongside V1 launch; (3) Run early experiment-call pilots on willing teams during V1 GA window to de-risk the V1.5 design.</p>
+  </div>
+</div>
+
+</div><!-- end .content -->
+
+<div class="footer">
+  Anytime-Valid Inference for ExP &mdash; Product Specification &middot; Experimentation Platform &middot; Analysis &amp; Inference &middot; Last updated June 9, 2026
+</div>
+
+</body>
+</html>

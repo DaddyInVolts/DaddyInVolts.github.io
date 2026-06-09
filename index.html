@@ -182,6 +182,9 @@
   .project-banner.alt3 {
     background: linear-gradient(135deg, #3d1f0a 0%, #7a3e14 55%, #d97a2b 100%);
   }
+  .project-banner.alt4 {
+    background: linear-gradient(135deg, #0a1f3d 0%, #144a7a 55%, #1ea3a3 100%);
+  }
   .project-tag {
     display: inline-block;
     font-size: 0.7rem;
@@ -333,7 +336,7 @@
 
   <div class="section-title">
     <h2>Projects</h2>
-    <span class="count">4 live</span>
+    <span class="count">5 live</span>
   </div>
 
   <div class="projects">
@@ -418,6 +421,27 @@
         <div class="project-actions">
           <a class="btn primary" href="https://daddyinvolts.github.io/Guardrail-Decision-Framework/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
           <a class="btn secondary" href="https://github.com/DaddyInVolts/Guardrail-Decision-Framework" target="_blank" rel="noopener">Source ↗</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="project-banner alt4">
+        <span class="project-tag">Product Spec</span>
+        <h3>Anytime-Valid Inference for ExP</h3>
+        <p class="subtitle">Continuous-monitoring safety detection for online A/B tests</p>
+      </div>
+      <div class="project-body">
+        <p>An always-on safety layer for the Experimentation Platform that lets release engineers, PMs, and data scientists watch a live experiment continuously without paying the classic peeking penalty &mdash; where naive repeated looks push false-positive rates from 5% to ~70%. Built on closed-form confidence sequences (Lindon, Ham, Tingley &amp; Bojinov 2024) and a multinomial sequential SRM test (Lindon &amp; Malek, NeurIPS 2022), it computes Type-I-controlled bounds at <em>every</em> sample size from the same regression tables ExP already produces. A near-real-time data path modeled on the Windows NRT Service (Vortex &rarr; AKS &rarr; Synapse &rarr; Kusto &rarr; Fabric, &leq;15 min end-to-end) feeds a shrinking-band dashboard and ICM/Geneva alerts, turning every ramped flight into a continuously-monitored canary &mdash; targeting time-to-detect under 15 minutes (vs. ~14 hours today) and 40&ndash;50% sample-size savings, with mandatory 90-day shadow-mode validation per tenant.</p>
+        <div class="project-meta">
+          <span class="chip">Anytime-valid stats</span>
+          <span class="chip">Continuous monitoring</span>
+          <span class="chip">Safety canary</span>
+          <span class="chip">NRT pipeline</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/Anytime-Valid-Inference-Spec.html" target="_blank" rel="noopener">View spec <span class="arrow">&rarr;</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/blob/main/Anytime-Valid-Inference-Spec.html" target="_blank" rel="noopener">Source &#8599;</a>
         </div>
       </div>
     </article>
