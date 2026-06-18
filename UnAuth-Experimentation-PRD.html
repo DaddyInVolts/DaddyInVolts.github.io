@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Spec — Unauthenticated User Experimentation Infrastructure</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-light: #e8f0fe;
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --risk-red: #d93025;
+    --risk-bg: #fce8e6;
+    --success-green: #1e8e3e;
+    --success-bg: #e6f4ea;
+    --warn-amber: #e37400;
+    --warn-bg: #fef7e0;
+    --p0: #d93025;
+    --p1: #e37400;
+    --p2: #1a73e8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #1a2332 0%, #2d4a6f 60%, var(--primary) 100%);
+    color: #fff;
+    padding: 48px 40px 36px;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.85;
+    font-weight: 400;
+  }
+  .meta-bar {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+  .meta-item strong {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.65;
+    margin-bottom: 2px;
+  }
+
+  /* ── Content ── */
+  .content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 60px;
+  }
+
+  /* ── Section ── */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .section-number {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .section h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 20px 0 10px;
+    color: var(--text);
+  }
+  .section p, .section li {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .section ul, .section ol {
+    padding-left: 22px;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.9rem;
+  }
+  thead th {
+    background: var(--bg);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ── Priority badges ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-p0 { background: #fce8e6; color: var(--p0); }
+  .badge-p1 { background: var(--warn-bg); color: var(--p1); }
+  .badge-p2 { background: var(--primary-light); color: var(--p2); }
+
+  /* ── Metric cards ── */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .metric-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .metric-card .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .metric-card .value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .metric-card .target {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* ── Scenario cards ── */
+  .scenario-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .scenario-card .persona {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .scenario-card .narrative {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  /* ── Risk / Open Q cards ── */
+  .risk-card {
+    border-left: 4px solid var(--risk-red);
+    background: var(--risk-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .risk-card .risk-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--risk-red);
+    margin-bottom: 4px;
+  }
+  .risk-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .question-card {
+    border-left: 4px solid var(--warn-amber);
+    background: var(--warn-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .question-card .q-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--warn-amber);
+    margin-bottom: 4px;
+  }
+  .question-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  /* ── Nongoal chip ── */
+  .nongoal {
+    background: #f1f3f4;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 6px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nongoal::before {
+    content: '✕';
+    color: var(--risk-red);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  /* ── Print ── */
+  @media print {
+    body { background: #fff; }
+    .content { padding: 0 20px; }
+    .section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- HEADER                                                      -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="header">
+  <h1>Unauthenticated User Experimentation Infrastructure</h1>
+  <div class="subtitle">Product Specification — App Home Pages</div>
+  <div class="meta-bar">
+    <div class="meta-item"><strong>PM Owner</strong> David Lydston</div>
+    <div class="meta-item"><strong>Team</strong> IDEAS Experimentation</div>
+    <div class="meta-item"><strong>Last Updated</strong> June 2026</div>
+    <div class="meta-item"><strong>Status</strong> Draft</div>
+    <div class="meta-item"><strong>Target</strong> FY27 H1</div>
+    <div class="meta-item"><strong>Customer</strong> Copilot Growth Team</div>
+    <div class="meta-item"><strong>Stakeholders</strong> IDEAS Privacy, Growth Privacy, Copilot Growth Product Team</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 1 — Problem & Opportunity           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 1</div>
+  <h2>Problem &amp; Opportunity</h2>
+
+  <h3>Problem Statement</h3>
+  <p>The Copilot Growth team needs to run A/B experiments on unauthenticated users visiting Copilot pages experiences. Today, there is no robust experimentation framework for anonymous visitors. Without a stable randomization unit, experiments suffer from carry-over effects, reduced statistical power, and an inability to measure repeat-usage metrics like retention or days active. Session-based randomization — the current default in this field — re-randomizes users across visits, causing treatment leakage between groups and inflating variance, which makes it significantly harder to detect true treatment effects.</p>
+
+  <h3>Opportunity</h3>
+  <p>Implementing MUID-based (Microsoft User ID) randomization for unauthenticated experimentation will enable the Copilot Growth team to:</p>
+  <ul>
+    <li>Run statistically valid experiments on pre-login experiences with sufficient power to detect meaningful lifts (≥5% relative MDE)</li>
+    <li>Measure repeat-usage metrics (Days Active, Short-Term Retention, # Sessions) that are impossible with session-only randomization</li>
+    <li>Minimize carry-over effects that currently reduce detectable effect sizes from ~2% to ~1.25% absolute lift</li>
+    <li>Align with the standard anonymous experimentation approach used across Bing, MSN, and Edge Browser.</li>
+  </ul>
+
+  <h3>Evidence</h3>
+  <ul>
+    <li><strong>Power Simulation (Word AHP, July 2024):</strong> With session randomization and a 5% relative lift on a 25% sign-in baseline, power drops from 48% to 28% due to carry-over leakage. Cookie-based randomization drops from 41% to 36% under the same conditions — a far more acceptable degradation.</li>
+    <li><strong>Traffic Volume:</strong> ~20K total sessions (estimated 10K users) on Word AHP in July 2024; ~2 sessions per user — small sample sizes make power preservation critical.</li>
+    <li><strong>MUID Coverage:</strong> MUID is already being collected on App.cloud.microsoft.com and create.cloud.microsoft.com domains from the .microsoft.com domain cookie.</li>
+    <li><strong>Precedent:</strong> Office Forms has successfully implemented MUID for experimentation needs and tracks this identifier in Otel logs.</li>
+    <li><strong>Cookie Stability:</strong> ~30% of users clear cookies per month, but for short-term experiments the effective churn is much lower, making MUID sufficiently stable.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 2 — Goals & Success Metrics          -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 2</div>
+  <h2>Goals &amp; Success Metrics</h2>
+
+  <h3>Goals</h3>
+  <ol>
+    <li>Establish MUID as the primary randomization unit for all unauthenticated App Home Page experiments, enabling consistent user-level treatment assignment across sessions</li>
+    <li>Complete privacy review and obtain consent policy approval for using MUID in experimentation and telemetry logging</li>
+    <li>Integrate MUID-based flighting with the existing ExP (Experimentation Platform) infrastructure so experiment teams can self-serve flight assignments</li>
+    <li>Enable mapping of repeat-usage metrics (Days Active, Short-Term Retention, # Sessions) at the PUID level alongside session-level funnel metrics</li>
+  </ol>
+
+  <h3>Success Metrics</h3>
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="label">Primary Metric</div>
+      <div class="value">Experiment Statistical Power</div>
+      <div class="target">Target: ≥80% power at 5% relative MDE for key conversion metrics · Baseline: ~28% (session-randomized)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">MUID Coverage Rate</div>
+      <div class="target">Target: ≥90% of AHP sessions have a valid MUID assigned at page load · Baseline: TBD (audit needed)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Variant Consistency</div>
+      <div class="target">Target: ≥85% of returning MUIDs receive the same treatment variant across sessions · Baseline: ~0% (session-randomized)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Privacy Consent Compliance</div>
+      <div class="target">Must maintain: 100% compliance with regional cookie consent requirements (EU, GDPR, etc.)</div>
+    </div>
+  </div>
+
+  <h3>Explicit Non-Goals</h3>
+  <div class="nongoal">Cross-product experimentation infrastructure (e.g., tracking MUID from unauth UX into Super App) — requires additional infrastructure not yet available and a separate privacy review</div>
+  <div class="nongoal">Designing or specifying individual experiments (header/banner CTAs, button placements, etc.) — owned by Copilot Growth Product Team</div>
+  <div class="nongoal">Long-term metrics like M1 retention — MUID churn rates (~93% of new MUIDs not observed next month) make monthly retention unreliable at this stage</div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 3 — User Scenarios                   -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 3</div>
+  <h2>User Scenarios</h2>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 1 — "The Growth PM Running an Experiment" (Primary)</div>
+    <div class="narrative">
+      <p>Alex is a Growth PM on the Copilot Growth team who wants to test whether a new CTA banner placement on the Copilot Home Page increases sign-up rates. Today, Alex would need to rely on ANID-PUID mapping, knowing that returning users might see both the treatment and control versions across visits — diluting results and making it impossible to know if the experiment worked. With MUID-based randomization, Alex configures the experiment in Iris using MUID as the randomization unit. Returning visitors consistently see the same variant. After two weeks, Alex can confidently measure not just sign-in rate, but also whether treated users return more often (Days Active) and whether they complete the full Copilot funnel at higher rates.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 2 — "The Data Scientist Analyzing Results"</div>
+    <div class="narrative">
+      <p>Dana is a Data Scientist evaluating an Copilot Homepage (CHP) experiment. With session randomization, she discovers that her power analysis shows only 28% power to detect a meaningful effect — the experiment is essentially inconclusive before it begins. With MUID-based randomization, Dana can aggregate metrics at the MUID level, reducing noise from carry-over effects. Her power analysis now shows ~36-41% power for the same sample size — still challenging with low traffic, but she can recommend running the experiment longer or across multiple CHP surfaces to accumulate sufficient MUIDs rather than inflated session counts.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 3 — "The Privacy Reviewer"</div>
+    <div class="narrative">
+      <p>Maria is a Privacy Engineer reviewing the proposal to use MUID for experimentation on AHP. She needs to verify that: (1) MUID is classified correctly in the cookie categorization framework, (2) the existing cookie consent banner adequately covers experimentation use cases, (3) regional requirements (EU/GDPR) for optional cookies are met, and (4) MUID is not being propagated to post-login contexts without separate authorization. She reviews the implementation plan, confirms that MUID logging in Otel is within the approved data boundary, and approves the approach with conditions around consent banner language for certain regions.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case — New MUID Assignment Timing</div>
+    <div class="narrative">
+      <p>A brand-new user visits an AHP domain for the very first time — they have no existing MUID cookie. Azure Front Door (AFD) assigns the MUID on the first web request, but there is a timing question: will the MUID be available in time for the flighting service to assign a treatment variant on that same first page load? If not, the user's first session may not be randomized, requiring either a client-side refresh mechanism or graceful handling of "no-MUID" first-load scenarios in the experiment design.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 4 — Requirements                     -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 4</div>
+  <h2>Requirements</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:70px">Priority</th>
+        <th style="width:50px">ID</th>
+        <th>Requirement</th>
+        <th style="width:180px">Acceptance Criteria</th>
+        <th style="width:100px">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-01</td>
+        <td>Implement MUID as the primary randomization unit for all unauthenticated AHP experiments, replacing session-based randomization as the default</td>
+        <td>Experiments configured in ExP use MUID for variant assignment; returning MUIDs receive consistent treatment across sessions (≥85% consistency rate)</td>
+        <td>MUID already collected on AHP domains</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-02</td>
+        <td>Complete Privacy Review for using MUID in experimentation context — covering consent policy, Otel logging, and regional compliance (EU/GDPR)</td>
+        <td>Privacy review approved with documented conditions; consent banner language updated if required; regional exceptions documented</td>
+        <td>Owner: IDEAS Privacy + Growth Privacy</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-03</td>
+        <td>Ensure MUID is available at page load time for flighting assignment on first visit (new MUID scenarios)</td>
+        <td>≥95% of AHP page loads have a valid MUID available for ExP variant assignment; document handling for the remaining edge cases</td>
+        <td>AFD assigns MUID on first request; verify timing with flighting service</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-04</td>
+        <td>Integrate MUID-based randomization with ExP flighting infrastructure so experiment teams can self-configure experiments using MUID as the unit</td>
+        <td>Growth PMs can create experiments in ExP selecting MUID as randomization unit for AHP surfaces; variant assignment is deterministic given MUID + experiment ID</td>
+        <td>Sync with ExP team on configuration</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-05</td>
+        <td>Enable MUID-level metric aggregation in analytics pipelines — support Days Active, Short-Term Retention, and # Sessions per MUID alongside session-level metrics</td>
+        <td>Experiment scorecard shows both MUID-level and session-level metrics; MUID-level metrics match expected aggregation logic (validated against known data)</td>
+        <td>Sub-aggregation at session level where needed</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-06</td>
+        <td>Log MUID consistently in Otel telemetry for AHP domains to enable experiment analysis joins</td>
+        <td>MUID field populated in ≥95% of AHP telemetry events; joins between experiment assignment and telemetry events succeed without data loss</td>
+        <td>Reference: Office Forms Otel implementation</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-07</td>
+        <td>Document and implement handling for MUID churn scenarios — users who clear cookies receive a new MUID and may be re-randomized</td>
+        <td>Analysis framework accounts for MUID churn in power calculations; documentation provides guidance on minimum experiment duration given churn rates</td>
+        <td>~30% monthly cookie deletion rate</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-08</td>
+        <td>Investigate feasibility of propagating MUID to referral app clients (WXP web apps) to enable cross-product funnel measurement</td>
+        <td>Feasibility assessment complete; if feasible, privacy review initiated; if not, alternative approaches documented</td>
+        <td>Requires separate privacy review; cross-product experimentation not in scope for V1</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-09</td>
+        <td>Implement MUID backup/recovery mechanism (similar to Bing's approach) to mitigate cookie clobbering if multi-domain expansion is planned</td>
+        <td>Design document for backup mechanism complete; implementation deferred until multi-domain scenario is confirmed</td>
+        <td>Not yet needed for single .microsoft.com domain</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 5 — Technical Context                -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 5</div>
+  <h2>Technical Context &amp; Design Direction</h2>
+
+  <h3>Randomization Unit Comparison</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Attribute</th>
+        <th>Session (BrowserSessionId)</th>
+        <th>MUID (Persistent Cookie) — Recommended</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Persistence</strong></td>
+        <td>None — new ID per browser session</td>
+        <td>Medium (~30% users clear cookies/month)</td>
+      </tr>
+      <tr>
+        <td><strong>Cross-site?</strong></td>
+        <td>No</td>
+        <td>Yes — shared across all Microsoft web entities</td>
+      </tr>
+      <tr>
+        <td><strong>Privacy Compliant?</strong></td>
+        <td>Yes</td>
+        <td>Yes (with consent — privacy review required)</td>
+      </tr>
+      <tr>
+        <td><strong>Metrics Supported</strong></td>
+        <td>Session-level funnel rates only; no repeat-usage metrics</td>
+        <td>Session-level + MUID-level: Days Active, Short-Term Retention, # Sessions, funnel rates</td>
+      </tr>
+      <tr>
+        <td><strong>Variant Reassignment (VR) Risk</strong></td>
+        <td>High — every session is re-randomized</td>
+        <td>Low — only on cookie deletion</td>
+      </tr>
+      <tr>
+        <td><strong>Carry-over Effect</strong></td>
+        <td>Severe — power drops from 48% → 28% at 5% MDE</td>
+        <td>Moderate — power drops from 41% → 36% at 5% MDE</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>MUID Overview</h3>
+  <ul>
+    <li><strong>What it is:</strong> A 32-hex-character GUID that identifies a browser/machine across Microsoft properties</li>
+    <li><strong>How it's assigned:</strong> Azure Front Door (AFD) assigns MUID when a user without cookies makes their first web request to any Microsoft service</li>
+    <li><strong>Storage:</strong> Stored as a browser cookie in the .microsoft.com domain; synchronized across Microsoft properties</li>
+    <li><strong>Current state on AHP:</strong> Already being collected on App.cloud.microsoft.com and create.cloud.microsoft.com; also captured in post-login telemetry</li>
+  </ul>
+
+  <h3>Known MUID Limitations</h3>
+  <ul>
+    <li><strong>High new-MUID churn:</strong> ~93% of new MUIDs are not observed in the next month (largely single-use sessions that never return — not the same as user churn)</li>
+    <li><strong>Cookie clobbering:</strong> Unintended deletion of cookies due to browser bugs or cookie expiration management; Bing mitigates via a backup copy. Not yet observed on AHP single-domain setup.</li>
+    <li><strong>First-visit timing:</strong> MUID may not be available immediately on the very first page load for a brand-new visitor (needs verification with AFD team)</li>
+    <li><strong>Multi-device:</strong> Users on multiple devices/browsers will have separate MUIDs — treated as separate "anonymous users" for experiment purposes</li>
+  </ul>
+
+  <h3>Key Metrics Enabled</h3>
+  <ul>
+    <li><strong>Sign-Up/Sign-In Rate</strong> (U-AHP) — measurable at both session and MUID level</li>
+    <li><strong>Session Abandonment Rate</strong> (U-AHP) — session level</li>
+    <li><strong>UHP Funnel</strong> (U-AHP + Referral App): Home Page Landing → Sign-In/Sign-Up → Click Referral App → Land on Referral App</li>
+    <li><strong>Days Active</strong> (MUID-level) — NEW: enabled by persistent ID</li>
+    <li><strong>Short-Term Retention</strong> (MUID-level) — NEW: enabled by persistent ID</li>
+    <li><strong># Sessions per MUID</strong> — NEW: enabled by persistent ID</li>
+    <li><strong>CAMAU / Retention</strong> (Referral App) — requires cross-product infrastructure (out of scope for V1)</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 6 — Open Questions & Risks           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 6</div>
+  <h2>Open Questions &amp; Risks</h2>
+
+  <h3>Open Questions</h3>
+  <div class="question-card">
+    <div class="q-title">Q1: Is MUID available in time for flighting on first page load for new visitors?</div>
+    <p>MUID is assigned by Azure Front Door on the first web request. We need to verify whether the flighting service can read the MUID cookie on that same initial request, or if assignment only takes effect on the second page load/navigation. <strong>Owner:</strong> Engineering (ExP integration). <strong>Action:</strong> Test with AFD team.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q2: What is the privacy/consent classification for MUID when used for experimentation?</div>
+    <p>"Any cookie not required to establish a communication channel or provide a user function at the point the user requests the function is an optional cookie. In many jurisdictions, optional cookies require user consent for placement." A Privacy Review is required to assess consent requirements for using MUID in experimentation, Otel logging, and potential propagation to other apps. Some regions (e.g., EU) may have additional restrictions. <strong>Owner:</strong> IDEAS Privacy + Growth Privacy.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q3: Why is "unauth to auth" tracking not allowed due to privacy concerns, given both counts are at session level?</div>
+    <p>The UA3 to UA4 funnel (Sign-In/Sign-Up rate) reportedly cannot track the unauth-to-auth transition. This needs clarification — if both events are at session level with no persistent identifier bridging them, why is this restricted? <strong>Owner:</strong> Growth Privacy. <strong>Action:</strong> Clarify with data governance team.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q4: Is Data_PreviousSession in App client telemetry the same as BrowserSessionId in AHP?</div>
+    <p>Understanding this mapping is critical for UHP funnel measurement across the AHP → Referral App boundary. <strong>Owner:</strong> Engineering (Telemetry). <strong>Action:</strong> Validate schema alignment.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q5: How are existing experiment success metrics (e.g., Retention) currently calculated with session randomization?</div>
+    <p>Some UHP experiment plans list retention as a success metric, but session randomization provides no continuity for measuring retention. Need to understand if these metrics are aspirational or if there's an existing (potentially flawed) measurement approach. <strong>Owner:</strong> Data Science.</p>
+  </div>
+
+  <h3>Risks</h3>
+  <div class="risk-card">
+    <div class="risk-title">Risk 1: Privacy Review Delays or Blocks Adoption</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> High. If the privacy review determines that MUID-based experimentation requires explicit opt-in consent beyond the current cookie banner, adoption could be blocked in key regions (EU) or require significant UX changes to the consent flow — potentially delaying launch by 1-2 quarters. <strong>Mitigation:</strong> (1) Engage privacy teams early; (2) Prepare fallback approach using session randomization with longer experiment durations; (3) Reference Office Forms precedent as an approved implementation.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 2: Low Traffic Volumes Limit Experiment Power Even with MUID</div>
+    <p><strong>Likelihood:</strong> High · <strong>Impact:</strong> Medium. Even with MUID randomization preserving more power (41% → 36% vs 48% → 28%), the absolute traffic on individual AHP surfaces (~10K users/month on Word) may still be insufficient to detect meaningful effects within reasonable timeframes. <strong>Mitigation:</strong> (1) Pool traffic across multiple AHP surfaces where possible; (2) Run experiments for longer durations (4-6 weeks); (3) Focus on metrics with higher base rates; (4) Consider sequential testing methods.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 3: MUID First-Visit Timing Gap</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Low-Medium. If MUID cannot be read by the flighting service on the very first page load, a meaningful fraction of new visitors (especially one-time visitors who never return) would be unrandomized. Given that ~93% of new MUIDs don't return, this could mean most "new user" first impressions are uncontrolled. <strong>Mitigation:</strong> (1) Verify timing with AFD team; (2) If gap exists, implement client-side re-check after MUID cookie is set; (3) Document the limitation for experiment designers.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 4: MUID Churn Inflates Sample Size Without Adding Real Users</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Low. Users who frequently clear cookies generate multiple MUIDs — potentially 50% of observed MUIDs could come from just 10% of users who churn cookies. This inflates apparent sample size while introducing noise. <strong>Mitigation:</strong> (1) Account for MUID churn in power calculations; (2) Use trimmed metrics to reduce outlier influence; (3) For short-duration experiments (1-2 weeks), churn impact is minimal.</p>
+  </div>
+</div>
+
+</div><!-- end .content -->
+
+<div class="footer">
+  Unauthenticated User Experimentation Infrastructure — Product Specification · IDEAS Experimentation · Draft · FY27 H1
+
+</div>
+
+</body>
+</html>
