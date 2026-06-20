@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Spec — GPT Token & AI Credit Metrics on Copilot Token Consumption Scorecard</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-light: #e8f0fe;
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --risk-red: #d93025;
+    --risk-bg: #fce8e6;
+    --success-green: #1e8e3e;
+    --success-bg: #e6f4ea;
+    --warn-amber: #e37400;
+    --warn-bg: #fef7e0;
+    --p0: #d93025;
+    --p1: #e37400;
+    --p2: #1a73e8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #1a2332 0%, #2d4a6f 60%, var(--primary) 100%);
+    color: #fff;
+    padding: 48px 40px 36px;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.85;
+    font-weight: 400;
+  }
+  .meta-bar {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+  .meta-item strong {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.65;
+    margin-bottom: 2px;
+  }
+
+  .content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 60px;
+  }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .section-number {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .section h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 20px 0 10px;
+    color: var(--text);
+  }
+  .section p, .section li {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .section ul, .section ol {
+    padding-left: 22px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.9rem;
+  }
+  thead th {
+    background: var(--bg);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-p0 { background: #fce8e6; color: var(--p0); }
+  .badge-p1 { background: var(--warn-bg); color: var(--p1); }
+  .badge-p2 { background: var(--primary-light); color: var(--p2); }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .metric-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .metric-card .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .metric-card .value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .metric-card .target {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .scenario-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .scenario-card .persona {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .scenario-card .narrative {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  .risk-card {
+    border-left: 4px solid var(--risk-red);
+    background: var(--risk-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .risk-card .risk-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--risk-red);
+    margin-bottom: 4px;
+  }
+  .risk-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .question-card {
+    border-left: 4px solid var(--warn-amber);
+    background: var(--warn-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .question-card .q-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--warn-amber);
+    margin-bottom: 4px;
+  }
+  .question-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .nongoal {
+    background: #f1f3f4;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 6px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nongoal::before {
+    content: '✕';
+    color: var(--risk-red);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .content { padding: 0 20px; }
+    .section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>GPT Token &amp; AI Credit Metrics</h1>
+  <div class="subtitle">Mini Spec — Copilot Token Consumption Scorecard</div>
+  <div class="meta-bar">
+    <div class="meta-item"><strong>PM Owner</strong> David Lydston</div>
+    <div class="meta-item"><strong>Team</strong> IDEAS Experimentation</div>
+    <div class="meta-item"><strong>Last Updated</strong> June 2026</div>
+    <div class="meta-item"><strong>Status</strong> Draft</div>
+    <div class="meta-item"><strong>Target</strong> FY27 H1</div>
+    <div class="meta-item"><strong>Customer</strong> Copilot Feature Crews, Leadership</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 1 — Problem & Opportunity           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 1</div>
+  <h2>Problem &amp; Opportunity</h2>
+
+  <h3>Problem Statement</h3>
+  <p>The Copilot Token Consumption Scorecard is the canonical view feature crews and leadership use to evaluate the cost impact of Copilot experiments and rollouts. Today, the scorecard is missing two critical cost dimensions: <strong>GPT token consumption</strong> (input + output tokens per LLM call, by model) and <strong>AI Credit request volume</strong> (per-user/per-tenant credit balance consumption). Without these metrics on the scorecard, feature crews must pull cost data from separate dashboards or ad-hoc queries to assess whether an experiment's quality or engagement gains are justified by its cost impact — slowing ship/iterate/stop decisions and creating inconsistent cost narratives across crews.</p>
+
+  <h3>Opportunity</h3>
+  <p>Adding GPT token and AI Credit metrics directly to the existing Copilot Token Consumption Scorecard gives feature crews and leadership a single, consistent view of cost impact alongside the experimentation metrics they already trust. This:</p>
+  <ul>
+    <li>Eliminates the manual cross-referencing step between cost dashboards and experiment scorecards</li>
+    <li>Surfaces cost regressions earlier in the experiment lifecycle (during analysis, not post-ship)</li>
+    <li>Provides leadership a portfolio-level view of GPT spend and AI Credit consumption per shipped feature</li>
+    <li>Establishes a shared cost vocabulary across feature crews, reducing inconsistent reporting</li>
+  </ul>
+
+  <h3>Evidence</h3>
+  <ul>
+    <li><strong>Existing scorecard usage:</strong> Copilot Token Consumption Scorecard is consumed by feature crews and leadership today, indicating demand for an authoritative cost view</li>
+    <li><strong>Coverage gap:</strong> Current scorecard does not include GPT token metrics or AI Credit request metrics — the two cost dimensions most commonly asked about in ship reviews</li>
+    <li><strong>Decision-quality blocker:</strong> Without these metrics on the scorecard, cost impact is typically discussed verbally or via attached one-off charts during reviews</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 2 — Goals & Success Metrics          -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 2</div>
+  <h2>Goals &amp; Success Metrics</h2>
+
+  <h3>Goals</h3>
+  <ol>
+    <li>Add GPT token consumption metrics (input tokens, output tokens, total tokens per LLM call, by model) to the Copilot Token Consumption Scorecard</li>
+    <li>Add AI Credit request metrics (credits consumed per user, per tenant, and total per experiment cell) to the Copilot Token Consumption Scorecard</li>
+    <li>Ensure both new metric families render with the same statistical rigor (CI, MDE, sample size) as existing scorecard metrics so feature crews can interpret them consistently</li>
+  </ol>
+
+  <h3>Success Metrics</h3>
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="label">Primary Metric</div>
+      <div class="value">Scorecard Coverage</div>
+      <div class="target">Target: 100% of Copilot Token Consumption Scorecards include both new metric families by end of FY27 H1</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Feature Crew Adoption</div>
+      <div class="target">Target: ≥80% of feature crews cite scorecard cost metrics in ship reviews (vs. external dashboards) within 1 quarter of GA</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Scorecard Render Latency</div>
+      <div class="target">Must not regress above: existing P95 render time + 10%</div>
+    </div>
+  </div>
+
+  <h3>Explicit Non-Goals</h3>
+  <div class="nongoal">Per-model or per-feature drill-downs beyond what the scorecard already supports — minimal scope, additional dimensions are a follow-up</div>
+  <div class="nongoal">Translating tokens or credits into dollar cost — out of scope; teams continue to use existing cost calculators</div>
+  <div class="nongoal">Adding cost guardrails or auto-stop thresholds based on these metrics — separate workstream</div>
+  <div class="nongoal">New cost dashboards outside the Copilot Token Consumption Scorecard — this spec only extends the existing scorecard</div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 3 — User Scenarios                   -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 3</div>
+  <h2>User Scenarios</h2>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 1 — "Feature Crew PM Reviewing an Experiment" (Primary)</div>
+    <div class="narrative">
+      <p>Priya is a PM on a Copilot feature crew that just completed a 2-week experiment introducing a new prompt-rewriting step before each LLM call. She opens the Copilot Token Consumption Scorecard for the experiment. Today she would see engagement and quality metrics but have to switch to a separate cost dashboard to check whether the new step inflated GPT input tokens or AI Credit usage. With this spec shipped, the scorecard now shows GPT input/output tokens (broken out by model) and AI Credit requests per user — all on the same page, with the same stat-sig framing as her other metrics. She can immediately see that input tokens grew +12% (significant) while engagement grew +3% (not significant), giving her the data to decide not to ship.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 2 — "Leadership Portfolio Review"</div>
+    <div class="narrative">
+      <p>A Copilot org leader is preparing for a quarterly business review and wants to understand the cost trajectory across all Copilot experiments shipped in the past quarter. With these metrics on the scorecard, the leader (or their chief of staff) can pull token and credit consumption deltas for every shipped feature directly from the standard scorecard view, rather than commissioning a custom analysis. The leader can identify which features drove disproportionate token or credit growth and prioritize cost-reduction work for the next quarter.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 3 — "Data Scientist Validating Metric Definitions"</div>
+    <div class="narrative">
+      <p>Dana is a Data Scientist validating the new metrics before GA. She confirms that GPT token counts on the scorecard match the source telemetry (within ±1% reconciliation tolerance) and that AI Credit aggregations match the credit ledger. She validates statistical computation (CI, MDE) is consistent with other scorecard metrics. She signs off and the metrics ship to all feature crews.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case — Experiments with No LLM Calls</div>
+    <div class="narrative">
+      <p>For experiments on Copilot surfaces that don't make LLM calls (e.g., UI-only changes), the GPT token and AI Credit rows render with zero values and a small inline note: "No LLM activity observed in either variant." This avoids implying a cost issue when there is none and avoids hiding the metric entirely (which would look like a data gap).</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 4 — Requirements                     -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 4</div>
+  <h2>Requirements</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:70px">Priority</th>
+        <th style="width:50px">ID</th>
+        <th>Requirement</th>
+        <th style="width:180px">Acceptance Criteria</th>
+        <th style="width:100px">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-01</td>
+        <td>Add GPT token consumption metrics (input tokens, output tokens, total tokens) to the Copilot Token Consumption Scorecard, broken out by model</td>
+        <td>Metrics appear as named rows in scorecard; values reconcile to source telemetry within ±1%; per-model breakdown is visible</td>
+        <td>Confirm source-of-truth telemetry pipeline with DS</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-02</td>
+        <td>Add AI Credit request metrics (credits per user, credits per tenant, total credits) to the Copilot Token Consumption Scorecard</td>
+        <td>Metrics appear as named rows; values reconcile to AI Credit ledger within ±1%; both per-user and per-tenant aggregations are present</td>
+        <td>Confirm credit ledger source with billing team</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">R-03</span></td>
+        <td>R-03</td>
+        <td>Both metric families compute confidence intervals, MDE, and stat-sig flags consistently with existing scorecard metrics</td>
+        <td>Statistical fields render in the same columns and formatting as existing metrics; verified by DS on at least 3 sample scorecards</td>
+        <td>Reuse existing statistical framework</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-04</td>
+        <td>Handle the zero-activity edge case — render zero values with a clear inline note rather than blank cells or hidden rows</td>
+        <td>Experiments with no LLM activity in either variant show "No LLM activity observed" inline; metric rows are not hidden</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-05</td>
+        <td>Scorecard render performance does not regress materially after adding the new metrics</td>
+        <td>P95 render latency stays within existing baseline + 10% on representative scorecards</td>
+        <td>Guardrail check before GA</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-06</td>
+        <td>Update scorecard documentation and metric glossary to describe the new metric definitions, source telemetry, and known caveats</td>
+        <td>Doc updates published before GA; linked from the scorecard UI tooltip</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-07</td>
+        <td>Provide a one-time announcement / changelog entry to feature crews and leadership when the metrics ship</td>
+        <td>Announcement sent via standard scorecard release channel; includes screenshots and FAQ</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 5 — Design Direction                 -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 5</div>
+  <h2>Design Direction <span style="font-weight:400;font-size:0.85rem;color:var(--text-secondary)">— minimal additions</span></h2>
+
+  <h3>Placement &amp; Layout</h3>
+  <ul>
+    <li>Both metric families appear as new rows in a "Cost" section of the existing Copilot Token Consumption Scorecard, grouped together for easy scanning</li>
+    <li>GPT token rows nest by model (one row per model in use, plus a "Total" row)</li>
+    <li>AI Credit rows show: Credits per User (avg), Credits per Tenant (avg), Total Credits</li>
+    <li>Statistical columns (CI, MDE, p-value, stat-sig flag) match the formatting used by existing rows</li>
+  </ul>
+
+  <h3>Tooltips &amp; Inline Guidance</h3>
+  <ul>
+    <li>Each metric row has a hover tooltip with a 1–2 sentence definition and a "Learn more" link to the metric glossary</li>
+    <li>Tooltip explicitly notes that token/credit metrics are observational cost signals — not guardrails — to set expectations for interpretation</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 6 — Open Questions & Risks           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 6</div>
+  <h2>Open Questions &amp; Risks</h2>
+
+  <h3>Open Questions</h3>
+  <div class="question-card">
+    <div class="q-title">Q1: What is the authoritative source-of-truth telemetry for GPT token counts?</div>
+    <p>Several pipelines emit token-related events (gateway logs, model-side telemetry, billing). Need to confirm which one the scorecard should join against to ensure reconciliation. <strong>Owner:</strong> Data Science + Engineering.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q2: Is the AI Credit ledger queryable at the experiment-variant grain, or only at user/tenant grain?</div>
+    <p>If the ledger only aggregates by user, the scorecard will need to join credits to experiment assignment at the user level. Need to confirm with the billing/credit system team. <strong>Owner:</strong> Engineering.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q3: How should we handle multi-model experiments where each variant uses a different model?</div>
+    <p>If treatment uses model A and control uses model B, the per-model breakdown will show different model rows per variant. Need a clear visual treatment so this isn't misread as a data gap. <strong>Owner:</strong> Design.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q4: Are there any privacy or data-handling considerations for surfacing AI Credit data at the experiment level?</div>
+    <p>AI Credit consumption can be a proxy for paid-tier usage and may have additional handling requirements. <strong>Owner:</strong> Privacy.</p>
+  </div>
+
+  <h3>Risks</h3>
+  <div class="risk-card">
+    <div class="risk-title">Risk 1: Reconciliation Drift Between Scorecard and Source Telemetry</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> High. If scorecard token/credit values don't match the source-of-truth pipelines, feature crews will lose trust in the metrics and revert to ad-hoc dashboards. <strong>Mitigation:</strong> (1) DS validation on ≥3 sample scorecards before GA; (2) Document the reconciliation tolerance (±1%) publicly; (3) Add a scheduled reconciliation check post-GA.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 2: Scorecard Render Latency Regression</div>
+    <p><strong>Likelihood:</strong> Low–Medium · <strong>Impact:</strong> Medium. Adding new metric rows with statistical computation could slow scorecard rendering, especially on large experiments. <strong>Mitigation:</strong> (1) Pre-aggregate token and credit metrics in the analytics pipeline; (2) Run perf testing before GA; (3) Guardrail check on P95 latency.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 3: Misinterpretation of Cost Metrics as Guardrails</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Low–Medium. Feature crews may treat a "significant" token increase as a blocker even when it's not a defined guardrail, leading to inconsistent ship decisions. <strong>Mitigation:</strong> (1) Tooltip language explicitly framing these as observational cost signals; (2) Glossary entry clarifying that guardrails are a separate workstream; (3) Communicate intended use in the launch announcement.</p>
+  </div>
+</div>
+
+</div><!-- end .content -->
+
+<div class="footer">
+  GPT Token &amp; AI Credit Metrics — Mini Spec · IDEAS Experimentation · Draft · FY27 H1
+</div>
+
+</body>
+</html>
