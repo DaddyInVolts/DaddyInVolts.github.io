@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Spec — Feature Flag Insights in Expedite</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-light: #e8f0fe;
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --risk-red: #d93025;
+    --risk-bg: #fce8e6;
+    --success-green: #1e8e3e;
+    --success-bg: #e6f4ea;
+    --warn-amber: #e37400;
+    --warn-bg: #fef7e0;
+    --p0: #d93025;
+    --p1: #e37400;
+    --p2: #1a73e8;
+    --dep-accent: #8a4fb8;
+    --dep-bg: #f3eaff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  /* ── Header (alt3 amber) ── */
+  .header {
+    background: linear-gradient(135deg, #3d1f0a 0%, #7a3e14 55%, #d97a2b 100%);
+    color: #fff;
+    padding: 48px 40px 36px;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    font-weight: 400;
+  }
+  .meta-bar {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    font-size: 0.85rem;
+    opacity: 0.95;
+  }
+  .meta-item strong {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.7;
+    margin-bottom: 2px;
+  }
+
+  /* ── Content ── */
+  .content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 60px;
+  }
+
+  /* ── Section ── */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .section-number {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .section h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 20px 0 10px;
+    color: var(--text);
+  }
+  .section p, .section li {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .section ul, .section ol {
+    padding-left: 22px;
+  }
+  .section code {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 0.85em;
+  }
+
+  /* ── Pairs-with callout ── */
+  .deps {
+    background: var(--dep-bg);
+    border: 1px solid #d8c2f0;
+    border-left: 4px solid var(--dep-accent);
+    border-radius: 0 10px 10px 0;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+  }
+  .deps .dep-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: var(--dep-accent);
+    margin-bottom: 8px;
+  }
+  .deps ul { padding-left: 22px; margin: 0; }
+  .deps li {
+    color: var(--text);
+    font-size: 0.92rem;
+    margin-bottom: 4px;
+  }
+  .deps a { color: var(--dep-accent); font-weight: 600; }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.9rem;
+  }
+  thead th {
+    background: var(--bg);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ── Priority badges ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-p0 { background: #fce8e6; color: var(--p0); }
+  .badge-p1 { background: var(--warn-bg); color: var(--p1); }
+  .badge-p2 { background: var(--primary-light); color: var(--p2); }
+
+  /* ── Metric cards ── */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .metric-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .metric-card .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .metric-card .value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .metric-card .target {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* ── Scenario cards ── */
+  .scenario-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .scenario-card .persona {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .scenario-card .narrative { font-size: 0.95rem; color: var(--text-secondary); }
+
+  /* ── Risk / Open Q cards ── */
+  .risk-card {
+    border-left: 4px solid var(--risk-red);
+    background: var(--risk-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .risk-card .risk-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--risk-red);
+    margin-bottom: 4px;
+  }
+  .risk-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .question-card {
+    border-left: 4px solid var(--warn-amber);
+    background: var(--warn-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .question-card .q-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--warn-amber);
+    margin-bottom: 4px;
+  }
+  .question-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  /* ── UX Flow box ── */
+  .ux-flow {
+    background: var(--bg);
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin: 14px 0;
+    font-size: 0.92rem;
+    line-height: 1.9;
+  }
+
+  /* ── Nongoal chip ── */
+  .nongoal {
+    background: #f1f3f4;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 6px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nongoal::before {
+    content: '✕';
+    color: var(--risk-red);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  /* ── Confidence legend ── */
+  .conf-legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+    margin: 14px 0;
+  }
+  .conf-row {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 0.9rem;
+  }
+  .conf-row.high { border-left-color: var(--success-green); }
+  .conf-row.med  { border-left-color: var(--warn-amber); }
+  .conf-row.low  { border-left-color: var(--text-secondary); }
+  .conf-row strong { color: var(--text); display: block; margin-bottom: 4px; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .content { padding: 0 20px; }
+    .section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- HEADER                                                       -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="header">
+  <h1>Feature Flag Insights in Expedite</h1>
+  <div class="subtitle">Mini Spec — Auto-inferred descriptions of every feature flag, joined to its experiment results</div>
+  <div class="meta-bar">
+    <div class="meta-item"><strong>PM Owner</strong> David Lydston</div>
+    <div class="meta-item"><strong>Team</strong> IDEAS Experimentation</div>
+    <div class="meta-item"><strong>Last Updated</strong> June 23, 2026</div>
+    <div class="meta-item"><strong>Status</strong> Draft</div>
+    <div class="meta-item"><strong>Stakeholders</strong> Expedite, IDEAS DS, M365 Copilot Feature Crews, Code-Search Index Team, Privacy Review, ExP/Iris Owners, CCS Owners</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════════════════════════════════════════════ -->
+<!-- PAIRS-WITH CALLOUT                            -->
+<!-- ════════════════════════════════════════════ -->
+<div class="deps">
+  <div class="dep-label">Pairs with</div>
+  <ul>
+    <li><a href="https://daddyinvolts.github.io/Next-Iteration-Recommender/" target="_blank" rel="noopener">Next-Iteration Recommender for Expedite</a> — consumes the inferred flag descriptions and intervention tags emitted by this spec to recommend what an experiment's next iteration should change after a regression. This spec is the upstream knowledge layer; the recommender is the downstream advisory layer.</li>
+    <li>Reuses the existing M365 Copilot code-search index (ADO + GitHub) for repo scanning. No new code index is introduced.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 1 — Problem & Opportunity            -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 1</div>
+  <h2>Problem &amp; Opportunity</h2>
+
+  <h3>Problem Statement</h3>
+  <p>When a PM, DS, or Feature Crew lead opens a scorecard in Expedite today, they see flag identifiers like <code>chat.enableNewRanker</code> or experiment IDs like <code>#44231</code> with no human-readable description of what the flag actually changes in code. To understand <em>what was the intervention</em>, they have to ping the owning Feature Crew, dig through merge commits, or accept "I don't know." Cross-team scorecard review is harder than it should be, portfolio-level pattern-finding ("what kinds of changes are landing wins?") is largely manual, and the experimentation platform has no semantic understanding of the experiments running on it. The owner-written description fields in ExP/Iris and CCS exist, but they are often empty, stale, or a one-word placeholder, and there is no platform mechanism to keep them fresh as code evolves.</p>
+
+  <h3>Opportunity</h3>
+  <p>The M365 Copilot codebase is fully indexed in code search, and ≥92% of feature-flag check-sites use one of three well-known SDK shapes we can detect mechanically — <code>isEnabled</code> / <code>getValue</code> for ExP/Iris, <code>getConfig</code> for CCS, and a small set of in-repo gating-constant patterns. An LLM reading the code around each check-site (the call, the enclosing function, the modified branches, and the diff that introduced the flag) can emit a structured, human-readable description: <em>what the flag gates, what changes when it's on vs. off, which code paths it affects, and which surfaces it touches.</em> Persisted to Expedite alongside the existing experiment metadata, these inferred descriptions turn every scorecard into a self-documenting artifact, unlock portfolio queries by intervention type, and provide the semantic input that downstream specs (see <em>Next-Iteration Recommender</em>) need to reason over experiment outcomes.</p>
+
+  <h3>Evidence</h3>
+  <ul>
+    <li><strong>Owner-written description coverage:</strong> A sampled audit of active ExP/Iris flags in the M365 Copilot codebase found ~64% have either empty or one-line description fields ("test flag," "ranker change," "TBD").</li>
+    <li><strong>Cross-team review friction:</strong> In DS partner interviews (n=14), "I don't know what this flag actually changes" was the most-cited friction point when reviewing scorecards from Feature Crews they do not actively support.</li>
+    <li><strong>Scorecard-level legibility:</strong> Of 100 randomly sampled recent scorecards, 38 could not be interpreted by an outside reviewer from the flag name alone without further investigation.</li>
+    <li><strong>Mechanical detectability:</strong> 100% of feature crew code lives in code-search-indexed repos already (ADO + GitHub); ≥92% of check-sites use a known SDK API we can detect with deterministic AST or regex patterns.</li>
+    <li><strong>Downstream demand:</strong> The paired Next-Iteration Recommender spec explicitly depends on a machine-readable flag description being available; that work is blocked without this one.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 2 — Goals & Success Metrics          -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 2</div>
+  <h2>Goals &amp; Success Metrics</h2>
+
+  <h3>Goals</h3>
+  <ol>
+    <li>≥90% of active ExP/Iris + CCS flags and detected in-repo gates in the M365 Copilot portfolio have an inferred description in Expedite within 24 hours of code merge or flag creation.</li>
+    <li>Reviewer-rated usefulness of inferred descriptions ≥4.0/5.0 on a quarterly sample of 200 scorecards across at least 8 Feature Crews.</li>
+    <li>Surface the inferred description on every scorecard row in Expedite — zero extra clicks to see "what is this flag changing."</li>
+  </ol>
+
+  <h3>Success Metrics</h3>
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="label">Primary Metric</div>
+      <div class="value">Inferred-Description Coverage</div>
+      <div class="target">Target: ≥90% of active flags · Baseline: ~36% (owner-written, often stale)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Reviewer Usefulness Score</div>
+      <div class="target">Target: ≥4.0/5.0 on quarterly 200-scorecard sample · Baseline: not measured today</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Hallucination Rate</div>
+      <div class="target">Must stay &lt;3% of inferred descriptions marked "wrong" by code owner · Pause refresh if exceeded</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Freshness Lag</div>
+      <div class="target">Median description age ≤ time-since-last-code-touch of the flag · No description older than its source code</div>
+    </div>
+  </div>
+
+  <h3>Explicit Non-Goals</h3>
+  <div class="nongoal">Generating the <em>recommendation</em> of what to do next given the description + results — that is owned by the paired Next-Iteration Recommender spec</div>
+  <div class="nongoal">Writing back to the ExP/Iris or CCS source-of-truth description fields — we read code and write only to Expedite's join table; owner-authored fields in source systems are untouched</div>
+  <div class="nongoal">Scanning third-party / out-of-portfolio repos — V1 is M365 Copilot indexed repos only</div>
+  <div class="nongoal">Flag lifecycle management — creation, expiry, and cleanup remain owned by the existing flag-hygiene tooling; this spec only reads</div>
+  <div class="nongoal">Replacing the owner-written description when one exists — we render both, owner wins when present, inferred is shown as a complement</div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 3 — User Scenarios                   -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 3</div>
+  <h2>User Scenarios</h2>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 1 — "Cross-Team Scorecard Review" (Primary)</div>
+    <div class="narrative">
+      <p>Priya is a PM in the Copilot Growth org. She opens an Expedite scorecard for an experiment she doesn't own — <code>chat.enableNewRanker</code>. Today the flag has the owner-written description "ranker change," which tells her nothing. With this spec, the scorecard row shows: <em>"Routes Chat queries through a new GPT-4o-based ranker for the top-3 candidate completions; falls back to the existing ranker when ranker confidence is below 0.7. Affects ChatService.RankCandidates and the Excel + Word host paths."</em> A small <strong>high-confidence</strong> pill sits next to it, and a "Why?" tooltip shows three code excerpts that informed the inference. Priya understands the intervention immediately, without pinging anyone.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 2 — "DS Portfolio Pattern Hunt"</div>
+    <div class="narrative">
+      <p>Marcus is a DS lead doing a quarterly portfolio review. He wants to know "which intervention types are most often regressing latency guardrails?" Today this is a multi-day exercise of pulling 80 scorecards and manually categorizing them. With inferred descriptions and the tag taxonomy (R-08), Marcus filters Expedite to "intervention tag = ranking change" and instantly sees the 23 ranker experiments shipped in the last quarter, with their regression patterns side by side. He builds his portfolio brief in an afternoon instead of a week.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 3 — "Flag-Hygiene Cleanup"</div>
+    <div class="narrative">
+      <p>Maya owns a Feature Crew with ~140 active flags. She opens the FC-level coverage dashboard (R-07) and sees that 12 of her flags have an inferred description reading <em>"No active references found in indexed repos as of [date]."</em> Each one is a hygiene candidate — the flag still exists in ExP/Iris but the code that checked it has been removed. She opens a cleanup work item for each, retires the flags, and reduces her crew's flag-management burden.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 4 — "Owner Correction Loop"</div>
+    <div class="narrative">
+      <p>Jordan reviews the inferred description for one of his own flags and disagrees with it — the inference mis-attributed the affected surface. He clicks "Edit" on the row, types the correct description in 30 seconds, and saves. The override (a) wins for all future scorecard displays of that flag, (b) is captured as a hallucination-feedback signal for model evaluation, and (c) is preserved across re-scans until Jordan removes it. His correction does not write back into ExP/Iris source-of-truth.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case — "Generated code only"</div>
+    <div class="narrative">
+      <p>A flag has check-sites that exist only inside generated code (e.g., proto-generated stubs, codegen scaffolds). The scanner detects the generated-file markers, excludes those check-sites from inference, and emits a <em>"No human-authored references found"</em> description with a <strong>low-confidence</strong> pill. The flag still appears in Expedite — but the description tells reviewers honestly that we couldn't infer meaning from the code we found.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 4 — Requirements                     -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 4</div>
+  <h2>Requirements</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:70px">Priority</th>
+        <th style="width:50px">ID</th>
+        <th>Requirement</th>
+        <th style="width:200px">Acceptance Criteria</th>
+        <th style="width:140px">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-01</td>
+        <td>Scan all indexed M365 Copilot repos (ADO + GitHub) for feature-flag check-sites across three source classes: <strong>ExP/Iris</strong> (<code>isEnabled</code>, <code>getValue</code>, <code>getTreatmentVariable</code>), <strong>CCS</strong> (<code>getConfig</code> and equivalent SDK shapes), and <strong>in-repo gating constants</strong> (boolean / enum constants whose name matches the configured gate-naming convention and that gate a code branch). Emit a structured record per check-site with file, function, flag ID, source class, and the surrounding 40-line context window.</td>
+        <td>≥92% of historically known ExP/Iris and CCS check-sites recovered on a labeled validation set of 500 sites; in-repo gate recall ≥75% on labeled set; zero false positives in generated-code paths.</td>
+        <td>Reuses existing code-search index</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-02</td>
+        <td>For each detected flag, generate a single inferred description using an LLM over (flag ID + every detected check-site's 40-line context + the diff at flag introduction when available + the enclosing function/method signature). Description schema: <em>"what the flag gates"</em> (1 sentence), <em>"on vs. off behavior"</em> (1 sentence), <em>"affected code paths"</em> (file+function list, max 5), <em>"surfaces touched"</em> (host list — Chat / Excel / Word / PowerPoint / Outlook / etc.).</td>
+        <td>≥90% of generations conform to the schema; ≥80% of generations on a 200-flag eval set are rated ≥4/5 by the flag's owning engineer; refusal-rate on ambiguous input &lt;5%.</td>
+        <td>Model + prompt versioned and pinned</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-03</td>
+        <td>Persist inferred descriptions in Expedite's experiment-metadata join table, keyed on <code>(flag_id, scan_run_id)</code>. Refresh on relevant code change: a repo webhook triggers re-scan of any flag whose check-sites touch the changed files; refreshed description appears within 24 hours of code merge.</td>
+        <td>End-to-end webhook → updated row in Expedite ≤24h on ≥99% of triggering merges; freshness telemetry visible in IDEAS dashboards.</td>
+        <td>Idempotent on flag_id</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-04</td>
+        <td>Surface the inferred description on every scorecard row in Expedite that has a matched flag: a new <em>"What this flag changes"</em> field directly under the flag ID, with a confidence pill (<strong>high</strong> / <strong>medium</strong> / <strong>low</strong>), the affected-surface chips, and a "Why?" tooltip exposing the top-3 code excerpts that informed the inference plus the model + prompt version.</td>
+        <td>Field renders on 100% of scorecard rows with a matched flag; confidence pill present; "Why?" tooltip opens with three excerpts plus model/prompt version; Fluent UI accessibility (keyboard nav, screen reader) verified.</td>
+        <td>Coordinate with Expedite frontend</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-05</td>
+        <td>Every inferred description renders with a visible <em>"AI-generated — verify before quoting"</em> disclaimer in the scorecard UI. Owners can edit/override the inferred description per flag via an in-line edit affordance; the override wins over inference for all future displays and survives re-scans until the owner removes it.</td>
+        <td>Disclaimer visible on 100% of inferred rows; edit-and-save round-trips and persists across re-scans; override events emit a feedback signal; edit history available in an audit panel.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-06</td>
+        <td>Hallucination-feedback path — any reviewer can mark an inferred description "Wrong" or "Outdated" via a one-click affordance on the scorecard row. Feedback writes a structured record (flag_id, reviewer, reason, optional free-text) into a model-evaluation table that feeds the quarterly prompt + eval-set refresh.</td>
+        <td>Feedback persists; weekly aggregate visible to inference-model owners; quarterly eval pipeline ingests the feedback table; reviewer can see "your feedback was incorporated in eval vN+1" on the next refresh.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-07</td>
+        <td>Coverage dashboard for FC leads — per-Feature-Crew view of (a) % of FC flags with inferred descriptions, (b) % overridden by owners, (c) % flagged as wrong, (d) % with "no active references found." Linked from the FC's main Expedite landing page.</td>
+        <td>Dashboard refreshes daily; all four counters present; deep-links from each counter to the underlying flag list with filters pre-applied.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-08</td>
+        <td>Tag the inferred description with a small fixed taxonomy of intervention categories — <em>ranking, prompt, latency, ui, auth, telemetry, rollout-mechanic, model-routing, caching, throttling, content-filter, host-targeting, other</em>. Tags are inferred by the same model in the same call and used by downstream consumers (portfolio queries, the Next-Iteration Recommender).</td>
+        <td>≥85% of inferred descriptions have at least one tag; tag-precision on labeled 200-flag eval set ≥0.80 (macro F1); taxonomy frozen for V1 (no per-FC custom tags).</td>
+        <td>Taxonomy reviewed by IDEAS DS</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-09</td>
+        <td>Surface the inferred description in the ExP/Iris flag-detail UI as a read-only <em>"Expedite says"</em> panel — clearly labeled, one-way (we do not write back to ExP/Iris source-of-truth), with a deep link back to the Expedite row.</td>
+        <td>Panel renders on the ExP/Iris flag-detail page when an inferred description exists; "Edit in Expedite" link round-trips; no write paths to ExP/Iris from this surface.</td>
+        <td>Coordinate with ExP/Iris team</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-10</td>
+        <td>Inference observability — emit metrics for scan latency, coverage by source class (ExP/Iris vs. CCS vs. in-repo gate), hallucination rate from R-06 feedback, override rate from R-05, and refresh lag from R-03 webhooks.</td>
+        <td>All five metrics visible in IDEAS telemetry within 60 days of GA; alert on coverage drop &gt;2% week-over-week or hallucination rate exceeding 3%.</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 5 — Design Direction                 -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 5</div>
+  <h2>Design Direction</h2>
+
+  <h3>End-to-End Flow</h3>
+  <div class="ux-flow">
+    Code Merge / New Flag Created &nbsp;→&nbsp; Repo Webhook Fires &nbsp;→&nbsp; Re-Scan Scheduled for Affected Flags<br>
+    →&nbsp; Code Scanner Walks Indexed Repos &nbsp;→&nbsp; Per-Flag Check-Site Bundle Built<br>
+    →&nbsp; LLM Generates Structured Description + Intervention Tags &nbsp;→&nbsp; Confidence Scored<br>
+    →&nbsp; Persisted to Expedite Join Table &nbsp;→&nbsp; Scorecard UI Renders Description + Confidence Pill + "Why?" Tooltip<br><br>
+    <small>Owner can edit/override at any time &nbsp;→&nbsp; Override wins on subsequent displays &nbsp;→&nbsp; Hallucination feedback feeds quarterly eval refresh</small>
+  </div>
+
+  <h3>Confidence Pill Rules</h3>
+  <div class="conf-legend">
+    <div class="conf-row high">
+      <strong>High</strong>
+      ≥3 active check-sites, low variance across them, code touched within last 60 days, flag introduction diff available. The model is reading consistent, recent, authoritative code.
+    </div>
+    <div class="conf-row med">
+      <strong>Medium</strong>
+      1–2 check-sites OR moderate variance across sites OR last code touch 60–180 days ago. Description is likely correct but worth a glance before quoting in a shipping doc.
+    </div>
+    <div class="conf-row low">
+      <strong>Low</strong>
+      Flag name + owner-written description only (no check-sites found), OR check-sites in generated code only, OR last code touch &gt;180 days ago. Treat as a hint, not a fact.
+    </div>
+  </div>
+
+  <h3>Scorecard Row Treatment</h3>
+  <ul>
+    <li><strong>Inline description:</strong> The "What this flag changes" line appears immediately under the flag ID on every scorecard row, with the confidence pill, intervention tag chips, and host chips on the same line.</li>
+    <li><strong>"Why?" tooltip:</strong> Hover or focus the confidence pill to see the top-3 code excerpts that drove the inference, the model + prompt version, and a deep link to each excerpt in the code-search index.</li>
+    <li><strong>Owner-written + inferred coexistence:</strong> When ExP/Iris or CCS has a non-empty owner-written description, both are shown — owner-written first, labeled <em>"Owner says"</em>; inferred labeled <em>"Inferred from code"</em>. If they materially disagree, a small "disagrees with owner description" warning chip appears.</li>
+    <li><strong>Edit affordance:</strong> Pencil icon at the end of the row opens an in-line editor. Save persists the override; clear-override re-enables inference. Edits never write back to ExP/Iris or CCS source-of-truth.</li>
+  </ul>
+
+  <h3>Edge Cases &amp; Empty States</h3>
+  <ul>
+    <li><strong>No check-sites found in code:</strong> Description reads <em>"No active references found in indexed repos as of [date]."</em> with a low-confidence pill and a "Flag hygiene candidate" chip. Surfaces in the FC dashboard's hygiene counter (R-07).</li>
+    <li><strong>Generated-code-only references:</strong> Excluded from inference. Description reads <em>"References exist only in generated code — inference skipped."</em> with low confidence.</li>
+    <li><strong>Multi-host flag with divergent check-sites:</strong> Per-host description fragments are joined into one inferred description and the host chips reflect every detected host; if check-sites disagree on behavior per host, the disagreement is called out explicitly in the description body.</li>
+    <li><strong>Owner override matches inference:</strong> No visible difference to reviewers; override is persisted but the system tracks it as "owner-confirmed inference" for eval-quality tracking.</li>
+    <li><strong>Owner override conflicts with inference:</strong> Override wins on display. Conflict is captured for model evaluation (high-signal correction). After 90 days, if the underlying code has not changed and the override has not been re-confirmed by the owner, a "Re-confirm or release override" prompt is shown to the owner in the FC dashboard.</li>
+    <li><strong>Sensitive repos (privacy-flagged areas):</strong> Scanner respects repo ACLs; inference is skipped for code the inference service is not authorized to read; row shows <em>"Description unavailable in this scope"</em> with no leakage of code content.</li>
+    <li><strong>Model service outage:</strong> Scanning still runs and persists check-site records; descriptions are generated when the inference service recovers. Scorecard row shows <em>"Description pending"</em> rather than a stale or empty placeholder.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 6 — Open Questions & Risks           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 6</div>
+  <h2>Open Questions &amp; Risks</h2>
+
+  <h3>Open Questions</h3>
+  <div class="question-card">
+    <div class="q-title">Q1: Which inference model — internal Copilot model, AOAI deployment, or IDEAS-hosted?</div>
+    <p>Each has trade-offs across cost, latency, data boundary, and quality on code. The candidates need a head-to-head bake-off on a 500-flag labeled eval set before commit. <strong>Owner:</strong> David Lydston with IDEAS Eng + Copilot ML. <strong>Current leaning:</strong> Bake-off in dogfood; default to the option with the lowest hallucination rate on the eval set even if not the cheapest.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q2: Do we infer for flags that already have a non-empty owner-written description?</div>
+    <p>Options: (a) infer always, show both, owner wins on conflict; (b) infer only for empty descriptions; (c) infer always but suppress inference display if owner description is &gt;X chars. <strong>Owner:</strong> David Lydston with a sample of FC leads. <strong>Current leaning:</strong> (a) — always infer, always show both, owner wins; the cost of always inferring is low and the value of disagreement detection (a quality signal) is high.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q3: How do we treat in-repo "feature constant" gates that aren't tied to any ExP/Iris ID?</div>
+    <p>These exist (boolean const + <code>if (const)</code>) but have no rollout machinery. Do we surface them as their own pseudo-flag rows in Expedite? <strong>Owner:</strong> David Lydston with Expedite PM. <strong>Current leaning:</strong> Yes — emit them with a clear "in-repo constant — not a managed flight" badge so reviewers can see what is gating behavior without confusing them with experimentable flags.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q4: Refresh budget — re-scan every flag on every triggering merge, or batch nightly?</div>
+    <p>Webhook-driven keeps freshness tight but costs more inference calls; batching nightly is cheaper but breaks the 24h SLA on fast-iteration days. <strong>Owner:</strong> David Lydston with IDEAS Eng. <strong>Current leaning:</strong> Hybrid — webhook-driven for any flag currently associated with an active rollout in Expedite; nightly batch for the long tail.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q5: Cross-FC visibility of inferred descriptions — universal-read or per-FC ACL?</div>
+    <p>Today, scorecard data in Expedite is generally cross-FC visible. Inferred descriptions may surface implementation details (function names, surface routing) that some FCs treat as sensitive. <strong>Owner:</strong> David Lydston with Privacy Review and a sample of FC leads. <strong>Current leaning:</strong> Universal-read for V1 (matches existing scorecard model); allow FCs to mark individual flags "description hidden cross-FC" as a P2 follow-up if needed.</p>
+  </div>
+
+  <h3>Risks</h3>
+  <div class="risk-card">
+    <div class="risk-title">Risk 1: Hallucinated descriptions quoted as ground truth</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> High. If a PM quotes an inferred description in a ship-decision doc and the description is wrong, real bad decisions follow. <strong>Mitigation:</strong> (1) Persistent <em>"AI-generated — verify before quoting"</em> disclaimer in the UI (R-05); (2) Confidence pill with clear low-confidence visual treatment; (3) Owner edit/override path with the override winning permanently (R-05); (4) Hallucination feedback loop into quarterly eval refresh (R-06); (5) Hard guardrail metric — pause refresh if hallucination rate exceeds 3%.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 2: Code data boundary — inference service reads code it shouldn't</div>
+    <p><strong>Likelihood:</strong> Low · <strong>Impact:</strong> High. The scanner and inference service must respect repo ACLs and stay within the M365 data boundary; a misconfiguration could send privileged code to an unauthorized endpoint. <strong>Mitigation:</strong> (1) Scanner runs as a principal with read-only access scoped to indexed-repo ACLs; (2) Inference endpoint is in-region with no cross-tenant pooling of code in a single prompt; (3) Privacy Review sign-off before GA; (4) Audit log of every (flag_id × code excerpt × model call) tuple, retained per existing compliance retention rules; (5) Annual third-party privacy review.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 3: Index drift erodes freshness during fast iteration</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. On heavy-merge days, webhook backlog could push refresh past the 24h SLA, and a stale description displayed without a "stale" indicator misleads reviewers. <strong>Mitigation:</strong> (1) Webhook-driven hybrid refresh (Q4); (2) Surface description freshness on the row with explicit "Refreshed X hours ago" text; (3) "Pending refresh" badge when a triggering merge is detected but the refresh hasn't completed; (4) Telemetry alert on refresh lag &gt;24h for any active-rollout flag.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 4: Reviewer over-trust degrades over time</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. Day 1, reviewers will be appropriately skeptical of AI-generated descriptions; over time, the disclaimer becomes invisible and inferred descriptions get treated as authoritative. <strong>Mitigation:</strong> (1) Disclaimer is persistent and visually present, not a dismissible toast; (2) Confidence pill is colorized and prominent for low-confidence rows; (3) Quarterly usefulness survey (Goal 2) explicitly asks reviewers whether they verified the description before acting on it; (4) Random 5% of high-confidence descriptions are spot-audited by IDEAS DS each quarter and any false high-confidence is treated as a hallucination-rate guardrail breach.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 5: In-repo gate detection misclassifies non-flag constants</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Low. The in-repo gating-constant detector may pull in boolean constants that aren't actually feature gates (e.g., debug toggles, internal-only switches). False positives add noise to Expedite. <strong>Mitigation:</strong> (1) Conservative initial naming convention — require the constant to gate a top-level <code>if</code> branch with both arms non-empty; (2) Per-FC ability to suppress specific constants from inference; (3) Pseudo-flag rows carry the "in-repo constant — not a managed flight" badge so reviewers know not to treat them as experimentable; (4) FC dashboard surfaces detected-gate count so FCs can spot noise and report it via R-06 feedback.</p>
+  </div>
+</div>
+
+</div><!-- end .content -->
+
+<div class="footer">
+  Feature Flag Insights in Expedite — Mini Spec · IDEAS Experimentation · Last updated June 23, 2026
+</div>
+
+</body>
+</html>

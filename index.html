@@ -336,7 +336,7 @@
 
   <div class="section-title">
     <h2>Projects</h2>
-    <span class="count">10 live</span>
+    <span class="count">12 live</span>
   </div>
 
   <div class="projects">
@@ -552,6 +552,50 @@
         <div class="project-actions">
           <a class="btn primary" href="https://daddyinvolts.github.io/Saturation-Dashboard/" target="_blank" rel="noopener">View spec <span class="arrow">&rarr;</span></a>
           <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/Saturation-Dashboard" target="_blank" rel="noopener">Source &#8599;</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="project-banner alt3">
+        <span class="project-tag">Mini Spec</span>
+        <h3>Feature Flag Insights in Expedite</h3>
+        <p class="subtitle">Auto-inferred descriptions of every feature flag, joined to its experiment results</p>
+      </div>
+      <div class="project-body">
+        <p>A mini spec that scans every indexed M365 Copilot repo for feature-flag check-sites &mdash; ExP/Iris, CCS, and in-repo gating constants &mdash; and uses an LLM to infer a structured, human-readable description of what each flag actually changes: <em>what it gates, on-vs-off behavior, affected code paths, surfaces touched.</em> Descriptions are persisted to Expedite's experiment-metadata join table and rendered directly on every scorecard row with a high/medium/low confidence pill and a "Why?" tooltip exposing the code excerpts that drove the inference. Replaces the ~64% of flags with empty or stale owner-written descriptions and supplies the semantic layer the paired Next-Iteration Recommender depends on &mdash; turning every scorecard into a self-documenting artifact without writing back to ExP/Iris source-of-truth.</p>
+        <div class="project-meta">
+          <span class="chip">Feature flags</span>
+          <span class="chip">Code scanning</span>
+          <span class="chip">LLM inference</span>
+          <span class="chip">Scorecard UX</span>
+          <span class="chip">M365 Copilot</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/Feature-Flag-Insights/" target="_blank" rel="noopener">View spec <span class="arrow">&rarr;</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/Feature-Flag-Insights" target="_blank" rel="noopener">Source &#8599;</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="project-banner alt2">
+        <span class="project-tag">Mini Spec</span>
+        <h3>Next-Iteration Recommender for Expedite</h3>
+        <p class="subtitle">Given the inferred flag description and the experiment results, propose what V2 should change</p>
+      </div>
+      <div class="project-body">
+        <p>A mini spec that closes the regression-to-iteration loop. When a Guardrail Decision Framework verdict returns <strong>not-safe</strong>, the recommender reads three inputs &mdash; the inferred flag description from <em>Feature Flag Insights</em>, the full scorecard with regression detail, and a retrieval over the 8,000+ experiment Copilot portfolio archive &mdash; and proposes a ranked 2&ndash;5 candidate list of concrete next-iteration changes. Each recommendation carries a hypothesis, change description, top-3 analog past experiments, expected impact direction, suggested guardrail to watch, and a confidence label. Owners <strong>Try this</strong> (creates a pre-populated follow-up flight shell), <strong>Modify</strong>, or <strong>Reject with reason</strong>. Aims to cut median time-from-regression-to-follow-up from ~38 days to ≤14 and lift the targeted-follow-up rate from ~12% to ≥40%.</p>
+        <div class="project-meta">
+          <span class="chip">AI recommender</span>
+          <span class="chip">Iteration loop</span>
+          <span class="chip">Regression follow-up</span>
+          <span class="chip">Archive retrieval</span>
+          <span class="chip">M365 Copilot</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/Next-Iteration-Recommender/" target="_blank" rel="noopener">View spec <span class="arrow">&rarr;</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/Next-Iteration-Recommender" target="_blank" rel="noopener">Source &#8599;</a>
         </div>
       </div>
     </article>

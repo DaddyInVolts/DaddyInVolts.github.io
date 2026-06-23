@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Spec — Next-Iteration Recommender for Expedite</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-light: #e8f0fe;
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --risk-red: #d93025;
+    --risk-bg: #fce8e6;
+    --success-green: #1e8e3e;
+    --success-bg: #e6f4ea;
+    --warn-amber: #e37400;
+    --warn-bg: #fef7e0;
+    --p0: #d93025;
+    --p1: #e37400;
+    --p2: #1a73e8;
+    --dep-accent: #8a4fb8;
+    --dep-bg: #f3eaff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  /* ── Header (alt2 green) ── */
+  .header {
+    background: linear-gradient(135deg, #0b3d2e 0%, #126e54 55%, #1ea378 100%);
+    color: #fff;
+    padding: 48px 40px 36px;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    font-weight: 400;
+  }
+  .meta-bar {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    font-size: 0.85rem;
+    opacity: 0.95;
+  }
+  .meta-item strong {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.7;
+    margin-bottom: 2px;
+  }
+
+  /* ── Content ── */
+  .content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 60px;
+  }
+
+  /* ── Section ── */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .section-number {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .section h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 20px 0 10px;
+    color: var(--text);
+  }
+  .section p, .section li {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .section ul, .section ol {
+    padding-left: 22px;
+  }
+  .section code {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 0.85em;
+  }
+
+  /* ── Dependency callout ── */
+  .deps {
+    background: var(--dep-bg);
+    border: 1px solid #d8c2f0;
+    border-left: 4px solid var(--dep-accent);
+    border-radius: 0 10px 10px 0;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+  }
+  .deps .dep-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: var(--dep-accent);
+    margin-bottom: 8px;
+  }
+  .deps ul { padding-left: 22px; margin: 0; }
+  .deps li {
+    color: var(--text);
+    font-size: 0.92rem;
+    margin-bottom: 4px;
+  }
+  .deps a { color: var(--dep-accent); font-weight: 600; }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.9rem;
+  }
+  thead th {
+    background: var(--bg);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ── Priority badges ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-p0 { background: #fce8e6; color: var(--p0); }
+  .badge-p1 { background: var(--warn-bg); color: var(--p1); }
+  .badge-p2 { background: var(--primary-light); color: var(--p2); }
+
+  /* ── Metric cards ── */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .metric-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .metric-card .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .metric-card .value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .metric-card .target {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* ── Scenario cards ── */
+  .scenario-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .scenario-card .persona {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .scenario-card .narrative { font-size: 0.95rem; color: var(--text-secondary); }
+
+  /* ── Risk / Open Q cards ── */
+  .risk-card {
+    border-left: 4px solid var(--risk-red);
+    background: var(--risk-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .risk-card .risk-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--risk-red);
+    margin-bottom: 4px;
+  }
+  .risk-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .question-card {
+    border-left: 4px solid var(--warn-amber);
+    background: var(--warn-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .question-card .q-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--warn-amber);
+    margin-bottom: 4px;
+  }
+  .question-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  /* ── UX Flow box ── */
+  .ux-flow {
+    background: var(--bg);
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin: 14px 0;
+    font-size: 0.92rem;
+    line-height: 1.9;
+  }
+
+  /* ── Nongoal chip ── */
+  .nongoal {
+    background: #f1f3f4;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 6px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nongoal::before {
+    content: '✕';
+    color: var(--risk-red);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  /* ── Recommendation mock card ── */
+  .rec-mock {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 12px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .rec-mock .rec-rank {
+    display: inline-block;
+    background: var(--success-bg);
+    color: var(--success-green);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 9px;
+    border-radius: 12px;
+    margin-right: 8px;
+  }
+  .rec-mock .rec-conf {
+    display: inline-block;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+  .rec-mock .rec-hyp {
+    font-weight: 700;
+    color: var(--text);
+    margin: 10px 0 4px;
+    font-size: 1rem;
+  }
+  .rec-mock .rec-desc {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+  .rec-mock .rec-meta {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+    margin-top: 4px;
+  }
+  .rec-mock .rec-meta strong { color: var(--text); }
+  .rec-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .rec-actions .btn {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    cursor: default;
+  }
+  .rec-actions .btn.primary { background: var(--success-green); color: #fff; border-color: var(--success-green); }
+  .rec-actions .btn.reject { color: var(--risk-red); border-color: #f4c7c3; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .content { padding: 0 20px; }
+    .section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- HEADER                                                       -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="header">
+  <h1>Next-Iteration Recommender for Expedite</h1>
+  <div class="subtitle">Mini Spec — Given the inferred flag description and the experiment results, propose what the next iteration should change</div>
+  <div class="meta-bar">
+    <div class="meta-item"><strong>PM Owner</strong> David Lydston</div>
+    <div class="meta-item"><strong>Team</strong> IDEAS Experimentation</div>
+    <div class="meta-item"><strong>Last Updated</strong> June 23, 2026</div>
+    <div class="meta-item"><strong>Status</strong> Draft</div>
+    <div class="meta-item"><strong>Stakeholders</strong> Expedite, IDEAS DS, M365 Copilot Feature Crews, Copilot ML, Privacy Review, Growth Orchestrator</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════════════════════════════════════════════ -->
+<!-- DEPENDENCIES CALLOUT                          -->
+<!-- ════════════════════════════════════════════ -->
+<div class="deps">
+  <div class="dep-label">Depends on</div>
+  <ul>
+    <li><a href="https://daddyinvolts.github.io/Feature-Flag-Insights/" target="_blank" rel="noopener">Feature Flag Insights in Expedite</a> — provides the machine-readable inferred description of what each flag changes and the intervention-tag taxonomy. Without this, the recommender has only a flag name to reason over.</li>
+    <li><a href="https://daddyinvolts.github.io/Guardrail-Decision-Framework/" target="_blank" rel="noopener">Guardrail Decision Framework</a> — provides the deterministic <em>not-safe</em> / <em>extend</em> verdict per guardrail and the regression detection signal that triggers a recommendation set.</li>
+    <li><a href="https://daddyinvolts.github.io/GrowthOrchestrator-Metadata/" target="_blank" rel="noopener">Growth Orchestrator Metadata in Expedite</a> — provides the canonical hypothesis, initiative classification, and Feature Crew ownership used to compare recommendations against owner intent and route follow-ups correctly.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 1 — Problem & Opportunity            -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 1</div>
+  <h2>Problem &amp; Opportunity</h2>
+
+  <h3>Problem Statement</h3>
+  <p>When an M365 Copilot experiment regresses a guardrail or fails to move its primary metric, the Feature Crew's next move today is "look at the scorecard, talk to DS, guess at a follow-up." There is no platform-side proposal for "given what your flag changed and how it landed, here's a starting menu of what V2 should change differently." The result varies wildly across teams: strong FCs run rigorous iteration loops, weaker ones ship V1 and quietly move on when regressions appear. Of regressing experiments, ~41% have no documented follow-up experiment within 60 days, and only ~12% of regressions get a follow-up that specifically targets the guardrail that regressed. The platform has all of the inputs needed to do better — inferred flag description, scorecard results, guardrail verdict, and a rich archive of past similar interventions — but they have never been joined into a recommendation surface.</p>
+
+  <h3>Opportunity</h3>
+  <p>With (a) <em>Feature Flag Insights</em> surfacing the <strong>what</strong> (inferred description + intervention tags), (b) the Expedite scorecard supplying the <strong>result</strong>, and (c) the Guardrail Decision Framework specifying the <strong>failure mode</strong>, an LLM-driven recommender can read all three together and propose a ranked list of concrete next-iteration changes. Each recommendation is tied to a written hypothesis, a small set of similar past experiments retrieved from the Copilot portfolio archive, an expected impact direction, and a suggested primary guardrail to watch on the follow-up flight. Owners get a starting menu they can <strong>accept</strong> (registers a follow-up flight shell pre-populated with metadata), <strong>modify</strong>, or <strong>reject with reason</strong> — and the rejection signal feeds back into model evaluation. The portfolio learns from acceptance over time, and FCs get a consistent, evidence-grounded starting point for iteration instead of an empty page.</p>
+
+  <h3>Evidence</h3>
+  <ul>
+    <li><strong>No-follow-up rate:</strong> ~41% of experiments that ship a regression have no documented follow-up experiment registered within 60 days (sampled portfolio audit, last four quarters).</li>
+    <li><strong>Targeted-follow-up rate:</strong> Of regressions that do receive a follow-up, only ~12% have a follow-up that specifically targets the guardrail that regressed; the rest target unrelated metrics or repeat the original intervention.</li>
+    <li><strong>FC retro signal:</strong> "We didn't know what to try next" is the most-cited reason for not iterating in published M365 Copilot FC retros over the last six months.</li>
+    <li><strong>Archive richness:</strong> The Copilot portfolio archive contains 8,000+ past experiments with structured intervention + guardrail outcome data — sufficient retrieval depth for a recommender.</li>
+    <li><strong>Time-to-follow-up:</strong> Median time from regression detection to a registered follow-up flight is ~38 days today; FC retros consistently target ≤14 days as the threshold for "iteration loop is healthy."</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 2 — Goals & Success Metrics          -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 2</div>
+  <h2>Goals &amp; Success Metrics</h2>
+
+  <h3>Goals</h3>
+  <ol>
+    <li>Every experiment with a not-safe guardrail verdict gets a ranked list of ≥3 candidate next-iteration changes in the Expedite detail view within 24 hours of the cadence run that produced the verdict.</li>
+    <li>Owner acceptance rate (Feature Crew marks a recommendation as "trying this," registering a follow-up flight shell) reaches ≥30% on Sev≤2 regressions within 60 days of GA.</li>
+    <li>Median time from regression detection to a registered follow-up experiment drops from ~38 days to ≤14 days within 90 days of GA.</li>
+  </ol>
+
+  <h3>Success Metrics</h3>
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="label">Primary Metric</div>
+      <div class="value">Recommendation Acceptance Rate</div>
+      <div class="target">Target: ≥30% of recommended next iterations registered as a follow-up flight · Baseline: 0% (no recs today)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Time-to-Follow-Up</div>
+      <div class="target">Target: median ≤14 days regression → registered follow-up · Baseline: ~38 days</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Worse-Than-Nothing Rate</div>
+      <div class="target">Must stay &lt;5% of recommendations rated by owner as "actively misleading" · Halt recs for that FC if exceeded</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Diversity Floor</div>
+      <div class="target">Every recommendation set covers ≥2 distinct intervention categories · Hard rule, not a soft target</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Outcome Metric</div>
+      <div class="value">Recommendation-Driven Fix Rate</div>
+      <div class="target">Target: ≥40% of accepted recommendations land a follow-up that closes the original regressed guardrail · Baseline: not measured</div>
+    </div>
+  </div>
+
+  <h3>Explicit Non-Goals</h3>
+  <div class="nongoal">Auto-running the recommended iteration without owner approval — every accepted recommendation creates a follow-up <em>shell</em> that the owner reviews, designs, and ramps via the existing flight workflow</div>
+  <div class="nongoal">Inferring the flag description — owned by the upstream <em>Feature Flag Insights</em> spec; this spec consumes the inferred description and does not generate it</div>
+  <div class="nongoal">Replacing the FC's design judgement — recommendations are a starting menu, not a verdict or a mandate</div>
+  <div class="nongoal">Recommending follow-ups for neutral or winning experiments at V1 — V1 focuses on regression follow-up; expanding to "how to amplify a win" is a V2 candidate</div>
+  <div class="nongoal">Cross-portfolio recommendations that leak intervention specifics across FC trust boundaries — retrieval respects per-FC opt-in for cross-FC intervention details</div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 3 — User Scenarios                   -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 3</div>
+  <h2>User Scenarios</h2>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 1 — "Sev2 Latency Regression Follow-Up" (Primary)</div>
+    <div class="narrative">
+      <p>Maya's Feature Crew shipped a new Chat ranker (<code>chat.enableNewRanker</code>) and the 9:00 AM cadence returned a <strong>not-safe</strong> verdict on the Chat p95 latency guardrail — regression of +180ms localized to Excel-host queries. Within 24 hours, a <em>Suggested next iterations</em> panel appears on the experiment's Expedite detail page. The recommender has read the inferred description ("Routes Chat queries through new GPT-4o ranker for top-3 candidates"), the regression detail (p95 +180ms, Excel-host only), and the archive (3 prior latency-regressing ranker changes — 2 fixed by adding a cache layer, 1 fixed by tiering by confidence). It proposes three options: <strong>(1)</strong> tier the new ranker by confidence — fall back to the old ranker below 0.7 confidence; <strong>(2)</strong> add a query-result cache layer at the top of the ranker pipeline; <strong>(3)</strong> carve out Excel host from the new ranker until a host-specific perf investigation completes. Each recommendation lists the 3 most-similar past experiments. Maya clicks "Try this" on option 1 — a follow-up flight shell appears in her FC's flight queue with the hypothesis, suggested guardrail, and analog past flight links pre-populated. She modifies the cohort plan and ramps.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 2 — "Multi-Host Single-Surface Regression"</div>
+    <div class="narrative">
+      <p>Priya's flag regresses an engagement guardrail on Word-host queries but is neutral on Excel and PowerPoint. The recommender — using the host chips from the inferred description plus the per-host scorecard breakdown — proposes a host-specific carve-out as the top recommendation, citing 4 past flags that resolved similar single-host regressions with host-targeted rollbacks. Priya accepts; the follow-up shell is pre-populated with a Word-only audience filter.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 3 — "Owner Hypothesis Disagreement"</div>
+    <div class="narrative">
+      <p>Jordan's experiment was registered in Growth Orchestrator with the hypothesis "this will improve response satisfaction by reducing latency." The flag shipped, latency moved as expected, but response satisfaction <em>regressed</em>. The recommender surfaces this disagreement explicitly at the top of the panel: <em>"Owner hypothesis was that latency improvement would lift satisfaction; experiment improved latency but regressed satisfaction. Recommendations target satisfaction directly, not latency."</em> The three recommendations then target the satisfaction signal rather than the original latency hypothesis.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 4 — "Repeated Regression on the Same Flag"</div>
+    <div class="narrative">
+      <p>This is the third iteration of the same intervention area; the flag has regressed the same guardrail on V1, V2, and V3. The recommender escalates: the top-ranked option is now <em>"Consider stopping this intervention — three consecutive iterations have failed to clear this guardrail; the archive shows similar three-strike patterns rarely recover."</em> The other two recommendations remain change-oriented but the stop-option is the prominent top result.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case — "No analogous past experiments"</div>
+    <div class="narrative">
+      <p>For a novel intervention category, archive retrieval cannot find ≥2 strong analog past experiments. The recommender still emits recommendations but caps the set at 2 instead of 3, applies a low-confidence label to each, and prepends <code>[Exploratory — no strong analog]</code> to each option's hypothesis. The owner is told honestly that they are in less-charted territory.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case — "Inferred description missing"</div>
+    <div class="narrative">
+      <p>Feature Flag Insights does not (yet) have a description for the flag — the upstream coverage gap. The recommender uses the scorecard + guardrail verdict + flag-name embedding only, returns recommendations with a clearly visible <em>"Low confidence — no flag description available"</em> badge, and includes a deep link to request inference for the flag. Owners can still accept or modify, but they're told the input was incomplete.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 4 — Requirements                     -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 4</div>
+  <h2>Requirements</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:70px">Priority</th>
+        <th style="width:50px">ID</th>
+        <th>Requirement</th>
+        <th style="width:200px">Acceptance Criteria</th>
+        <th style="width:140px">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-01</td>
+        <td>Trigger — on every cadence run that produces a <strong>not-safe</strong> verdict (per Guardrail Decision Framework), compute and persist a recommendation set within 24 hours of cadence completion. Re-compute on subsequent cadence runs if the verdict persists and the underlying inputs (description, scorecard, archive) have changed materially.</td>
+        <td>≥99% of qualifying verdicts have a persisted recommendation set within 24h in dogfood; re-compute on input change verified on synthetic flip-flop test.</td>
+        <td>Depends on Guardrail Decision Framework</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-02</td>
+        <td>Recommendation set — 2 to 5 ranked candidate next-iteration changes. Each candidate carries: a one-line hypothesis, a 2–3 sentence change description, top-3 most-similar past experiments (with deep links), expected impact direction on the regressed guardrail, the suggested primary guardrail to watch on the follow-up, and a confidence label (<strong>high</strong> / <strong>medium</strong> / <strong>low</strong>).</td>
+        <td>All six fields present on ≥99% of recommendations; rank order stable across model temperature variation on a labeled eval set; cap at 5 enforced.</td>
+        <td>Model + prompt versioned</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-03</td>
+        <td>Inputs to the model — (a) inferred flag description + intervention tags from Feature Flag Insights, (b) full scorecard with all guardrail verdicts and direction-of-effect from Guardrail Decision Framework, (c) Growth Orchestrator hypothesis + initiative classification, (d) top-N retrieval from the Copilot portfolio archive on (intervention tag × regressed guardrail × surface) similarity. Retrieval depth N is a tunable hyperparameter, default 20.</td>
+        <td>End-to-end pipeline produces a recommendation from these four inputs in &lt;90 seconds on the 95th percentile; missing inputs gracefully degrade per edge-case rules.</td>
+        <td>Retrieval embeddings pre-computed nightly</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-04</td>
+        <td>Surface in Expedite — a <em>"Suggested next iterations"</em> panel on the regressing experiment's detail page, with recommendations ranked, expandable, and an explicit <em>"AI-generated; verify before acting"</em> disclaimer at the top of the panel. Surface a count badge in the experiment's row in the FC's flight list.</td>
+        <td>Panel renders on 100% of qualifying experiments; disclaimer visible; count badge present in flight list; Fluent UI accessibility verified.</td>
+        <td>Coordinate with Expedite frontend</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-05</td>
+        <td>Owner actions per recommendation — <strong>"Try this"</strong> (creates a follow-up flight shell with hypothesis, suggested guardrail, parent flight link, and analog past flights pre-populated; routes to the FC's flight intake queue), <strong>"Modify"</strong> (opens an editable form with the recommendation pre-loaded), <strong>"Reject with reason"</strong> (captures structured reason from a small fixed list: <em>not feasible, misreads what we changed, wrong analog, conflicts with strategy, other</em>).</td>
+        <td>All three actions round-trip; "Try this" produces a follow-up flight shell in &lt;5 seconds; rejection reasons persist; FC can see their own action history.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-06</td>
+        <td>Outcome feedback loop — when a follow-up flight created via "Try this" runs to a result (cadence verdict reached), capture whether the follow-up actually closed the originally regressed guardrail. Aggregate into the Recommendation-Driven Fix Rate metric and surface a per-FC dashboard.</td>
+        <td>End-to-end outcome capture works on dogfood; per-FC dashboard shows fix rate refreshed weekly; outcome signal feeds back into the model evaluation pipeline.</td>
+        <td>Long-feedback-loop metric</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-07</td>
+        <td>Diversity floor — recommendation engine guarantees ≥2 distinct intervention categories per recommendation set. If only one category has strong analogs, force the second slot to a different category even at lower confidence, labeled accordingly. Avoid mode collapse where every option is "add a cache."</td>
+        <td>Synthetic test: 100 generated recommendation sets exhibit ≥2 distinct tags in 100% of cases; manual audit of 50 production sets shows no category-collapse complaints.</td>
+        <td>Diversity check is post-generation filter</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-08</td>
+        <td>Confidence labels — each recommendation is labeled high / medium / low based on (a) count of strong analog past experiments, (b) model confidence, and (c) whether inferred flag description was available. Rules pinned in the rule dictionary alongside the Decision Framework rules.</td>
+        <td>Confidence rules documented and pinned; manual eval on 200 recommendations shows ≥80% agreement between human raters and the rule-based label.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-09</td>
+        <td>Surface the top recommendation in the auto-filed ADO bug (per the <em>Auto-File Bug / IcM for FCs on Guardrail Violations</em> spec) — a "Suggested next iteration" section in the bug body with the top option, hypothesis, and a deep link back to the full panel in Expedite.</td>
+        <td>Top recommendation appears in every qualifying bug body; deep link round-trips to Expedite; only the top is included to keep bug body scannable.</td>
+        <td>Coordinate with FC-Guardrail-Bug-Filing spec</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-10</td>
+        <td>Per-FC opt-out — FCs can opt their experiments out of recommendations at the experiment-creation or flight-creation stage (e.g., highly sensitive experiments where an AI-suggested next move is inappropriate). Opt-out is logged and visible to the FC lead in the per-FC dashboard.</td>
+        <td>Opt-out flag persists; recommender skips opted-out experiments; FC dashboard counter shows opted-out count.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-11</td>
+        <td>Recommender observability — emit metrics for acceptance rate, time-to-follow-up, worse-than-nothing rate, diversity coverage, generation latency, and recommendation-driven fix rate (R-06) to IDEAS telemetry.</td>
+        <td>All six metrics visible in IDEAS telemetry within 60 days of GA; alert wired on worse-than-nothing rate &gt;5% per FC.</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 5 — Design Direction                 -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 5</div>
+  <h2>Design Direction</h2>
+
+  <h3>End-to-End Flow</h3>
+  <div class="ux-flow">
+    Not-Safe Verdict from Guardrail Decision Framework &nbsp;→&nbsp; Recommender Worker Triggered<br>
+    →&nbsp; Fetch Inputs (Inferred Description + Scorecard + Orchestrator Hypothesis + Archive Retrieval)<br>
+    →&nbsp; LLM Generates Ranked Recommendations &nbsp;→&nbsp; Diversity Filter Applied &nbsp;→&nbsp; Confidence Labels Assigned<br>
+    →&nbsp; Persisted to Expedite &nbsp;→&nbsp; Surfaced in Detail Page Panel + Auto-Filed Bug Body + FC Flight-List Badge<br><br>
+    <small>Owner chooses "Try this" / "Modify" / "Reject with reason" &nbsp;→&nbsp; Follow-up flight shell created &nbsp;→&nbsp; Outcome at next cadence feeds fix-rate metric &amp; eval refresh</small>
+  </div>
+
+  <h3>Recommendation Card — Layout (illustrative)</h3>
+  <div class="rec-mock">
+    <div>
+      <span class="rec-rank">Rank 1</span>
+      <span class="rec-conf">High confidence · 4 strong analogs</span>
+    </div>
+    <div class="rec-hyp">Tier the new ranker by confidence — fall back to the old ranker when confidence &lt; 0.7</div>
+    <div class="rec-desc">Three past ranker rollouts that regressed Chat p95 latency by 100–250ms resolved cleanly by introducing a confidence-tiered fallback to the previous ranker. The cost of the new ranker is concentrated in low-confidence calls; tiering preserves the win on high-confidence calls while removing the latency tail.</div>
+    <div class="rec-meta">
+      <span><strong>Targets:</strong> Chat p95 latency (regressed) · <strong>Suggested guardrail:</strong> Chat p95 latency · <strong>Expected direction:</strong> close regression to within +30ms</span>
+    </div>
+    <div class="rec-meta">
+      <span><strong>Analog flights:</strong> #41892 · #43117 · #44009</span>
+    </div>
+    <div class="rec-actions">
+      <span class="btn primary">Try this</span>
+      <span class="btn">Modify</span>
+      <span class="btn reject">Reject with reason</span>
+    </div>
+  </div>
+
+  <h3>Ranking Rules</h3>
+  <ul>
+    <li><strong>Primary signal:</strong> Number and strength of analog past experiments that closed a similar regression with the candidate intervention type.</li>
+    <li><strong>Secondary signal:</strong> Model confidence on the (description, regression, intervention) tuple.</li>
+    <li><strong>Tertiary signal:</strong> Estimated effort to implement (proxied by intervention category — e.g., a host carve-out is cheap; a cache layer is moderate; an architecture change is heavy). Lower effort breaks ties when other signals are equal.</li>
+    <li><strong>Diversity post-filter (R-07):</strong> After ranking, the top-ranked option in each distinct intervention category gets a guaranteed slot; remaining slots fill by rank.</li>
+    <li><strong>Repeated-regression escalation:</strong> If this is the third iteration of the same intervention area with the same regression, the "Consider stopping this intervention" option is force-promoted to rank 1.</li>
+  </ul>
+
+  <h3>Edge Cases &amp; Empty States</h3>
+  <ul>
+    <li><strong>No inferred flag description (upstream gap):</strong> Recommend using scorecard + guardrail + flag-name embedding only. Surface with a <em>"Low confidence — no flag description available"</em> badge and a deep link to request inference. Cap set size at 2.</li>
+    <li><strong>No strong historical analogs:</strong> Return up to 2 recommendations with low-confidence labels and an <code>[Exploratory — no strong analog]</code> prefix on each hypothesis. Honest signaling beats fabricated specificity.</li>
+    <li><strong>Owner hypothesis disagreement:</strong> If the experiment regressed a metric the owner's hypothesis did not target, surface the disagreement explicitly at the top of the panel and target recommendations at the regressed metric, not the owner's original hypothesis target.</li>
+    <li><strong>Repeated regression on the same intervention area (3+ iterations):</strong> Top-ranked recommendation is "Consider stopping this intervention" with the analog evidence cited. Other change-oriented recommendations remain in the set but below.</li>
+    <li><strong>Cross-FC archive retrieval restricted by opt-out:</strong> Recommender retrieves only the public summary (intervention tag + outcome direction) for restricted past flights; intervention specifics are redacted. The recommendation card shows "Analog details redacted (cross-FC privacy)" instead of full hypothesis text.</li>
+    <li><strong>FC opted out (R-10):</strong> No recommendations generated or surfaced. The opt-out is visible to the FC lead on the per-FC dashboard for audit.</li>
+    <li><strong>Model service outage:</strong> Recommendation panel shows <em>"Recommendations pending — retrying"</em> with the last-known set (if any) visible read-only. Outage exceeding 4 hours emits an IcM to the recommender on-call.</li>
+    <li><strong>Worse-than-nothing rate exceeds guardrail per FC:</strong> Recommendation surfacing is paused for that FC pending model + retrieval review. The FC is notified explicitly so the absence is not silent.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 6 — Open Questions & Risks           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 6</div>
+  <h2>Open Questions &amp; Risks</h2>
+
+  <h3>Open Questions</h3>
+  <div class="question-card">
+    <div class="q-title">Q1: Opt-in default vs. opt-out default per FC</div>
+    <p>Should recommendations surface for every regressing experiment by default (opt-out, R-10), or require an FC lead to explicitly opt their crew in? Opt-in is safer but slows adoption; opt-out gets coverage fast but risks FCs feeling AI-suggested next moves are imposed. <strong>Owner:</strong> David Lydston with Copilot Eng leadership. <strong>Current leaning:</strong> Opt-out (surfaced by default) for V1, with a single-click per-experiment opt-out at flight creation. Re-evaluate at the 90-day post-GA mark based on worse-than-nothing rate.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q2: Cross-FC archive retrieval policy</div>
+    <p>The strongest analogs for a given regression often live in other FCs. Some FCs treat intervention specifics as private. How much is retrievable cross-FC, and what is redacted? <strong>Owner:</strong> David Lydston with Privacy Review and FC leads. <strong>Current leaning:</strong> Cross-FC retrieval enabled by default for metadata (intervention tag, regression type, outcome direction); intervention-specific details require source-FC opt-in; redacted analogs still count toward analog support but show "details redacted" in the recommendation card.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q3: Where does the model actually run?</div>
+    <p>Internal Copilot model, AOAI deployment, or IDEAS-hosted? Cost + latency + data-boundary trade-offs differ. Recommender prompts are larger than Feature Flag Insights prompts (scorecard + archive context) which amplifies cost differences. <strong>Owner:</strong> David Lydston with IDEAS Eng + Copilot ML. <strong>Current leaning:</strong> Same provider chosen for Feature Flag Insights (Q1 there) to share the data-boundary review; benchmark cost separately because of larger prompt size.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q4: Recommend on extend verdicts as well as not-safe at V1?</div>
+    <p>The trigger (R-01) covers not-safe only. Extend verdicts also represent regressions in spirit (CI overlap with the practical-significance threshold); recommending on extend would expand coverage but increase noise. <strong>Owner:</strong> David Lydston with Guardrail Decision Framework owner. <strong>Current leaning:</strong> Not-safe only at V1; revisit for V1.5 once acceptance rate stabilizes.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q5: Does the model see PII or sensitive metric values?</div>
+    <p>The scorecard input includes guardrail values (e.g., Harmful Content Rate) and the archive includes the same. Some guardrail metrics carry sensitive aggregate signals. Do we redact, summarize, or send raw? <strong>Owner:</strong> Privacy Review + IDEAS DS. <strong>Current leaning:</strong> Summarize guardrail outcomes as direction + magnitude bucket (e.g., "regression: 100–250ms p95") rather than raw values for the recommender's prompt; raw values remain available only for the scorecard surface itself.</p>
+  </div>
+
+  <h3>Risks</h3>
+  <div class="risk-card">
+    <div class="risk-title">Risk 1: Mode collapse — every recommendation is "add a cache"</div>
+    <p><strong>Likelihood:</strong> High without explicit mitigation · <strong>Impact:</strong> High. If archive retrieval is weak or the model defaults to a small set of high-prior interventions, recommendations become boilerplate and FCs stop reading them. <strong>Mitigation:</strong> (1) Hard diversity floor — ≥2 distinct intervention categories per set (R-07); (2) Per-category retrieval depth tuned to surface uncommon successful interventions; (3) Monthly red-team review of 50 recent recommendation sets by IDEAS DS; (4) Repeated-recommendation detection — if the same hypothesis pattern is recommended on &gt;20% of regressions in a 30-day window, alert the model owners.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 2: Owner over-trust — FCs ship recommendations without independent design review</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> High. AI-suggested next moves accepted without scrutiny could produce real downstream regressions. <strong>Mitigation:</strong> (1) Persistent <em>"AI-generated; verify before acting"</em> disclaimer on every panel (R-04); (2) "Try this" creates a flight <em>shell</em>, not a ramped flight — the owner still designs and approves the rollout; (3) Confidence labels with clear low-confidence visual treatment (R-08); (4) Outcome feedback loop (R-06) tracks whether accepted recommendations actually fixed the regression — published per FC so under-performing acceptance patterns are visible.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 3: Regressive feedback loop on acceptance signal</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. If acceptance is treated as the headline quality metric, the system optimizes for "things owners click yes on" rather than "things that actually fix the regression." <strong>Mitigation:</strong> Ground the quality metric in <em>outcome</em>, not click-acceptance — Recommendation-Driven Fix Rate (R-06) is the metric the recommender is optimized against in eval; acceptance rate is reported but not the optimization target.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 4: Cross-FC retrieval leaks intervention secrets</div>
+    <p><strong>Likelihood:</strong> Medium without policy · <strong>Impact:</strong> High. The recommender's analog-experiments list could surface intervention details that other FCs treat as confidential, violating internal trust boundaries. <strong>Mitigation:</strong> (1) Per-FC opt-in for cross-FC retrieval of intervention specifics (Q2); (2) Default redaction of intervention specifics for non-opted-in FCs — redacted analogs show only tag + outcome direction; (3) Audit log of every cross-FC retrieval, available to FC privacy leads; (4) Quarterly privacy review of retrieval logs.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 5: Latency budget for 24h SLA blown by large archive retrieval</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. Real-time embedding retrieval over an 8,000+ flight archive plus LLM generation may not consistently fit a 24h SLA at scale, especially as the archive grows. <strong>Mitigation:</strong> (1) Pre-compute retrieval embeddings nightly (R-03); (2) Batch generation in scheduled windows aligned to cadence-run completion peaks; (3) "Recommendations pending" placeholder rather than a degraded set if generation fails; (4) Capacity model reviewed quarterly against archive growth.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 6: Recommendations contradict an in-flight override from the Decision Framework</div>
+    <p><strong>Likelihood:</strong> Low · <strong>Impact:</strong> Medium. If an FC has filed a documented override accepting a guardrail regression for known reasons, surfacing recommendations to "fix" the regression would undermine the override flow. <strong>Mitigation:</strong> Recommender reads the override state from the Decision Framework; experiments with an accepted override get a banner <em>"This experiment has an accepted override — recommendations are informational only"</em> and the panel collapses by default.</p>
+  </div>
+</div>
+
+</div><!-- end .content -->
+
+<div class="footer">
+  Next-Iteration Recommender for Expedite — Mini Spec · IDEAS Experimentation · Last updated June 23, 2026
+</div>
+
+</body>
+</html>
