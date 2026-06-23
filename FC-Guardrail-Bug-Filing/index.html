@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Spec — Auto-File Bug / IcM for Feature Crews on Guardrail Violations</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-light: #e8f0fe;
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --risk-red: #d93025;
+    --risk-bg: #fce8e6;
+    --success-green: #1e8e3e;
+    --success-bg: #e6f4ea;
+    --warn-amber: #e37400;
+    --warn-bg: #fef7e0;
+    --p0: #d93025;
+    --p1: #e37400;
+    --p2: #1a73e8;
+    --dep-accent: #8a4fb8;
+    --dep-bg: #f3eaff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #3d1f0a 0%, #7a3e14 55%, #d97a2b 100%);
+    color: #fff;
+    padding: 48px 40px 36px;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    font-weight: 400;
+  }
+  .meta-bar {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    font-size: 0.85rem;
+    opacity: 0.95;
+  }
+  .meta-item strong {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.7;
+    margin-bottom: 2px;
+  }
+
+  /* ── Content ── */
+  .content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 60px;
+  }
+
+  /* ── Section ── */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .section-number {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .section h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 20px 0 10px;
+    color: var(--text);
+  }
+  .section p, .section li {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .section ul, .section ol {
+    padding-left: 22px;
+  }
+
+  /* ── Dependency callout ── */
+  .deps {
+    background: var(--dep-bg);
+    border: 1px solid #d8c2f0;
+    border-left: 4px solid var(--dep-accent);
+    border-radius: 0 10px 10px 0;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+  }
+  .deps .dep-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: var(--dep-accent);
+    margin-bottom: 8px;
+  }
+  .deps ul { padding-left: 22px; margin: 0; }
+  .deps li {
+    color: var(--text);
+    font-size: 0.92rem;
+    margin-bottom: 4px;
+  }
+  .deps a { color: var(--dep-accent); font-weight: 600; }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.9rem;
+  }
+  thead th {
+    background: var(--bg);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ── Priority badges ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-p0 { background: #fce8e6; color: var(--p0); }
+  .badge-p1 { background: var(--warn-bg); color: var(--p1); }
+  .badge-p2 { background: var(--primary-light); color: var(--p2); }
+
+  /* ── Metric cards ── */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .metric-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .metric-card .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .metric-card .value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .metric-card .target {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* ── Scenario cards ── */
+  .scenario-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .scenario-card .persona {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .scenario-card .narrative { font-size: 0.95rem; color: var(--text-secondary); }
+
+  /* ── Risk / Open Q cards ── */
+  .risk-card {
+    border-left: 4px solid var(--risk-red);
+    background: var(--risk-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .risk-card .risk-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--risk-red);
+    margin-bottom: 4px;
+  }
+  .risk-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .question-card {
+    border-left: 4px solid var(--warn-amber);
+    background: var(--warn-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .question-card .q-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--warn-amber);
+    margin-bottom: 4px;
+  }
+  .question-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  /* ── UX Flow box ── */
+  .ux-flow {
+    background: var(--bg);
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin: 14px 0;
+    font-size: 0.92rem;
+    line-height: 1.9;
+  }
+
+  /* ── Nongoal chip ── */
+  .nongoal {
+    background: #f1f3f4;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 6px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nongoal::before {
+    content: '✕';
+    color: var(--risk-red);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  /* ── Severity legend ── */
+  .sev-legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+    margin: 14px 0;
+  }
+  .sev-row {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 0.9rem;
+  }
+  .sev-row.sev-1 { border-left-color: var(--risk-red); }
+  .sev-row.sev-2 { border-left-color: var(--warn-amber); }
+  .sev-row.sev-3 { border-left-color: var(--primary); }
+  .sev-row.sev-4 { border-left-color: var(--text-secondary); }
+  .sev-row strong { color: var(--text); display: block; margin-bottom: 4px; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .content { padding: 0 20px; }
+    .section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- HEADER                                                       -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="header">
+  <h1>Auto-File Bug / IcM for Feature Crews on Guardrail Violations</h1>
+  <div class="subtitle">Mini Spec — Closing the loop from not-safe verdict to FC ownership</div>
+  <div class="meta-bar">
+    <div class="meta-item"><strong>PM Owner</strong> David Lydston</div>
+    <div class="meta-item"><strong>Team</strong> IDEAS Experimentation</div>
+    <div class="meta-item"><strong>Last Updated</strong> June 23, 2026</div>
+    <div class="meta-item"><strong>Status</strong> Draft</div>
+    <div class="meta-item"><strong>Stakeholders</strong> Expedite, IDEAS DS, Growth Orchestrator, M365 Copilot Feature Crews, IcM on-call owners</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════════════════════════════════════════════ -->
+<!-- DEPENDENCIES CALLOUT                          -->
+<!-- ════════════════════════════════════════════ -->
+<div class="deps">
+  <div class="dep-label">Depends on</div>
+  <ul>
+    <li><a href="https://daddyinvolts.github.io/Guardrail-Decision-Framework/" target="_blank" rel="noopener">Guardrail Decision Framework</a> — provides the deterministic <em>safe / extend / not-safe</em> verdict, the per-guardrail direction and Δ threshold, the power classification, and the Sev mapping in the rule dictionary that this spec consumes.</li>
+    <li><strong>Include metadata from Growth Orchestrator experiments in Expedite</strong> — provides the canonical Feature Crew owner, ADO area path, and <code>orchestrator_experiment_id</code> used here for routing and de-duplication across orchestrated child flights.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 1 — Problem & Opportunity            -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 1</div>
+  <h2>Problem &amp; Opportunity</h2>
+
+  <h3>Problem Statement</h3>
+  <p>Today, when an experiment's scorecard returns a <strong>not-safe</strong> or <strong>extend</strong> verdict on a guardrail, there is no automatic, accountable hand-off to the Feature Crew (FC) that owns the rollout. Verdicts sit in scorecards until a PM or DS happens to read them. By the time a guardrail regression surfaces, the FC has often already ramped further or moved on, and the on-call learns about the harm from an external escalation rather than from the experimentation platform itself. The result: harm-signal regressions occasionally ship, mitigation starts late, and there is no auditable record that the FC was ever informed of the violation at detection time.</p>
+
+  <h3>Opportunity</h3>
+  <p>The Guardrail Decision Framework now produces a deterministic per-guardrail verdict on every scorecard cadence run. If we wire those verdicts directly into automatic ADO bug filing — and additionally fire IcM for Sev≤2 guardrails (reliability, safety, compliance) — we close the loop between detection and action without adding human triage overhead. Combined with the Growth-orchestrator metadata for canonical FC routing and family-level de-duplication, we get <strong>exactly one accountable artifact per orchestrated experiment family per regression</strong>. This is the missing connective tissue that turns a verdict into ownership and creates the audit trail that lets the M365 Copilot portfolio measure (and improve) its guardrail-violation response SLA.</p>
+
+  <h3>Evidence</h3>
+  <ul>
+    <li><strong>Decision-Framework rollout signal:</strong> ~11% of M365 Copilot experiments today ship on guardrail signals that are either uninformative or trip a verdict that no human triages within the rollout window.</li>
+    <li><strong>FC escalation channel:</strong> The most common origin of guardrail-regression IcMs today is a Teams ping from a DS partner to an FC on-call — not the experimentation platform. There is no SLA on that hand-off.</li>
+    <li><strong>Growth-orchestrator fan-out:</strong> Orchestrated experiments routinely fan out into 4–10 child flights. Today each child can independently trip the same guardrail; without de-dup, a manual filing flow would create 4–10× the noise.</li>
+    <li><strong>Stakeholder ask:</strong> FC leads have repeatedly asked for a "platform should tell me, I shouldn't have to go find it" model — particularly for safety guardrails where minutes matter.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 2 — Goals & Success Metrics          -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 2</div>
+  <h2>Goals &amp; Success Metrics</h2>
+
+  <h3>Goals</h3>
+  <ol>
+    <li>Every not-safe and extend verdict produces an auditable, FC-routed ADO bug within 5 minutes of scorecard cadence completion.</li>
+    <li>Sev≤2 guardrail violations additionally fire IcM to the FC on-call so detection-to-acknowledgment for safety/reliability harms drops from days to under 4 hours.</li>
+    <li>Drive de-duplication so orchestrated experiment families produce exactly one parent bug per (orchestrator_experiment_id, guardrail) regression cluster — not one per child flight.</li>
+  </ol>
+
+  <h3>Success Metrics</h3>
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="label">Primary Metric</div>
+      <div class="value">Filing Coverage</div>
+      <div class="target">Target: ≥99% of not-safe / extend verdicts produce a matching FC bug within 5 min · Baseline: ~0% (manual today)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Time-to-Acknowledge</div>
+      <div class="target">Target: median &lt;4h for Sev≤2; &lt;24h for Sev3+ · Baseline: unmeasured (no SLA today)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">False-File Rate</div>
+      <div class="target">Must stay below 8% of bugs marked "not actionable" by FCs · If exceeded, halt enforcement until rule dictionary tuned</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Duplicate Bugs per Family</div>
+      <div class="target">Must stay at exactly 1 per (orchestrator_experiment_id, guardrail_id) tuple in any 30-day window</div>
+    </div>
+  </div>
+
+  <h3>Explicit Non-Goals</h3>
+  <div class="nongoal">Filing bugs for non-guardrail metric regressions (engagement, satisfaction, cost) — only guardrails as declared in the Guardrail Decision Framework rule dictionary</div>
+  <div class="nongoal">Auto-rollback or auto-pause of the rollout — the bug/IcM informs the FC; the FC owns the decision to pause, mitigate, or override per the Decision Framework's existing override flow</div>
+  <div class="nongoal">Filing against teams outside the M365 Copilot portfolio at V1 — out-of-portfolio routing is a follow-up once orchestrator metadata coverage expands</div>
+  <div class="nongoal">Building a new ticketing system — we reuse the existing ADO + IcM stacks; no new artifact type</div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 3 — User Scenarios                   -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 3</div>
+  <h2>User Scenarios</h2>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 1 — "Sev1 Safety Regression" (Primary)</div>
+    <div class="narrative">
+      <p>Maya leads a Feature Crew shipping a new Copilot Chat skill into Ring 2. The 9:00 AM cadence run computes a <strong>not-safe</strong> verdict on the Harmful Content Rate guardrail (declared Sev1 in the rule dictionary). Within 5 minutes, an ADO bug appears in her crew's area path — pulled directly from the orchestrator metadata — with the verdict, CI bounds, Δ threshold, MDE, power classification, scorecard deep-link, and the one-line "why this fired" reason from the Decision Framework. Two minutes later, her FC on-call gets an IcM Sev1 page. By 10:30, she has acknowledged both, paused her ring expansion, and posted a mitigation plan in the bug. No external escalation was needed; the platform notified her first, and the entire response is captured in the auditable bug history.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 2 — "Soft-Warning Extend Verdict"</div>
+    <div class="narrative">
+      <p>Jordan's experiment shows an <strong>extend</strong> verdict on the Chat Latency p95 guardrail — underpowered against MDE, but with a directionally concerning point estimate. The platform files an ADO bug at Severity 4 (Suggestion) with a "[Soft Warning]" title prefix; no IcM is paged. Jordan reads the bug the next morning, decides to extend the rollout by 5 days to gather more power, and links the extension decision back to the bug. On the cadence after extension, the verdict flips to <strong>safe</strong>; the platform auto-resolves the bug with a comment pointing to the resolving cadence run.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 3 — "Orchestrated Experiment Family De-Dup"</div>
+    <div class="narrative">
+      <p>Priya owns a Growth-orchestrated experiment that fans out into six child flights across markets. Three children trip the same Reliability-CFR guardrail on the same cadence run. The orchestrator metadata coalesces these into a single parent bug titled "Parent Experiment #44231 — 3 children failing Reliability-CFR (US, UK, IN)", routed to the FC declared in the orchestrator definition. The bug body lists each failing child with its individual CI and scorecard link. The FC has one accountable artifact, not three competing ones owned by three different child-flight pilots.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case — "Underpowered / uninformative verdict"</div>
+    <div class="narrative">
+      <p>A guardrail is computed but classified by the Decision Framework as <em>underpowered</em> (uninformative under the rules). Per the Decision Framework, this is neither safe nor not-safe — it's no signal. <strong>No bug is filed.</strong> Underpowered verdicts surface in the scorecard with their Decision-Framework reason, but they never trigger this filing path.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 4 — Requirements                     -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 4</div>
+  <h2>Requirements</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:70px">Priority</th>
+        <th style="width:50px">ID</th>
+        <th>Requirement</th>
+        <th style="width:200px">Acceptance Criteria</th>
+        <th style="width:140px">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-01</td>
+        <td>On every scorecard cadence run, evaluate per-guardrail verdicts from the Guardrail Decision Framework and file an ADO work item for each <strong>not-safe</strong> and <strong>extend</strong> verdict within 5 minutes of cadence completion.</td>
+        <td>Bug present in ADO ≤5 min after cadence completion on ≥99% of qualifying verdicts in dogfood; end-to-end verified against 50 historical cadence runs.</td>
+        <td>Depends on Guardrail Decision Framework</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-02</td>
+        <td>Route the bug to the FC's ADO area path via the canonical FC mapping returned by the Growth-orchestrator metadata API. Fall back to the experiment owner's area path if no orchestrator metadata is present, and tag the bug <code>FC-routing: fallback</code>.</td>
+        <td>≥99% routed correctly in dogfood; fallback path verified; <code>FC-routing</code> tag present on every fallback bug.</td>
+        <td>Depends on Growth-orchestrator metadata in Expedite</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-03</td>
+        <td>For <strong>not-safe</strong> verdicts on guardrails declared Sev≤2 (reliability, safety, compliance) in the rule dictionary, auto-fire an IcM at the matching severity to the FC's on-call rotation, linked bidirectionally to the ADO bug.</td>
+        <td>IcM created ≤2 min after the bug; severity matches the rule-dictionary declaration; bug body contains the IcM link and vice versa.</td>
+        <td>Sev mapping owned by Decision Framework rule dictionary</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-04</td>
+        <td>De-duplicate filings across orchestrated experiment families — exactly one parent bug per <code>(orchestrator_experiment_id, guardrail_id)</code> tuple. Child flights tripping the same guardrail append to the existing parent bug rather than creating new ones; the bug body lists each failing child flight with its own CI and scorecard link.</td>
+        <td>No duplicate (parent, guardrail) bugs in any 30-day window; verified in a test harness with synthetic 6-child orchestrated fan-out.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-05</td>
+        <td>Bug body includes: <strong>verdict</strong>, <strong>direction</strong> (higher / lower-is-better), <strong>Δ threshold</strong>, <strong>CI bounds</strong>, <strong>MDE</strong>, <strong>power classification</strong>, <strong>scorecard deep-link</strong>, and a one-line <strong>"why this fired" reason</strong> mirroring the Decision Framework's reason field verbatim.</td>
+        <td>All 8 fields present on ≥99% of bugs; reason text matches Decision Framework output verbatim (string equality).</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-06</td>
+        <td>When a subsequent cadence run flips a previously not-safe (or extend) verdict to safe, post a comment on the open bug — "Resolved by cadence run YYYY-MM-DD HH:MM UTC — verdict now safe" — and transition the bug to <em>Resolved — Auto-resolved by platform</em>. If the same guardrail later flips back to not-safe, reopen the same bug rather than filing a new one.</td>
+        <td>Auto-resolution comment posted and state transitioned ≤5 min after the resolving cadence; reopen verified on synthetic flip-flop test.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-07</td>
+        <td>"Extend" verdicts file at Severity 4 (Suggestion) with no IcM page; bug title is prefixed with <code>[Soft Warning]</code> and tagged <code>extend-verdict</code>.</td>
+        <td>Title prefix, severity, and tag verified on dogfood extend verdicts; no IcM generated on these filings.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-08</td>
+        <td>"False-file" feedback loop: FC owners can mark a bug "Not actionable — false file" via a structured form requiring one of: <em>orchestrator mismapping</em>, <em>verdict-reason invalid</em>, <em>guardrail Δ mis-set</em>, <em>other (free text)</em>. Reasons aggregate into a weekly dashboard for the rule-dictionary owners.</td>
+        <td>Feedback form persists reasons; dashboard refreshes weekly; data retained 180 days; dashboard linked from the rule-dictionary admin page.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-09</td>
+        <td>Surface a <strong>"Filed"</strong> pill on every not-safe / extend guardrail row in the Expedite scorecard surface, deep-linking to the bug; add an <strong>"Open Guardrail Bugs"</strong> badge with count to the Expedite rollout-detail page header.</td>
+        <td>Pill and badge render in Expedite; deep-link round-trips to ADO; Fluent UI accessibility checked (keyboard, screen reader).</td>
+        <td>Coordinate with Expedite team</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-10</td>
+        <td>Configurable suppression — an FC may request a 30-day suppression on a specific <code>(orchestrator_experiment_id, guardrail_id)</code> pair after filing a tracked mitigation. Suppression must be approved by the rule-dictionary owner and is logged in the audit trail. During suppression, cadence-time filing is a no-op for that pair; the next cadence after expiry re-opens filing.</td>
+        <td>Suppression request → approval → 30-day honor window → expiry re-open all verified end-to-end; audit entry written for each transition.</td>
+        <td>Reuses Decision Framework override flow</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-11</td>
+        <td>Filing-platform observability — emit metrics for filing latency, coverage, false-file rate, fallback-routing rate, and de-dup hit rate to the IDEAS experimentation telemetry pipeline.</td>
+        <td>Five metrics visible in IDEAS telemetry within 60 days of GA; alerting wired on coverage drop &gt;1% or false-file rate &gt;8%.</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 5 — Design Direction                 -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 5</div>
+  <h2>Design Direction</h2>
+
+  <h3>End-to-End Flow</h3>
+  <div class="ux-flow">
+    Scorecard Cadence Run Completes &nbsp;→&nbsp; Guardrail Decision Framework Emits Verdicts<br>
+    →&nbsp; Filing Worker Reads Verdicts &nbsp;→&nbsp; For each <em>not-safe</em> or <em>extend</em>:<br>
+    Lookup Orchestrator FC Metadata &nbsp;→&nbsp; Find-Or-Create Parent Bug (by <code>orchestrator_experiment_id × guardrail_id</code>)<br>
+    →&nbsp; Update Bug with Latest Verdict + CI + Reason &nbsp;→&nbsp; If Sev≤2 and not-safe: Fire IcM<br><br>
+    <small>Verdict flips to safe on later cadence &nbsp;→&nbsp; Auto-resolve bug &nbsp;→&nbsp; Flip back to not-safe &nbsp;→&nbsp; Reopen same bug</small>
+  </div>
+
+  <h3>Severity Mapping (driven by Decision Framework rule dictionary)</h3>
+  <div class="sev-legend">
+    <div class="sev-row sev-1">
+      <strong>Sev 1 — Safety / Harm</strong>
+      Not-safe → ADO bug Sev1 + IcM Sev1 page to FC on-call. Examples: Harmful Content Rate, PII Leakage Rate.
+    </div>
+    <div class="sev-row sev-2">
+      <strong>Sev 2 — Reliability / Compliance</strong>
+      Not-safe → ADO bug Sev2 + IcM Sev2 page. Examples: Service-side CFR, Auth-error rate, Compliance flag breaches.
+    </div>
+    <div class="sev-row sev-3">
+      <strong>Sev 3 — Quality / Performance</strong>
+      Not-safe → ADO bug Sev3, no IcM. Examples: Response satisfaction guardrails, p95 latency guardrails.
+    </div>
+    <div class="sev-row sev-4">
+      <strong>Sev 4 — Soft Warning</strong>
+      Extend verdict (any guardrail) → ADO bug Sev4 with <code>[Soft Warning]</code> prefix, no IcM. Indicates "watch this — re-check after more power."
+    </div>
+  </div>
+
+  <h3>Bug Body Template</h3>
+  <ul>
+    <li><strong>Header:</strong> Verdict, direction, Δ threshold, severity, power classification, "why this fired" reason (verbatim from Decision Framework).</li>
+    <li><strong>Statistics:</strong> CI bounds (T − C), MDE @ 80% power, observed sample size, cadence run ID, scorecard deep-link.</li>
+    <li><strong>Mitigation Checklist:</strong> Pre-populated three-step ask — acknowledge, post mitigation plan, link to follow-up action item.</li>
+    <li><strong>History:</strong> Per-cadence verdict timeline since first file, so an FC can see whether the regression is widening or stabilizing.</li>
+    <li><strong>Child flights (orchestrated experiments only):</strong> List of failing children with per-child CI and scorecard link.</li>
+    <li><strong>Links:</strong> Linked IcM (if any), Decision Framework verdict-reason doc, FC override-request template (per Decision Framework's override flow).</li>
+  </ul>
+
+  <h3>Expedite Surface Changes</h3>
+  <ul>
+    <li><strong>Scorecard row pill:</strong> Each not-safe / extend guardrail row in the Expedite scorecard surface shows a small "Filed" pill (orange for Sev1–2 with IcM, blue for Sev3–4) that deep-links to the bug.</li>
+    <li><strong>Rollout-detail header badge:</strong> A new "Open Guardrail Bugs · N" badge at the top of every rollout page; clicking it opens a drawer listing all open bugs for that rollout family.</li>
+    <li><strong>Filing-history tab:</strong> A read-only tab on the rollout detail page showing every bug ever filed against that rollout family (auto-resolved or open) for audit and post-mortem use.</li>
+  </ul>
+
+  <h3>Edge Cases &amp; Empty States</h3>
+  <ul>
+    <li><strong>Orchestrator metadata unavailable:</strong> Route to experiment owner's area path; tag bug <code>FC-routing: fallback</code>; emit telemetry so rule-dictionary owners can monitor fallback frequency and chase down orchestrator-coverage gaps.</li>
+    <li><strong>ADO outage:</strong> Filing worker retries with exponential backoff (max 4h window). Persistent failures emit an IcM to the experimentation platform's own on-call — the platform is responsible for its own filing SLA.</li>
+    <li><strong>IcM outage on a Sev≤2 file:</strong> Bug filing still completes; IcM failure is recorded on the bug as a comment ("IcM auto-page failed — please page on-call manually") so the FC isn't silently un-paged.</li>
+    <li><strong>Verdict flip-flop:</strong> If a (parent, guardrail) pair oscillates between not-safe and safe across 3+ cadence runs within 7 days, the bug locks to "Manual review required" and reassigns to the rule-dictionary owners. Signals a likely rule-dictionary tuning issue, not an FC issue.</li>
+    <li><strong>Suppressed pair (R-10):</strong> Cadence-time filing is a no-op until expiry; suppression entry surfaces in the FC's filing-history tab.</li>
+    <li><strong>Underpowered verdict:</strong> Not filed. Decision Framework treats underpowered as no-signal, and this spec inherits that definition.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 6 — Open Questions & Risks           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 6</div>
+  <h2>Open Questions &amp; Risks</h2>
+
+  <h3>Open Questions</h3>
+  <div class="question-card">
+    <div class="q-title">Q1: How do we handle FCs without an IcM on-call rotation set up?</div>
+    <p>Options: (a) Fall back to bug-only for Sev≤2 and tag <code>icm-fallback: no-rotation</code> with a notification to the FC lead; (b) Refuse to enable ramp on the FC's experiments at all until an on-call exists. <strong>Owner:</strong> David Lydston with Copilot Eng leadership. <strong>Current leaning:</strong> (a) for V1, with a quarterly review of FCs in fallback mode to push them to (b).</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q2: Do we publish an external "verdict-to-bug" SLA?</div>
+    <p>5 min is the internal target. Publishing externally locks us in and is good forcing function — but only valuable once we have 30+ days of dogfood data. <strong>Owner:</strong> David Lydston. <strong>Current leaning:</strong> Track internally for the first 60 days post-GA, then publish if &gt;99% met.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q3: Do we file bugs for not-safe verdicts that come from pre-experiment power analysis (i.e., the rollout shouldn't have started)?</div>
+    <p>Or only after the first real cadence run? Pre-experiment is rare but exists when an FC pushes through a known-uninformative power profile. <strong>Owner:</strong> Decision Framework PM. <strong>Current leaning:</strong> Out-of-scope for this spec — handled as part of the existing override flow, not a new bug filing.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q4: Bug ownership when a Feature Crew spans multiple sub-teams</div>
+    <p>If an FC's ADO area path covers three sub-teams, does the bug auto-assign to a specific person (FC PM? FC on-call rotation?) or stay unassigned in the area path for the FC's triage process to claim? <strong>Owner:</strong> David Lydston with FC leads. <strong>Current leaning:</strong> Unassigned; let FC's existing triage own routing within the crew.</p>
+  </div>
+
+  <h3>Risks</h3>
+  <div class="risk-card">
+    <div class="risk-title">Risk 1: IcM noise erodes FC trust</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> High. If the Sev≤2 mapping is too broad, FCs get paged for low-signal regressions and stop responding. <strong>Mitigation:</strong> (1) Conservative initial Sev≤2 list — start with 3–5 known-critical guardrails declared by the Decision Framework rule dictionary; (2) 30-day shadow-mode rollout in which IcM is dry-run only (logged, not paged) before enforcement; (3) Monthly false-file dashboard (R-08) review to tune mappings; (4) Hard guardrail metric — pause enforcement if false-file rate exceeds 8%.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 2: Orchestrator routing errors send bugs to the wrong FC</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. If the Growth-orchestrator metadata is stale or wrong, bugs land against an FC who cannot action them. <strong>Mitigation:</strong> (1) Fallback to experiment owner with <code>FC-routing: fallback</code> tag (R-02); (2) Track fallback-rate as a telemetry metric (R-11); (3) "Orchestrator mismapping" is a first-class false-file reason (R-08) and feeds back to the Growth-orchestrator-metadata spec owners; (4) Quarterly orchestrator-coverage audit.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 3: Bug noise eclipses signal — FCs ignore the queue</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> High. If every cadence files a wall of bugs, FCs treat them as a log rather than an actionable queue. <strong>Mitigation:</strong> (1) Strict de-duplication (R-04) — one (orchestrator, guardrail) regression equals one bug; (2) Auto-resolution (R-06) closes bugs as verdicts recover, keeping the open queue tight; (3) False-file feedback loop (R-08) lets FCs flag and we tune; (4) Severity is anchored to the rule dictionary, not the filer — so all signal flows through one tunable layer.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 4: Cross-system fragility (ADO + IcM + Expedite)</div>
+    <p><strong>Likelihood:</strong> Low · <strong>Impact:</strong> Medium. Three independent systems means three independent outage modes. <strong>Mitigation:</strong> (1) Filing worker retries with exponential backoff; (2) Idempotency keyed on <code>(orchestrator_experiment_id, guardrail_id, cadence_id)</code> — a retry never duplicates; (3) Platform on-call paged on persistent filing failures; (4) Bug-only fallback if IcM is degraded, with the gap recorded on the bug body.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 5: Owner override flow undermined by mandatory filing</div>
+    <p><strong>Likelihood:</strong> Low · <strong>Impact:</strong> Medium. The Decision Framework already allows FCs to override a not-safe verdict with documented justification. If filing happens before the override is filed, an FC may feel filing is punitive rather than informative. <strong>Mitigation:</strong> Position bug-filing as the auditable record of the verdict — not a judgment on the override. Override-request template is linked from the bug body; an accepted override transitions the bug to "Override accepted — see linked override record" rather than auto-resolving silently.</p>
+  </div>
+</div>
+
+</div><!-- end .content -->
+
+<div class="footer">
+  Auto-File Bug / IcM for FCs on Guardrail Violations — Mini Spec · IDEAS Experimentation · Last updated June 23, 2026
+</div>
+
+</body>
+</html>

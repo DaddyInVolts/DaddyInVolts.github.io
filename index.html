@@ -336,7 +336,7 @@
 
   <div class="section-title">
     <h2>Projects</h2>
-    <span class="count">7 live</span>
+    <span class="count">9 live</span>
   </div>
 
   <div class="projects">
@@ -426,6 +426,28 @@
     </article>
 
     <article class="project">
+      <div class="project-banner alt3">
+        <span class="project-tag">Mini Spec</span>
+        <h3>Auto-File Bug / IcM on Guardrail Violations</h3>
+        <p class="subtitle">Closing the loop from not-safe verdict to FC ownership</p>
+      </div>
+      <div class="project-body">
+        <p>A mini spec that wires the Guardrail Decision Framework's verdicts directly into Feature Crew accountability. On every scorecard cadence run, any <strong>not-safe</strong> or <strong>extend</strong> verdict files an ADO bug to the owning FC within 5 minutes; Sev≤2 guardrails (reliability, safety, compliance) additionally fire IcM to the FC's on-call. Routing and de-duplication use the Growth-orchestrator metadata so an orchestrated experiment family produces exactly one parent bug per regression cluster — not one per child flight. Closes the gap between detection and action: today, not-safe verdicts can sit unread in scorecards; with this, an auditable, severity-mapped artifact lands in the FC's queue and on the on-call's pager within minutes of detection.</p>
+        <div class="project-meta">
+          <span class="chip">Guardrails</span>
+          <span class="chip">ADO + IcM</span>
+          <span class="chip">FC ownership</span>
+          <span class="chip">Auto-filing</span>
+          <span class="chip">De-duplication</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/FC-Guardrail-Bug-Filing/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/FC-Guardrail-Bug-Filing" target="_blank" rel="noopener">Source ↗</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
       <div class="project-banner alt2">
         <span class="project-tag">Mini Spec</span>
         <h3>GPT Token &amp; AI Credit Metrics</h3>
@@ -486,6 +508,28 @@
         <div class="project-actions">
           <a class="btn primary" href="https://daddyinvolts.github.io/Anytime-Valid-Inference-Spec.html" target="_blank" rel="noopener">View spec <span class="arrow">&rarr;</span></a>
           <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/blob/main/Anytime-Valid-Inference-Spec.html" target="_blank" rel="noopener">Source &#8599;</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="project-banner alt">
+        <span class="project-tag">Mini Spec</span>
+        <h3>Saturation Dashboard</h3>
+        <p class="subtitle">Where every M365 Copilot feature sits in its safe-deployment lifecycle</p>
+      </div>
+      <div class="project-body">
+        <p>A leadership-grade saturation view that answers the question "where is feature X right now?" in one glance. Every in-flight Copilot feature renders as a row across a canonical 5-stage lifecycle &mdash; Internal/MSIT &rarr; Dogfood/TAP &rarr; Public Preview &rarr; GA Worldwide &rarr; Retired &mdash; with dated status pills (Live, Rolling out, Tenant opt-in, At Risk, Blocked) sourced from Granite Peak Shiproom, ExP/Iris, and the Admin Center. DRI, freshness flagging, and per-host expansion (Excel, PowerPoint, Word, Outlook, Chat) replace the weekly reconciliation across status decks, model-availability emails, and Teams threads with a single URL leaders can open five minutes before a Shiproom and walk in with the three questions they actually need to ask.</p>
+        <div class="project-meta">
+          <span class="chip">Leadership view</span>
+          <span class="chip">Lifecycle</span>
+          <span class="chip">Safe deployment</span>
+          <span class="chip">M365 Copilot</span>
+          <span class="chip">Saturation</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/Saturation-Dashboard/" target="_blank" rel="noopener">View spec <span class="arrow">&rarr;</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/Saturation-Dashboard" target="_blank" rel="noopener">Source &#8599;</a>
         </div>
       </div>
     </article>

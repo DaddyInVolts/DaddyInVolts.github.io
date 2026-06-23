@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Spec — Saturation Dashboard</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-light: #e8f0fe;
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --risk-red: #d93025;
+    --risk-bg: #fce8e6;
+    --success-green: #1e8e3e;
+    --success-bg: #e6f4ea;
+    --warn-amber: #e37400;
+    --warn-bg: #fef7e0;
+    --p0: #d93025;
+    --p1: #e37400;
+    --p2: #1a73e8;
+    --stage-internal: #6f42c1;
+    --stage-dogfood: #1a73e8;
+    --stage-preview: #e37400;
+    --stage-ga: #1e8e3e;
+    --stage-retired: #9aa0a6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #1a2332 0%, #2d4a6f 60%, var(--primary) 100%);
+    color: #fff;
+    padding: 48px 40px 36px;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.85;
+    font-weight: 400;
+  }
+  .meta-bar {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+  .meta-item strong {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.65;
+    margin-bottom: 2px;
+  }
+
+  /* ── Content ── */
+  .content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 60px;
+  }
+
+  /* ── Section ── */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .section-number {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .section h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 20px 0 10px;
+    color: var(--text);
+  }
+  .section p, .section li {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .section ul, .section ol {
+    padding-left: 22px;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.9rem;
+  }
+  thead th {
+    background: var(--bg);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ── Priority badges ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-p0 { background: #fce8e6; color: var(--p0); }
+  .badge-p1 { background: var(--warn-bg); color: var(--p1); }
+  .badge-p2 { background: var(--primary-light); color: var(--p2); }
+
+  /* ── Stage chips (for design section) ── */
+  .stage-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    margin: 2px 4px 2px 0;
+  }
+  .stage-chip::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-secondary);
+  }
+  .stage-chip.internal::before { background: var(--stage-internal); }
+  .stage-chip.dogfood::before { background: var(--stage-dogfood); }
+  .stage-chip.preview::before { background: var(--stage-preview); }
+  .stage-chip.ga::before { background: var(--stage-ga); }
+  .stage-chip.retired::before { background: var(--stage-retired); }
+
+  /* ── Metric cards ── */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .metric-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .metric-card .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .metric-card .value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .metric-card .target {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* ── Scenario cards ── */
+  .scenario-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .scenario-card .persona {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .scenario-card .narrative {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  /* ── Risk / Open Q cards ── */
+  .risk-card {
+    border-left: 4px solid var(--risk-red);
+    background: var(--risk-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .risk-card .risk-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--risk-red);
+    margin-bottom: 4px;
+  }
+  .risk-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .question-card {
+    border-left: 4px solid var(--warn-amber);
+    background: var(--warn-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .question-card .q-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--warn-amber);
+    margin-bottom: 4px;
+  }
+  .question-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  /* ── UX Flow box ── */
+  .ux-flow {
+    background: var(--bg);
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 24px 28px;
+    color: var(--text-secondary);
+    margin: 14px 0;
+    font-size: 0.92rem;
+  }
+  .ux-flow strong { color: var(--text); }
+
+  /* ── Nongoal chip ── */
+  .nongoal {
+    background: #f1f3f4;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 6px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nongoal::before {
+    content: '✕';
+    color: var(--risk-red);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  /* ── Mock grid (visual reference inside design section) ── */
+  .mock-wrap {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    padding: 18px;
+    margin: 16px 0;
+    overflow-x: auto;
+  }
+  .mock-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .mock-title {
+    font-weight: 700;
+    color: var(--text);
+    font-size: 1rem;
+  }
+  .mock-filters {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .mock-filter {
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .mock-filter .swatch {
+    width: 7px; height: 7px; border-radius: 50%;
+  }
+  .mock-grid {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    min-width: 760px;
+  }
+  .mock-grid th, .mock-grid td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: middle;
+  }
+  .mock-grid th {
+    background: var(--bg);
+    font-weight: 600;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+  }
+  .mock-feature {
+    font-weight: 600;
+    color: var(--text);
+  }
+  .mock-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .mock-cell .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+  }
+  .mock-cell.live { background: var(--success-bg); color: var(--success-green); border-color: #c8e6d0; }
+  .mock-cell.live .dot { background: var(--success-green); }
+  .mock-cell.rolling { background: var(--primary-light); color: var(--primary); border-color: #c8d4e6; }
+  .mock-cell.rolling .dot { background: var(--primary); }
+  .mock-cell.optin { background: #ede2f5; color: #6f42c1; border-color: #d9c4ea; }
+  .mock-cell.optin .dot { background: #6f42c1; }
+  .mock-cell.atrisk { background: var(--warn-bg); color: var(--warn-amber); border-color: #f1d894; }
+  .mock-cell.atrisk .dot { background: var(--warn-amber); }
+  .mock-cell.blocked { background: var(--risk-bg); color: var(--risk-red); border-color: #f0c0bc; }
+  .mock-cell.blocked .dot { background: var(--risk-red); }
+  .mock-cell.tbd { background: var(--bg); color: var(--text-secondary); }
+  .mock-cell.tbd .dot { background: var(--text-secondary); }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  /* ── Print ── */
+  @media print {
+    body { background: #fff; }
+    .content { padding: 0 20px; }
+    .section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- HEADER                                                       -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="header">
+  <h1>Saturation Dashboard</h1>
+  <div class="subtitle">A single leadership view for where every M365 Copilot feature sits in its safe-deployment lifecycle</div>
+  <div class="meta-bar">
+    <div class="meta-item"><strong>PM Owner</strong> David Lydston</div>
+    <div class="meta-item"><strong>Team</strong> IDEAS Experimentation · M365 Copilot</div>
+    <div class="meta-item"><strong>Last Updated</strong> June 23, 2026</div>
+    <div class="meta-item"><strong>Status</strong> Draft — Mini Spec</div>
+    <div class="meta-item"><strong>Stakeholders</strong> Copilot Leadership (CVPs/GPMs), Feature Crew PMs, Eng Release Mgrs, Field Readiness, Compliance</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 1 — Problem & Opportunity            -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 1</div>
+  <h2>Problem &amp; Opportunity</h2>
+
+  <h3>Problem Statement</h3>
+  <p>M365 Copilot leadership cannot answer a deceptively simple question on demand: <strong>"Where is feature X right now in its safe-deployment lifecycle?"</strong> Is it dogfooding inside MSIT? In Public Preview behind a flight? Generally Available worldwide? Retired and replaced? Today this answer lives across 5+ disconnected surfaces — feature-crew status decks, the Granite Peak Shiproom (engineering-centric), per-host model-availability emails (e.g., the "Office Model availability by release channel" note circulated from Kirk Gregersen on June 15), ExP flight configs, and informal Teams threads. Each crew reports differently, definitions of "shipped" drift between orgs, and leaders pulling together a review have to manually reconcile 30+ features against 4–8 audiences every week.</p>
+
+  <h3>Opportunity</h3>
+  <p>A single, source-of-truth <strong>Saturation Dashboard</strong> renders every in-flight Copilot feature as a row and its lifecycle saturation — Internal/MSIT → Dogfood/TAP → Public Preview → GA Worldwide → Retired — as columns of dated status pills. One URL replaces a recurring 90-minute weekly reconciliation across at least 4 reviewers (CVP staff, GPM leads, release mgmt, field readiness). Conservatively, eliminating that recurring reconciliation returns ~50 leader-hours/week to the org and removes the most common cause of misaligned ship-readiness calls in leadership reviews.</p>
+
+  <h3>Evidence</h3>
+  <ul>
+    <li><strong>Explicit ask:</strong> The "consumption/cost views" email (June 15, 2026) requests the Office Model availability matrix be reused for consumption discussions — confirming leadership demand for a single lifecycle/saturation lens that scales beyond models.</li>
+    <li><strong>Existing partial solutions:</strong> Granite Peak Shiproom proves the row × column UX works (32 features tracked, GPM + Marketing views) — but it is engineering ship-tracking, not lifecycle saturation, and its columns (Announce, Preview, Starter, Premium, GCC, GCC-H, DoD, MSA) mix audience tiers and government clouds rather than describing where the feature is in its deployment safety lifecycle.</li>
+    <li><strong>Review pain:</strong> Internal observation across the last 6 Copilot Shiproom reviews — every meeting opens with 10–20 minutes of "wait, is Cowork GA yet?"-style disambiguation that a single saturation view would eliminate.</li>
+    <li><strong>Compliance pull:</strong> Field, Marketing, and Compliance partners each maintain their own "what is shipped where" tracker. A canonical saturation view becomes the upstream feed they reference instead of rebuild.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 2 — Goals & Success Metrics          -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 2</div>
+  <h2>Goals &amp; Success Metrics</h2>
+
+  <h3>Goals</h3>
+  <ol>
+    <li>Give Copilot leadership a single canonical view of where every in-flight feature is in its safe-deployment lifecycle — with no manual reconciliation required to prepare for a weekly review.</li>
+    <li>Standardize lifecycle stage definitions across feature crews so the same status word means the same thing in every leadership conversation.</li>
+    <li>Cut the time-to-answer "where is feature X shipped?" from minutes-of-back-channel to a glance — at portfolio and per-feature granularity.</li>
+  </ol>
+
+  <h3>Success Metrics</h3>
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="label">Primary Metric</div>
+      <div class="value">Weekly Active Leadership Viewers</div>
+      <div class="target">Target: ≥80% of Copilot CVP+GPM staff opening the dashboard at least 1×/week · Baseline: 0 (new surface)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Coverage Metric</div>
+      <div class="value">Portfolio Coverage</div>
+      <div class="target">Target: ≥95% of in-flight Copilot features represented within 30 days of GA · Baseline: 0%</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Freshness Metric</div>
+      <div class="value">Status Freshness</div>
+      <div class="target">Target: 90% of cells updated within the last 7 days · Stale cells visibly flagged</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Adoption-as-replacement</div>
+      <div class="value">Shiproom Decks Retired</div>
+      <div class="target">Target: ≥3 standing review decks discontinued in favor of the dashboard within 1 quarter post-launch</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail</div>
+      <div class="value">Status Definition Drift</div>
+      <div class="target">Zero crew-specific overrides to the canonical stage definitions in production (audited monthly)</div>
+    </div>
+  </div>
+
+  <h3>Explicit Non-Goals</h3>
+  <div class="nongoal">Not an engineering ship-tracker — Granite Peak Shiproom continues to own engineering milestone tracking (build, deploy, code-freeze). Saturation Dashboard reads from it, not replaces it.</div>
+  <div class="nongoal">Not an experimentation scorecard — quality, guardrail, and lift metrics remain owned by Expedite and IDEAS scorecards. Drill-through, not duplication.</div>
+  <div class="nongoal">Not a marketing/external comms surface — internal-only, behind corp-net auth. Public messaging continues to flow through existing channels.</div>
+  <div class="nongoal">Not a roadmap planning tool — shows current saturation, not future intent. Forward-looking dates are sourced read-only from existing planning systems.</div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 3 — User Scenarios                   -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 3</div>
+  <h2>User Scenarios</h2>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 1 — "Five Minutes Before the Shiproom" (Primary)</div>
+    <div class="narrative">
+      <p>Lina is a Copilot CVP. Her weekly Shiproom starts in five minutes and she needs a mental model of where the 28 in-flight features stand. Today she opens three browser tabs and a Teams thread; on a bad week she walks in cold. With the Saturation Dashboard she opens one URL, filters to "At Risk + Blocked," and immediately sees four features stuck between Public Preview and GA — each row shows the DRI, the date the cell flipped, and a one-line note. She enters the meeting with the three questions she actually wants to ask, not the ten she needs to ask to find the three.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 2 — "Where is this for our customer?" (Field readiness)</div>
+    <div class="narrative">
+      <p>Marcus, an enterprise field PM, gets a customer escalation: "You said Cowork was GA — my IT admin can't find it." He opens the Saturation Dashboard, types "Cowork" in the search box, and instantly sees: Internal ✓ (03/09), Dogfood ✓ (03/30), Public Preview ✓ (06/16), GA Worldwide ● Rolling out (target 7/14), with a note "GA product focus on quality, reliability, compliance &amp; billing readiness." He replies to the customer with the truth — and the dashboard link — instead of pinging four PMs.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 3 — "Portfolio scan" (GPM lead)</div>
+    <div class="narrative">
+      <p>Priya leads a 12-feature crew under M365 Copilot. Once a week she scans her section to confirm every feature's lifecycle is moving forward. She filters the dashboard to her section, sorts by "Days since last update," and spots two rows with stale status (>14 days). She @-mentions the DRIs directly from the row's notes panel. The dashboard's freshness flagging caught both stalls before they showed up as surprises in the next leadership review.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case — Multi-host feature (one feature, many lifecycles)</div>
+    <div class="narrative">
+      <p>"Frontier models" feature ships across Excel, PowerPoint, Word, Outlook, and Chat — and as the model-availability email shows, each host can be in a different stage at the same time. The dashboard handles this by allowing a feature row to expand into per-host sub-rows; the rolled-up row shows the <em>earliest</em> stage across hosts (so a leader never over-claims saturation), and the per-host sub-rows show the exact per-surface status. The header cell of the rolled-up row uses a "mixed" indicator (◐) to make it visually obvious that the row aggregates heterogeneous state.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 4 — Requirements                     -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 4</div>
+  <h2>Requirements</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:70px">Priority</th>
+        <th style="width:60px">ID</th>
+        <th>Requirement</th>
+        <th style="width:200px">Acceptance Criteria</th>
+        <th style="width:120px">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-01</td>
+        <td>Render every in-flight Copilot feature as a row with five canonical lifecycle columns: <strong>Internal / MSIT</strong>, <strong>Dogfood / TAP</strong>, <strong>Public Preview</strong>, <strong>GA Worldwide</strong>, <strong>Retired</strong>.</td>
+        <td>All 5 columns present; column order fixed; each cell shows status pill + date (or em-dash); rows sortable by feature name and by furthest-right reached stage</td>
+        <td>Stages are non-negotiable canonical set; crew-specific overrides not allowed</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-02</td>
+        <td>Every cell displays one of six standardized statuses: <strong>Live</strong> (green ●), <strong>Rolling out</strong> (blue ●), <strong>Tenant opt-in</strong> (purple ●), <strong>At Risk</strong> (amber ▲), <strong>Blocked</strong> (red ✕), <strong>Retired</strong> (gray strikethrough). Definitions are published and linked from a help icon on every column header.</td>
+        <td>Status icon + color matches spec; definitions reachable in ≤2 clicks; screen-reader announces status name, not just color</td>
+        <td>Color is reinforced by shape — never color-only</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-03</td>
+        <td>Every row shows a DRI (single accountable person, with avatar) and a "Last updated" timestamp. Cells unchanged for >7 days are flagged as stale with a subtle warning indicator.</td>
+        <td>DRI clickable to profile card; stale flag appears at 7 days, escalates visually at 14 days; bulk "nudge DRI" action available to GPMs on stale rows</td>
+        <td>Freshness is the canary for "is anyone still driving this?"</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-04</td>
+        <td>Source of truth: cells are populated by reading from existing upstream systems (Granite Peak Shiproom for engineering ship dates, ExP/Iris for flight saturation, M365 Admin Center for tenant opt-in state). Manual edits are restricted to the DRI and audited.</td>
+        <td>≥80% of cells auto-populated on day 1; manual edits logged with editor + timestamp + previous value</td>
+        <td>"Pull-not-push" minimizes data-entry burden</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-05</td>
+        <td>Filter and search: free-text search across feature name, DRI, and notes; status filters as toggleable chips along the top (Blocked / At Risk / On Track / Complete); section filter (e.g., Long-Running Agents, Chat, M365 Apps).</td>
+        <td>Search returns results within 200ms on the typical portfolio size (~50 features); filters compose with AND semantics; URL encodes filter state for sharing</td>
+        <td>Direct match to Granite Peak Shiproom UX</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-06</td>
+        <td>Access control: internal-only, gated by corp-net auth + Copilot leadership AAD group membership. Banner reads "Internal only — do not share with customers."</td>
+        <td>Non-group AAD principals receive 403; banner present on every page; export files watermarked "Internal Only"</td>
+        <td>Mirrors Granite Peak Shiproom posture</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-07</td>
+        <td>Per-row notes column with expand-on-click to show full text. Notes support markdown links to scorecards, ICM, and ADO work items.</td>
+        <td>Notes truncate at ~120 chars in the row; expand reveals full text inline (no modal); links open in new tab</td>
+        <td>Matches Granite Peak "NOTES (EXPAND)" pattern</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-08</td>
+        <td>Saved views: leaders can pin filter+sort combinations as named views (e.g., "My section, At Risk only") and share view URLs with peers.</td>
+        <td>Views persist per-user; ≥5 views/user supported; shared view URLs respect viewer's access control, not author's</td>
+        <td>Parity with Granite Peak "Views" control</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-09</td>
+        <td>Export: CSV and PNG export of the current filtered view. Export embeds the as-of timestamp and filter state in the file.</td>
+        <td>CSV opens cleanly in Excel; PNG renders at ≥2× DPI; both files watermarked Internal Only</td>
+        <td>Required for offline review prep</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-10</td>
+        <td>Multi-host feature aggregation: feature rows that ship across multiple host apps (e.g., Excel, PowerPoint, Word, Outlook, Chat) collapse by default to the earliest cross-host stage, and expand to show per-host sub-rows.</td>
+        <td>Aggregated row shows ◐ "mixed" indicator when sub-rows disagree; tooltip explains the aggregation rule; expand state persists in URL</td>
+        <td>Critical for model-availability use case</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-11</td>
+        <td>Portfolio rollup strip at the top of the dashboard: "X of Y features are GA Worldwide" / "X% saturation at Public Preview or later" — updates with the active filter.</td>
+        <td>Rollups recompute on filter change; numbers always match the visible row set</td>
+        <td>Lets leaders open with a quote-ready statistic</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-12</td>
+        <td>Historical timeline: hover a cell to see when the feature reached each prior stage (e.g., "Internal: 1/15 → Dogfood: 2/03 → Preview: 3/30").</td>
+        <td>History pulled from the same upstream sources; max 5 prior transitions shown; "view full history" links to a per-feature page</td>
+        <td>Useful for retro / "why did this take 90 days?" conversations</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-13</td>
+        <td>Drill-through: clicking a feature name opens a per-feature detail page with the lifecycle row at top and links to the live Expedite scorecard, Granite Peak entry, and the feature's ADO area.</td>
+        <td>Detail page loads in &lt;1s; all four upstream links validated weekly by a CI probe</td>
+        <td>Replaces "send me the scorecard link" pings</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-14</td>
+        <td>Per-host model-availability sub-view: a toggle re-renders the dashboard with hosts (Excel, PowerPoint, Word, Outlook, Chat) as columns and release channels (Frontier, Current, Monthly MEC, EU) as rows — matching the layout in the source June 15 email.</td>
+        <td>Toggle round-trips cleanly to lifecycle view; same status pill vocabulary; "as of" date prominent in header</td>
+        <td>Future-proofs for the consumption/cost view use case</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 5 — Design Direction                 -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 5</div>
+  <h2>Design Direction</h2>
+
+  <h3>Lifecycle Stages (canonical)</h3>
+  <p>The five columns of the saturation grid are fixed and non-overridable. Definitions are the single source for "what does this word mean?" across all crew status reports.</p>
+  <ul style="list-style:none;padding-left:0">
+    <li><span class="stage-chip internal">Internal / MSIT</span> Feature is enabled for Microsoft employees on Microsoft's own tenant. No external customer exposure.</li>
+    <li><span class="stage-chip dogfood">Dogfood / TAP</span> Feature is enabled for a small set of named external customers (Technology Adoption Program) under NDA. Telemetry flowing back.</li>
+    <li><span class="stage-chip preview">Public Preview</span> Feature is generally available behind a flight or opt-in toggle to any tenant who enables it. Documented and supported.</li>
+    <li><span class="stage-chip ga">GA Worldwide</span> Feature is on-by-default for all eligible commercial tenants across all regions. SLAs, billing, and compliance hold.</li>
+    <li><span class="stage-chip retired">Retired</span> Feature has been deprecated and removed. Row remains for historical traceability.</li>
+  </ul>
+
+  <h3>Reference UX — Saturation Grid</h3>
+  <div class="mock-wrap">
+    <div class="mock-title-row">
+      <div class="mock-title">M365 Copilot · Saturation Dashboard</div>
+      <div class="mock-filters">
+        <span class="mock-filter"><span class="swatch" style="background:var(--risk-red)"></span>Blocked</span>
+        <span class="mock-filter"><span class="swatch" style="background:var(--warn-amber)"></span>At Risk</span>
+        <span class="mock-filter"><span class="swatch" style="background:var(--primary)"></span>On Track</span>
+        <span class="mock-filter"><span class="swatch" style="background:var(--success-green)"></span>Complete</span>
+      </div>
+    </div>
+    <table class="mock-grid">
+      <thead>
+        <tr>
+          <th style="width:170px">Feature</th>
+          <th style="width:130px">DRI</th>
+          <th>Internal / MSIT</th>
+          <th>Dogfood / TAP</th>
+          <th>Public Preview</th>
+          <th>GA Worldwide</th>
+          <th>Retired</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="mock-feature">Agent 365</td>
+          <td>Aaron Bjork</td>
+          <td><span class="mock-cell live"><span class="dot"></span>11/18</span></td>
+          <td><span class="mock-cell live"><span class="dot"></span>11/18</span></td>
+          <td><span class="mock-cell live"><span class="dot"></span>05/01</span></td>
+          <td><span class="mock-cell rolling"><span class="dot"></span>08/01</span></td>
+          <td><span class="mock-cell tbd"><span class="dot"></span>—</span></td>
+        </tr>
+        <tr>
+          <td class="mock-feature">Copilot Tuning</td>
+          <td>Ranveer C.</td>
+          <td><span class="mock-cell live"><span class="dot"></span>Jan</span></td>
+          <td><span class="mock-cell live"><span class="dot"></span>Mar</span></td>
+          <td><span class="mock-cell rolling"><span class="dot"></span>07/14</span></td>
+          <td><span class="mock-cell tbd"><span class="dot"></span>Q4</span></td>
+          <td><span class="mock-cell tbd"><span class="dot"></span>—</span></td>
+        </tr>
+        <tr>
+          <td class="mock-feature">Cowork</td>
+          <td>Ilya Grebnov</td>
+          <td><span class="mock-cell live"><span class="dot"></span>03/09</span></td>
+          <td><span class="mock-cell live"><span class="dot"></span>03/30</span></td>
+          <td><span class="mock-cell rolling"><span class="dot"></span>06/16</span></td>
+          <td><span class="mock-cell atrisk"><span class="dot"></span>07/14</span></td>
+          <td><span class="mock-cell tbd"><span class="dot"></span>—</span></td>
+        </tr>
+        <tr>
+          <td class="mock-feature">Critique + Council</td>
+          <td>Malik Pradhan</td>
+          <td><span class="mock-cell live"><span class="dot"></span>03/30</span></td>
+          <td><span class="mock-cell live"><span class="dot"></span>03/30</span></td>
+          <td><span class="mock-cell rolling"><span class="dot"></span>07/14</span></td>
+          <td><span class="mock-cell blocked"><span class="dot"></span>pending</span></td>
+          <td><span class="mock-cell tbd"><span class="dot"></span>—</span></td>
+        </tr>
+        <tr>
+          <td class="mock-feature">Deepwork</td>
+          <td>Archana S.</td>
+          <td><span class="mock-cell atrisk"><span class="dot"></span>TBD</span></td>
+          <td><span class="mock-cell rolling"><span class="dot"></span>06/22</span></td>
+          <td><span class="mock-cell rolling"><span class="dot"></span>07/14</span></td>
+          <td><span class="mock-cell tbd"><span class="dot"></span>8/15</span></td>
+          <td><span class="mock-cell tbd"><span class="dot"></span>—</span></td>
+        </tr>
+        <tr>
+          <td class="mock-feature">Scout</td>
+          <td>Omar S.</td>
+          <td><span class="mock-cell live"><span class="dot"></span>06/02</span></td>
+          <td><span class="mock-cell live"><span class="dot"></span>06/02</span></td>
+          <td><span class="mock-cell tbd"><span class="dot"></span>—</span></td>
+          <td><span class="mock-cell tbd"><span class="dot"></span>—</span></td>
+          <td><span class="mock-cell tbd"><span class="dot"></span>—</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>UX Flow</h3>
+  <div class="ux-flow">
+    <p><strong>Upstream pull (hourly):</strong> Granite Peak (engineering dates) + ExP/Iris (flight saturation) + Admin Center (tenant opt-in) → Saturation data store.</p>
+    <p><strong>Render:</strong> User loads dashboard URL → corp-net auth + AAD group check → portfolio rollup strip + filterable feature grid renders (≤1s P95).</p>
+    <p><strong>Drill:</strong> Feature name → per-feature detail page (lifecycle history + links to Expedite scorecard, Granite Peak entry, ADO).</p>
+    <p><strong>Maintain:</strong> DRI receives weekly "stale row" digest with a one-click "still on track" or "update status" path; bulk nudge available to GPMs.</p>
+  </div>
+
+  <h3>Key Interaction Notes</h3>
+  <ul>
+    <li>Status filter chips at top behave as OR within the status dimension and AND with the section/search filters — matching Granite Peak Shiproom's mental model.</li>
+    <li>Cells with a future date are visually distinct from cells with a past date — "06/22 (planned)" reads differently from "06/22 (live)" via subtle italic styling, so leaders never confuse intent with achievement.</li>
+    <li>Multi-host features expand inline (chevron on the row) rather than navigating away — matches the model-availability matrix mental model from the June 15 email without forcing a context switch.</li>
+    <li>The portfolio rollup strip (R-11) lives directly under the header so the dashboard always answers "how saturated is the portfolio overall?" above the fold.</li>
+  </ul>
+
+  <h3>Edge Cases &amp; Empty States</h3>
+  <ul>
+    <li><strong>No features in filter:</strong> Empty state reads "No features match these filters" with a one-click "Clear filters" affordance.</li>
+    <li><strong>Stale row (>14 days no update):</strong> Row dims slightly; an amber clock icon appears next to the DRI; tooltip explains "Last updated 17 days ago — nudge DRI?"</li>
+    <li><strong>Upstream source unreachable:</strong> Cells from the failing source render with a dashed border and a tooltip "Upstream source unavailable — last good value shown, fetched [timestamp]". Banner appears above the grid linking to the source's health page.</li>
+    <li><strong>Retired features:</strong> Hidden by default; toggle "Show retired" in the filters area surfaces them with the Retired strikethrough styling for historical traceability.</li>
+    <li><strong>Conflicting cross-host state:</strong> Aggregated row shows ◐ "mixed" indicator + count (e.g., "Mixed across 5 hosts"). Expanding reveals exact per-host state.</li>
+  </ul>
+
+  <h3>Accessibility</h3>
+  <ul>
+    <li>Status is conveyed by icon shape + color + text label — never color alone. Screen readers announce "Public Preview, Rolling out, target July 14" rather than just a color name.</li>
+    <li>Full keyboard navigation: Tab moves across cells; Enter opens drill-through; Space toggles row expansion; / focuses the search box.</li>
+    <li>High-contrast mode preserves status differentiation through icon shape and border weight.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 6 — Open Questions & Risks           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 6</div>
+  <h2>Open Questions &amp; Risks</h2>
+
+  <h3>Open Questions</h3>
+  <div class="question-card">
+    <div class="q-title">Q1: Is the canonical 5-stage lifecycle (Internal/MSIT → Dogfood/TAP → Public Preview → GA Worldwide → Retired) the right granularity for every feature crew?</div>
+    <p>Some crews track sub-stages inside Public Preview (e.g., "Targeted Release" → "Standard Release") and government clouds (GCC, GCC-H, DoD) as separate audiences. Forcing one canonical set risks pushback. <strong>Owner:</strong> David Lydston (PM) with feature-crew GPMs. <strong>Current leaning:</strong> Hold the 5-stage canon firm; expose government clouds and sub-rings as columns in a separate <em>Audience saturation</em> sub-view (matches Granite Peak's GCC / GCC-H / DoD / MSA columns) rather than fragmenting the primary lifecycle view.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q2: Pull-only from upstream sources, or allow direct in-grid editing by DRIs?</div>
+    <p>Pull-only is cleaner architecturally but assumes every stage has a queryable upstream signal. Some signals (e.g., "is this Tenant opt-in?") may not exist outside a PM's head. <strong>Owner:</strong> Eng partner + David Lydston. <strong>Current leaning:</strong> Hybrid — pull where signal exists, audited manual edits where it doesn't. Manual edits decay after 30 days unless re-confirmed.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q3: Who is the system DRI?</div>
+    <p>The dashboard is cross-crew by definition — it needs a permanent owner accountable for stage definitions, upstream integrations, and adjudicating crew exceptions. <strong>Owner:</strong> Copilot Leadership staff. <strong>Current leaning:</strong> IDEAS Experimentation owns it as an extension of the existing experimentation/portfolio surface.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q4: What is the relationship to Granite Peak Shiproom?</div>
+    <p>Granite Peak already exists and is engineering-flavored (ship dates by audience). Saturation Dashboard is leadership-flavored (lifecycle saturation). Do these stay as two surfaces, merge, or does one become a "view" inside the other? <strong>Owner:</strong> David Lydston + Granite Peak owner. <strong>Current leaning:</strong> Keep separate; Saturation Dashboard reads from Granite Peak so there is no double-entry. Granite Peak remains the engineering-truth surface; Saturation is the leadership-truth surface.</p>
+  </div>
+
+  <h3>Risks</h3>
+  <div class="risk-card">
+    <div class="risk-title">Risk 1: Data staleness erodes trust faster than the dashboard earns it</div>
+    <p><strong>Likelihood:</strong> High · <strong>Impact:</strong> High. A leader who sees one wrong status — "feature X is GA" when it isn't — will stop trusting the surface entirely. <strong>Mitigation:</strong> (1) Aggressive freshness flagging (R-03) so stale cells are visually unmistakable; (2) Hourly pull cadence with monitoring; (3) "Last verified" timestamp on every cell on hover; (4) Pre-launch private beta with the top 5 most-skeptical GPMs to find errors before the broader audience sees them.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 2: Definition drift between crews</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> High. If "Public Preview" means three different things in three crews, the dashboard hides the disagreement behind a friendly green dot. <strong>Mitigation:</strong> (1) Published canonical definitions linked from every column header (R-02); (2) Quarterly audit of crew-specific overrides (must be zero — guardrail metric); (3) Adjudication owned by IDEAS Experimentation when crews disagree.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 3: Becomes another tracker no one updates</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. Status trackers historically rot when they require manual entry. <strong>Mitigation:</strong> (1) Pull-from-upstream by default (R-04) so the DRI's burden is verification, not authoring; (2) Weekly digest with one-click "still on track" path; (3) Tie one weekly leadership review's prep flow to the dashboard URL so non-use creates visible review friction.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 4: Leadership over-indexes on column-completion as "shipping success"</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. Visualizing lifecycle stages makes "all green to GA" feel like the goal, even when the right call is to extend Preview or roll back. <strong>Mitigation:</strong> (1) The dashboard explicitly does <em>not</em> compute a "% to GA" feature-health score; (2) Drill-through (R-13) lands on the Expedite scorecard so health-of-feature signal stays with the experimentation surface; (3) Editorial framing in the dashboard header — "lifecycle saturation, not feature quality."</p>
+  </div>
+</div>
+
+</div><!-- end .content -->
+
+<div class="footer">
+  Saturation Dashboard — Product Specification · M365 Copilot · IDEAS Experimentation · Last updated June 23, 2026
+</div>
+
+</body>
+</html>
