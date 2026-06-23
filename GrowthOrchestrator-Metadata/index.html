@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Spec — Growth Orchestrator Metadata in Expedite</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-light: #e8f0fe;
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --risk-red: #d93025;
+    --risk-bg: #fce8e6;
+    --success-green: #1e8e3e;
+    --success-bg: #e6f4ea;
+    --warn-amber: #e37400;
+    --warn-bg: #fef7e0;
+    --p0: #d93025;
+    --p1: #e37400;
+    --p2: #1a73e8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #1a2332 0%, #2d4a6f 60%, var(--primary) 100%);
+    color: #fff;
+    padding: 48px 40px 36px;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.85;
+    font-weight: 400;
+  }
+  .meta-bar {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+  .meta-item strong {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.65;
+    margin-bottom: 2px;
+  }
+
+  .content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 60px;
+  }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .section-number {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .section h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 20px 0 10px;
+    color: var(--text);
+  }
+  .section p, .section li {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .section ul, .section ol {
+    padding-left: 22px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.9rem;
+  }
+  thead th {
+    background: var(--bg);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-p0 { background: #fce8e6; color: var(--p0); }
+  .badge-p1 { background: var(--warn-bg); color: var(--p1); }
+  .badge-p2 { background: var(--primary-light); color: var(--p2); }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .metric-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .metric-card .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .metric-card .value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .metric-card .target {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .scenario-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .scenario-card .persona {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .scenario-card .narrative {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  .risk-card {
+    border-left: 4px solid var(--risk-red);
+    background: var(--risk-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .risk-card .risk-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--risk-red);
+    margin-bottom: 4px;
+  }
+  .risk-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .question-card {
+    border-left: 4px solid var(--warn-amber);
+    background: var(--warn-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .question-card .q-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--warn-amber);
+    margin-bottom: 4px;
+  }
+  .question-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .nongoal {
+    background: #f1f3f4;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 6px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nongoal::before {
+    content: '✕';
+    color: var(--risk-red);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .content { padding: 0 20px; }
+    .section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Growth Orchestrator Metadata in Expedite</h1>
+  <div class="subtitle">Mini Spec — Surfacing Initiative Metadata for Growth Analytics Hub</div>
+  <div class="meta-bar">
+    <div class="meta-item"><strong>PM Owner</strong> David Lydston</div>
+    <div class="meta-item"><strong>Team</strong> IDEAS Experimentation</div>
+    <div class="meta-item"><strong>Last Updated</strong> June 2026</div>
+    <div class="meta-item"><strong>Status</strong> Draft</div>
+    <div class="meta-item"><strong>Target</strong> FY27 H1</div>
+    <div class="meta-item"><strong>Customer</strong> Growth Leadership</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 1 — Problem & Opportunity           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 1</div>
+  <h2>Problem &amp; Opportunity</h2>
+
+  <h3>Problem Statement</h3>
+  <p>Growth experiments are registered in <strong>Growth Orchestrator</strong> — the intake system where each experiment is tagged with an initiative classification, a written hypothesis, an IcM team for incident escalation, and an initiative owner. Today this metadata is siloed in Growth Orchestrator and does not flow into Expedite, where the experiments actually run and produce scorecards. As a result, Growth Analytics Hub (a separate analytics tool that consumes Expedite data) has no view of which initiative an experiment belongs to, who owns it, or whether its hypothesis and ownership data are still valid. Growth leadership cannot aggregate experiment outcomes by initiative classification, cannot identify metadata gaps that block portfolio reporting, and cannot trust that the experiments running today are still aligned with the initiatives they were registered against.</p>
+
+  <h3>Opportunity</h3>
+  <p>Bringing Growth Orchestrator metadata into Expedite — and surfacing it downstream through Growth Analytics Hub — unlocks portfolio-level reporting for Growth leadership:</p>
+  <ul>
+    <li>Aggregate experiment outcomes by initiative classification, giving leadership a single view of how each initiative is performing</li>
+    <li>Surface warnings when experiments are running without complete metadata (missing classification, hypothesis, IcM team, or initiative owner) or when metadata has drifted out of alignment</li>
+    <li>Eliminate manual cross-referencing between Growth Orchestrator and Expedite, which today is the only way leadership can assemble a portfolio view</li>
+    <li>Establish a single source of truth for "what initiative does this experiment belong to" across the growth lifecycle</li>
+  </ul>
+
+  <h3>Evidence</h3>
+  <ul>
+    <li><strong>Tool fragmentation:</strong> Growth metadata exists in Growth Orchestrator; experiment execution and scorecards live in Expedite; Growth Analytics Hub consumes Expedite only — leaving a structural gap</li>
+    <li><strong>Manual reconciliation:</strong> Leadership-ready portfolio views today require pulling data from both systems by hand or via one-off scripts</li>
+    <li><strong>No warnings exist:</strong> There is no automated check today for missing classifications, missing IcM teams, or missing initiative owners on running experiments</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 2 — Goals & Success Metrics          -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 2</div>
+  <h2>Goals &amp; Success Metrics</h2>
+
+  <h3>Goals</h3>
+  <ol>
+    <li>Ingest Growth Orchestrator metadata (initiative classification, hypothesis, IcM team, initiative owner) into Expedite and attach it to the corresponding experiment records</li>
+    <li>Expose the ingested metadata to Growth Analytics Hub so leadership can aggregate experiment outcomes by initiative classification</li>
+    <li>Generate warnings for missing or misaligned metadata so gaps are visible before they impact portfolio reporting</li>
+  </ol>
+
+  <h3>Success Metrics</h3>
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="label">Primary Metric</div>
+      <div class="value">Metadata Coverage</div>
+      <div class="target">Target: ≥95% of running Expedite growth experiments have all four metadata fields populated from Growth Orchestrator</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Aggregation Adoption</div>
+      <div class="target">Target: Growth leadership uses the initiative-classification view in Growth Analytics Hub in ≥80% of recurring portfolio reviews within 1 quarter of GA</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Warning Resolution Time</div>
+      <div class="target">Target: Median time-to-resolution for metadata-gap warnings ≤5 business days</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Metadata Freshness</div>
+      <div class="target">Must maintain: Metadata in Expedite reflects Growth Orchestrator state within a defined SLA (e.g., ≤24 hours)</div>
+    </div>
+  </div>
+
+  <h3>Explicit Non-Goals</h3>
+  <div class="nongoal">Building a write-back path from Expedite to Growth Orchestrator — this is a read-only ingestion in V1</div>
+  <div class="nongoal">Redesigning the Growth Orchestrator intake schema or workflow — metadata fields are taken as-is</div>
+  <div class="nongoal">Designing new Growth Analytics Hub visualizations beyond the initiative-classification aggregation — additional cuts are follow-ups</div>
+  <div class="nongoal">Auto-resolving metadata gaps (e.g., guessing owners) — warnings surface gaps; humans resolve them in Growth Orchestrator</div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 3 — User Scenarios                   -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 3</div>
+  <h2>User Scenarios</h2>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 1 — "Growth Leader Reviewing Initiative Performance" (Primary)</div>
+    <div class="narrative">
+      <p>Jordan is a Growth org leader preparing for a quarterly initiative review. Today, to answer "how is the Sign-Up Funnel initiative performing across all its experiments?" Jordan asks an analyst to pull a list of experiments from Growth Orchestrator filtered by that initiative classification, then manually look each one up in Expedite, then assemble a portfolio summary — taking days. With this spec shipped, Jordan opens Growth Analytics Hub, selects "Sign-Up Funnel" from the initiative classification filter, and instantly sees every experiment tied to that initiative with its scorecard outcome, owner, and IcM team — no manual cross-referencing required.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 2 — "Growth PM Catching a Metadata Gap"</div>
+    <div class="narrative">
+      <p>Alex is a Growth PM whose team is running 6 experiments under the Pre-Login Acquisition initiative. When metadata ingestion runs, Expedite flags two of Alex's experiments with a warning: one has no IcM team assigned in Growth Orchestrator, and another has an initiative owner who left the company. Alex sees the warnings on the experiment list view in Expedite, updates the records in Growth Orchestrator, and within 24 hours the warnings clear. The experiments now show up correctly in Growth Analytics Hub's initiative rollup.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 3 — "Analyst Building a Custom Portfolio Cut"</div>
+    <div class="narrative">
+      <p>Sam is a growth analyst building a custom report for an executive review. With Growth Orchestrator metadata now exposed through Expedite's data layer, Sam can query Expedite directly to assemble cross-initiative views without needing two source systems. The metadata is consistent, joinable, and refreshed within the documented SLA.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case — Expedite Experiment Without a Growth Orchestrator Record</div>
+    <div class="narrative">
+      <p>Some Expedite experiments are not growth experiments and will never have a Growth Orchestrator record (e.g., infrastructure A/B tests). For these, the metadata fields render as "N/A — not a Growth Orchestrator experiment" and no warning is generated. The Growth Analytics Hub initiative view simply excludes these experiments.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 4 — Requirements                     -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 4</div>
+  <h2>Requirements</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:70px">Priority</th>
+        <th style="width:50px">ID</th>
+        <th>Requirement</th>
+        <th style="width:180px">Acceptance Criteria</th>
+        <th style="width:100px">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-01</td>
+        <td>Build an ingestion pipeline from Growth Orchestrator to Expedite that pulls initiative classification, hypothesis, IcM team, and initiative owner for each registered experiment</td>
+        <td>Pipeline runs on a defined cadence; metadata for ≥95% of growth experiments is populated in Expedite within SLA</td>
+        <td>No existing API — new integration required</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-02</td>
+        <td>Attach ingested metadata to the corresponding Expedite experiment record via a stable join key</td>
+        <td>≥99% of Growth Orchestrator records correctly map to their Expedite experiment; mismatches surface in a reconciliation report</td>
+        <td>Need to define the join key — see Open Q1</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-03</td>
+        <td>Expose metadata to Growth Analytics Hub via the existing Expedite data layer, enabling aggregation by initiative classification</td>
+        <td>Growth Analytics Hub can filter and aggregate experiments by initiative classification; data matches Growth Orchestrator within SLA</td>
+        <td>Coordinate with Growth Analytics Hub team on consumption pattern</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-04</td>
+        <td>Generate warnings for experiments with <strong>missing metadata</strong> — any of the four fields blank in Growth Orchestrator at ingestion time</td>
+        <td>Warning visible in Expedite experiment view and surfaced in Growth Analytics Hub; warning includes which field(s) are missing</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-05</td>
+        <td>Generate warnings for <strong>misaligned metadata</strong> — when metadata changes in Growth Orchestrator after an experiment has started running</td>
+        <td>Warning includes the changed field, prior value, and new value; surfaced to experiment owner and Growth Analytics Hub</td>
+        <td>Define what constitutes "material" misalignment</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-06</td>
+        <td>Generate warnings for <strong>ownership gaps</strong> — IcM team or initiative owner is unassigned, invalid, or refers to a departed employee</td>
+        <td>Warning surfaced with suggested remediation (e.g., link to Growth Orchestrator record); deduplicated per experiment</td>
+        <td>Identity check requires Graph/HR signal — confirm availability</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-07</td>
+        <td>Define and publish a metadata-freshness SLA between Growth Orchestrator and Expedite</td>
+        <td>SLA documented (e.g., ≤24 hours); freshness monitored and surfaced in an internal health dashboard</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-08</td>
+        <td>Document the integration and warnings in Expedite and Growth Analytics Hub user-facing docs</td>
+        <td>Doc updates published before GA; linked from relevant UI surfaces</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-09</td>
+        <td>Announce GA to Growth leadership and PM crews with examples of the new initiative-classification view and warning experience</td>
+        <td>Announcement sent via standard release channel with screenshots and FAQ</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 5 — Design Direction                 -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 5</div>
+  <h2>Design Direction <span style="font-weight:400;font-size:0.85rem;color:var(--text-secondary)">— minimal additions</span></h2>
+
+  <h3>Metadata Display in Expedite</h3>
+  <ul>
+    <li>Each Expedite experiment detail page shows a "Growth Orchestrator" metadata section: initiative classification, hypothesis, IcM team, initiative owner</li>
+    <li>Each field includes a "last synced" timestamp and a deep link to the Growth Orchestrator record for verification or correction</li>
+    <li>Warnings render as a chip on the experiment row in list views and as a banner on the detail page, with the specific issue and a link to remediate</li>
+  </ul>
+
+  <h3>Growth Analytics Hub Surface</h3>
+  <ul>
+    <li>Growth Analytics Hub consumes the metadata through the existing Expedite data layer — no new bespoke API</li>
+    <li>Primary aggregation: experiments grouped by initiative classification, with rollup of outcome status (ship/iterate/stop) and metadata-warning counts per group</li>
+    <li>Warnings surface as a visible badge per initiative group so leadership can see at a glance whether portfolio data is trustworthy</li>
+  </ul>
+
+  <h3>Edge Cases</h3>
+  <ul>
+    <li><strong>Non-growth experiments:</strong> Metadata fields render as "N/A — not a Growth Orchestrator experiment"; no warning generated; excluded from Growth Analytics Hub initiative rollups</li>
+    <li><strong>Ingestion failure:</strong> If the pipeline fails, Expedite shows stale metadata with the last-synced timestamp and a banner indicating freshness has lapsed</li>
+    <li><strong>Deleted Growth Orchestrator record:</strong> Metadata on the Expedite experiment is preserved with a "Source record removed" indicator; warning generated for review</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 6 — Open Questions & Risks           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 6</div>
+  <h2>Open Questions &amp; Risks</h2>
+
+  <h3>Open Questions</h3>
+  <div class="question-card">
+    <div class="q-title">Q1: What is the join key between Growth Orchestrator records and Expedite experiments?</div>
+    <p>Today the two systems are not linked. We need a stable identifier — either an Expedite experiment ID stored in Growth Orchestrator at registration time, or a deterministic mapping (e.g., experiment name + owner + start date). The cleanest path is adding an Expedite ID field to Growth Orchestrator at intake. <strong>Owner:</strong> Engineering + Growth Orchestrator team.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q2: Does Growth Orchestrator expose a queryable API, or do we need a data export pipeline?</div>
+    <p>The integration design depends on what Growth Orchestrator offers. If there is no API, we may need an authorized data export (e.g., Kusto, blob drop). <strong>Owner:</strong> Engineering + Growth Orchestrator team.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q3: What is the agreed metadata-freshness SLA?</div>
+    <p>≤24 hours is proposed in this draft. Need confirmation that this is acceptable for portfolio reviews and feasible for the integration pattern chosen. <strong>Owner:</strong> Growth Leadership + Engineering.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q4: How do we detect a departed employee for ownership-gap warnings?</div>
+    <p>Detecting that an initiative owner has left the company requires a Graph/HR signal. Need to confirm a reliable, allowed signal is available. <strong>Owner:</strong> Engineering + Privacy.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q5: How should warnings be surfaced and assigned for resolution?</div>
+    <p>Should warnings ping the initiative owner directly (email, Teams)? Or only render in-product? Need a decision on the warning notification channel. <strong>Owner:</strong> Design + Growth Leadership.</p>
+  </div>
+
+  <h3>Risks</h3>
+  <div class="risk-card">
+    <div class="risk-title">Risk 1: No Stable Join Key Forces Fuzzy Matching</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> High. If we cannot add an Expedite ID to Growth Orchestrator at intake, we will rely on heuristic matching (name + owner + dates), which will produce false matches and unmatched records — degrading the trustworthiness of portfolio rollups. <strong>Mitigation:</strong> (1) Push for an Expedite ID field in Growth Orchestrator at intake; (2) Publish a reconciliation report so unmatched records are visible; (3) Provide a manual mapping override for analyst use.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 2: Warning Fatigue Reduces Effectiveness</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. If every missing field or minor metadata change produces a warning, owners will start ignoring them, defeating the purpose. <strong>Mitigation:</strong> (1) Deduplicate warnings per experiment; (2) Define "material" misalignment carefully (e.g., classification change yes, hypothesis typo no); (3) Allow owners to acknowledge/dismiss warnings with rationale.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 3: Metadata Freshness Lag Misleads Portfolio Reviews</div>
+    <p><strong>Likelihood:</strong> Low–Medium · <strong>Impact:</strong> Medium. If ingestion lags beyond the SLA, leadership may make portfolio decisions on stale data. <strong>Mitigation:</strong> (1) Display last-synced timestamp prominently; (2) Banner alert when freshness exceeds SLA; (3) Monitor and alert on pipeline health.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 4: Access &amp; Privacy on Cross-System Metadata</div>
+    <p><strong>Likelihood:</strong> Low · <strong>Impact:</strong> Medium. Pulling owner identity, IcM team membership, and hypothesis text across system boundaries may need a privacy review depending on data classification. <strong>Mitigation:</strong> (1) Engage Privacy early; (2) Confirm data classification of each field; (3) Restrict downstream access in Growth Analytics Hub to authorized roles.</p>
+  </div>
+</div>
+
+</div><!-- end .content -->
+
+<div class="footer">
+  Growth Orchestrator Metadata in Expedite — Mini Spec · IDEAS Experimentation · Draft · FY27 H1
+</div>
+
+</body>
+</html>
