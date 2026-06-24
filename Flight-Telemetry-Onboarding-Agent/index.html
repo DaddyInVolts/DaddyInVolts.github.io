@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Spec — Self-Service Flight Telemetry Onboarding Agent</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-light: #e8f0fe;
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --risk-red: #d93025;
+    --risk-bg: #fce8e6;
+    --success-green: #1e8e3e;
+    --success-bg: #e6f4ea;
+    --warn-amber: #e37400;
+    --warn-bg: #fef7e0;
+    --p0: #d93025;
+    --p1: #e37400;
+    --p2: #1a73e8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #1a2332 0%, #2d4a6f 60%, var(--primary) 100%);
+    color: #fff;
+    padding: 48px 40px 36px;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.85;
+    font-weight: 400;
+  }
+  .meta-bar {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+  .meta-item strong {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.65;
+    margin-bottom: 2px;
+  }
+
+  /* ── Content ── */
+  .content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 60px;
+  }
+
+  /* ── Section ── */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .section-number {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .section h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 20px 0 10px;
+    color: var(--text);
+  }
+  .section p, .section li {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .section ul, .section ol {
+    padding-left: 22px;
+  }
+
+  /* ── Placeholder / fill-in text ── */
+  .placeholder {
+    background: var(--primary-light);
+    border-left: 3px solid var(--primary);
+    padding: 12px 16px;
+    border-radius: 0 6px 6px 0;
+    font-style: italic;
+    color: var(--primary);
+    font-size: 0.9rem;
+    margin: 12px 0;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.9rem;
+  }
+  thead th {
+    background: var(--bg);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ── Priority badges ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-p0 { background: #fce8e6; color: var(--p0); }
+  .badge-p1 { background: var(--warn-bg); color: var(--p1); }
+  .badge-p2 { background: var(--primary-light); color: var(--p2); }
+
+  /* ── Metric cards ── */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .metric-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .metric-card .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .metric-card .value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .metric-card .target {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* ── Scenario cards ── */
+  .scenario-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .scenario-card .persona {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .scenario-card .narrative {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  /* ── Risk / Open Q cards ── */
+  .risk-card {
+    border-left: 4px solid var(--risk-red);
+    background: var(--risk-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .risk-card .risk-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--risk-red);
+    margin-bottom: 4px;
+  }
+  .risk-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .question-card {
+    border-left: 4px solid var(--warn-amber);
+    background: var(--warn-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .question-card .q-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--warn-amber);
+    margin-bottom: 4px;
+  }
+  .question-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  /* ── UX Flow box ── */
+  .ux-flow {
+    background: var(--bg);
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 32px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin: 14px 0;
+  }
+
+  /* ── Nongoal chip ── */
+  .nongoal {
+    background: #f1f3f4;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 6px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nongoal::before {
+    content: '✕';
+    color: var(--risk-red);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  /* ── Print ── */
+  @media print {
+    body { background: #fff; }
+    .content { padding: 0 20px; }
+    .section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- HEADER                                                       -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="header">
+  <h1>Self-Service Flight Telemetry Onboarding Agent</h1>
+  <div class="subtitle">Product Specification — Agentic onboarding of partner-team flight telemetry from source (Cosmos) to xcard</div>
+  <div class="meta-bar">
+    <div class="meta-item"><strong>PM Owner</strong> David Lydston</div>
+    <div class="meta-item"><strong>Team</strong> IDEAS Exp</div>
+    <div class="meta-item"><strong>Last Updated</strong> June 24, 2026</div>
+    <div class="meta-item"><strong>Status</strong> Draft</div>
+    <div class="meta-item"><strong>Stakeholders</strong> IDEAS Exp Eng, Partner Data Eng Teams, Security &amp; Access Review, Data Science</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 1 — Problem & Opportunity           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 1</div>
+  <h2>Problem &amp; Opportunity</h2>
+
+  <h3>Problem Statement</h3>
+  <p>Microsoft partner teams who want to run experiments through IDEAS Exp must first onboard their <strong>flight telemetry</strong> — the record of which user was placed in which experiment condition (treatment or control) since which time — from their source system (typically Cosmos) into the IDEAS Exp <strong>experiment scorecard (xcard)</strong> pipeline. Today, that onboarding is gated end-to-end on IDEAS Exp engineers. The underlying technical work is small, but the calendar time stretches into <em>weeks</em> because our engineers must shepherd permission grants, access reviews, security approvals, and a long tail of small coordination tasks on behalf of the customer. The result: a backlog of partner teams waiting on us, IDEAS Exp engineering capacity consumed by process work instead of platform investment, and customer teams blocked on our priorities rather than their own.</p>
+
+  <h3>Opportunity</h3>
+  <p>If we expose onboarding as a <strong>self-service CLI agent skill</strong>, customers can drive their own onboarding at the pace their effort and priorities allow. The agent owns the technical heavy lifting (schema discovery, source→xcard mapping, validation, config generation, run monitoring), while humans remain in the loop only where they must be — security/permissions approvals and the production deploy gate. This shifts effort from the IDEAS Exp team to the requesting customer, removes IDEAS Exp prioritization as a blocker, and unblocks engineering hours we can reinvest in platform quality and new experimentation capabilities.</p>
+
+  <h3>Evidence</h3>
+  <ul>
+    <li><strong>Engineering signal:</strong> Onboarding work consistently produces multi-week calendar time despite small actual engineering effort — IDEAS Exp engineers report most of the elapsed time is spent following up on security/access processes for the customer.</li>
+    <li><strong>Backlog signal:</strong> Partner teams routinely wait in queue behind IDEAS Exp's own roadmap priorities — customers cannot accelerate even when their own urgency is high.</li>
+    <li><strong>Pattern signal:</strong> The same onboarding playbook is repeated for every partner team — strong indicator that the work is automatable and that an agent can codify the repeated steps.</li>
+    <li><strong>Source homogeneity:</strong> Cosmos is the typical source system today — a single primary source means V1 can deliver a complete self-service experience without needing to solve N source connectors up front.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 2 — Goals & Success Metrics          -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 2</div>
+  <h2>Goals &amp; Success Metrics</h2>
+
+  <h3>Goals</h3>
+  <ol>
+    <li>Make flight-telemetry onboarding <strong>self-service by default</strong> for internal Microsoft partner teams — the agent, not an IDEAS Exp engineer, is the customer's primary counterparty.</li>
+    <li>Eliminate IDEAS Exp engineering as the scheduling bottleneck — customers move as fast as their own effort and priorities allow.</li>
+    <li>Reclaim IDEAS Exp engineering hours currently spent shepherding partner onboardings, and reinvest them in platform work.</li>
+  </ol>
+
+  <h3>Success Metrics</h3>
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="label">Primary Metric</div>
+      <div class="value">% Onboardings Self-Service</div>
+      <div class="target">Target: 70% of new onboardings completed self-service within 6 months of GA · Baseline: 0%</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">IDEAS Exp Eng-Hours per Onboarding</div>
+      <div class="target">Target: ≥75% reduction vs. pre-agent baseline · Baseline: TBD (instrument before GA)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Calendar Time-to-Onboard</div>
+      <div class="target">Target: median ≤5 business days (excluding security-process wait) · Baseline: multiple weeks</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Scorecard Validity</div>
+      <div class="target">Must not regress: rate of post-onboarding scorecard defects (bad mappings, biased samples) attributable to the agent — target 0 P0 incidents per quarter.</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Scorecard Compute Cost</div>
+      <div class="target">Must not regress: per-onboarding scorecard compute cost vs. pre-agent baseline — agent must flag/block configurations that exceed cost thresholds.</div>
+    </div>
+  </div>
+
+  <h3>Explicit Non-Goals</h3>
+  <div class="nongoal">External (non-Microsoft) customers — V1 is internal partner teams only</div>
+  <div class="nongoal">Non-flight telemetry (e.g., outcome/engagement events, business metrics) — V1 scopes to assignment data: who was in which condition, since when</div>
+  <div class="nongoal">Source systems other than Cosmos — V1 ships Cosmos-only; Kusto/Geneva/Synapse are V2 candidates</div>
+  <div class="nongoal">Migration of existing onboardings — agent serves new onboardings; existing customers remain on their current configurations</div>
+  <div class="nongoal">Bypassing or shortcutting Microsoft security/access-review processes — humans remain owners of step 4 (permissions) and step 6 (production deploy)</div>
+  <div class="nongoal">Authoring of new xcard metrics or scorecard templates — onboarding maps to existing xcard schemas; metric authoring is a separate workstream</div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 3 — User Scenarios                   -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 3</div>
+  <h2>User Scenarios</h2>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 1 — "The Self-Serving Partner Data Engineer" (Primary)</div>
+    <div class="narrative">
+      <p>Asha is a data engineer on a Microsoft product team that wants to run experiments through IDEAS Exp. Her team's flight assignment data already lives in Cosmos. Today she would file a request and wait weeks for an IDEAS Exp engineer to drive the onboarding. Instead, she installs the IDEAS Exp CLI, runs <code>ideasexp onboard flight-telemetry</code>, and the agent walks her through it: it discovers the schema of her Cosmos container, proposes a mapping to the xcard expected schema, runs a validation pass on a sample (catching, for example, that her data is missing pre-treatment users), generates the onboarding configuration, and produces a checklist of the access grants her team needs to request. She submits those access requests to her team's normal security review, and once approvals land, she returns to the agent which finalizes the config and hands off a production-ready package for IDEAS Exp deploy. End-to-end calendar time is bounded by Asha's own effort and her org's security SLA — not by IDEAS Exp's backlog.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 2 — "The IDEAS Exp Engineer on Approval Duty"</div>
+    <div class="narrative">
+      <p>Ravi is an IDEAS Exp engineer. Before the agent, he spent a meaningful slice of his week chasing permission grants and answering small questions on behalf of partner teams' onboardings. Now, his only touchpoint on a typical onboarding is the production deploy gate: he opens a pre-validated, agent-generated onboarding package, reviews the diff (mapping, sample stats, projected scorecard cost), and approves the deploy. He no longer hand-holds permissions, no longer pastes the same setup steps into a dozen chats. The work is shifted to the customer, and Ravi's time goes back to platform work.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 3 — "The Stalled Customer"</div>
+    <div class="narrative">
+      <p>Marco starts an onboarding but his team's security review takes longer than expected and he context-switches to other work for three weeks. When he returns, he reruns the agent which detects the in-progress onboarding from saved state, re-checks whether the pending permissions have landed, and picks up exactly where he left off — no IDEAS Exp engineer involved, no re-explaining context. The customer moves at the speed of their own priorities; IDEAS Exp incurs no cost for the wait.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case — Filtered or biased telemetry sample</div>
+    <div class="narrative">
+      <p>A customer points the agent at a Cosmos container that contains only a filtered subset of flight assignments (e.g., only users who later converted) rather than the complete as-assigned / intent-to-treat sample. The agent's validation step compares row counts, time coverage, and condition-mix shape against expected properties of an unfiltered assignment table and refuses to proceed: "This dataset appears to be a filtered slice, not an as-assigned sample. Scorecards built on this would be biased. Please point me at the full assignment table or explain why this subset is intentional." The customer cannot deploy until they either provide the full sample or get an explicit IDEAS Exp-side override.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case — High-cost segment configuration</div>
+    <div class="narrative">
+      <p>A customer tries to onboard a configuration that, given the cardinality of their proposed segments, would drive scorecard compute cost well above the per-onboarding budget. The agent estimates projected cost during the validation step and either blocks the configuration or surfaces it as a hard warning that requires explicit acknowledgement and IDEAS Exp sign-off before deploy.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 4 — Requirements                     -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 4</div>
+  <h2>Requirements</h2>
+
+  <p>The agent owns steps <strong>1, 2, 3, 5, 7</strong> of the onboarding lifecycle. Humans own steps <strong>4</strong> (security/permissions) and <strong>6</strong> (production deploy).</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:70px">Priority</th>
+        <th style="width:50px">ID</th>
+        <th>Requirement</th>
+        <th style="width:200px">Acceptance Criteria</th>
+        <th style="width:120px">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-01</td>
+        <td><strong>Schema discovery (Step 1).</strong> Given a Cosmos source (account / database / container) the agent inspects the container and produces a structured description of fields, types, and example values relevant to flight telemetry (user id, condition assignment, assignment timestamp, flight/experiment id).</td>
+        <td>Agent successfully discovers schema for ≥95% of in-scope Cosmos containers in pilot; produces correctly typed field list verified by data eng spot-checks.</td>
+        <td>Cosmos-only in V1</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-02</td>
+        <td><strong>Source → xcard mapping (Step 2).</strong> Agent proposes a mapping from discovered source fields to the xcard expected schema (assignment unit, condition label, treatment-start time, flight identifier). Customer can accept, override, or annotate each mapping.</td>
+        <td>For pilot onboardings, agent's first-pass mapping is accepted without override ≥70% of the time; all overrides are persisted and explained.</td>
+        <td>Greenfield — xcard schema contract must be formalized as part of this work</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-03</td>
+        <td><strong>Sample validation (Step 3).</strong> Agent runs a validation pass on a representative sample and surfaces structural problems: missing required fields, type mismatches, null density anomalies, time-coverage gaps, and — critically — signals that the sample is <em>filtered</em> rather than <em>as-assigned / intent-to-treat</em>.</td>
+        <td>Validation correctly detects synthetic filtered/biased samples in ≥90% of test cases; refuses to proceed when filtering is detected; explains the failure to the customer.</td>
+        <td>See Risk 1 — primary mitigation</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-04</td>
+        <td><strong>Scorecard cost estimation.</strong> Before generating final config, agent estimates projected scorecard compute cost based on data volume, segment cardinality, and metric set. Configurations above the per-onboarding cost threshold are blocked or require explicit IDEAS Exp sign-off.</td>
+        <td>Cost estimate within ±25% of actual first-week compute cost for pilot onboardings; high-cost configurations cannot deploy without an override token.</td>
+        <td>See Risk 2 — primary mitigation</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-05</td>
+        <td><strong>Permissions checklist (supports Step 4).</strong> Agent generates a precise, customer-actionable checklist of access grants and security-review artifacts the customer's org needs to file, with links and templates. The agent does <em>not</em> attempt to bypass or auto-execute these approvals.</td>
+        <td>Checklist covers 100% of permissions needed for a typical Cosmos→xcard onboarding; agent can re-check status on resume and tell the customer what is still outstanding.</td>
+        <td>Humans own approval; agent only assists</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-06</td>
+        <td><strong>Config generation (Step 5).</strong> Agent produces a production-ready onboarding configuration package (mapping, validation report, cost estimate, permissions evidence) ready for IDEAS Exp deploy review.</td>
+        <td>Generated package passes IDEAS Exp deploy reviewer's checklist without rework in ≥80% of pilot cases.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-07</td>
+        <td><strong>Deploy hand-off (Step 6).</strong> Agent submits the package for IDEAS Exp engineer review and deploy. Reviewer sees a diff-style summary of mapping, sample stats, and cost projection. Agent does not perform the production deploy itself.</td>
+        <td>Reviewer can approve/reject in a single sitting; rejected packages return to the customer with structured feedback the agent can act on.</td>
+        <td>Humans own deploy</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-08</td>
+        <td><strong>Run monitoring (Step 7).</strong> After deploy, the agent monitors the first N scorecard runs and alerts the customer (and IDEAS Exp on-call) if data freshness, row counts, or condition-mix drift outside expected bounds.</td>
+        <td>Anomalies surfaced within one scorecard cycle of occurrence; false-positive rate &lt;10% in pilot.</td>
+        <td>Can ship after V1 if needed</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-09</td>
+        <td><strong>Resumable session state.</strong> Onboarding state (discovered schema, proposed mapping, validation results, permissions checklist progress) persists across CLI invocations so customers can pause and resume — including across the multi-day security-review wait.</td>
+        <td>Customer can exit and re-enter the flow at any step without re-doing prior work; state survives at least 90 days of inactivity.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-10</td>
+        <td><strong>Audit log of agent actions.</strong> Every agent action (schema read, mapping decision, validation outcome, config emission) is logged with actor, timestamp, and inputs/outputs for post-hoc investigation.</td>
+        <td>Logs retained per standard Microsoft internal data handling; IDEAS Exp engineers can reconstruct any onboarding's full history.</td>
+        <td>Standard MS internal handling</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-11</td>
+        <td><strong>CLI distribution &amp; auth.</strong> Agent ships as an installable CLI tool that authenticates to Cosmos and IDEAS Exp using standard Microsoft internal identity (no custom credential handling).</td>
+        <td>Install path documented; auth uses standard internal identity flows; no secrets stored in plaintext.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-12</td>
+        <td><strong>Additional source connectors.</strong> Extend agent to support sources beyond Cosmos (e.g., Kusto/ADX, Geneva/MDM, Synapse) once V1 Cosmos flow is proven.</td>
+        <td>Each new source meets R-01 through R-07 acceptance criteria on its own pilot set.</td>
+        <td>V2</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-13</td>
+        <td><strong>In-tool onboarding analytics.</strong> Dashboard for IDEAS Exp PM/Eng showing % self-service, time-to-onboard distribution, eng-hours saved, and failure modes.</td>
+        <td>Dashboard surfaces the metrics defined in Section 2 with freshness ≤24h.</td>
+        <td>Needed for measuring 70% target</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 5 — Design Direction                 -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 5</div>
+  <h2>Design Direction <span style="font-weight:400;font-size:0.85rem;color:var(--text-secondary)">— CLI agent, no net-new GUI for V1</span></h2>
+
+  <h3>UX Flow</h3>
+  <div class="ux-flow">
+    Customer installs CLI → <code>ideasexp onboard flight-telemetry</code> → Agent: schema discovery → mapping proposal &amp; customer review → sample validation (incl. filtered-sample &amp; cost checks) → permissions checklist emitted → <strong>[customer drives security review — agent waits, state persisted]</strong> → agent re-checks permissions on resume → config package emitted → <strong>[IDEAS Exp engineer reviews &amp; deploys]</strong> → agent monitors first runs and reports back<br><br>
+    <small>V1 has no GUI. Optional V2: web dashboard surfacing onboarding state &amp; analytics.</small>
+  </div>
+
+  <h3>Key Interaction Notes</h3>
+  <ul>
+    <li><strong>Conversational CLI.</strong> The agent speaks in natural language at each step — explains what it found, what it proposes, and why — and accepts natural-language overrides ("the assignment time is actually <code>EventTimestamp</code>, not <code>CreatedAt</code>").</li>
+    <li><strong>Always show your work.</strong> Every proposal (mapping, validation verdict, cost estimate) is rendered with its evidence so the customer can sanity-check it. The customer, not the agent, is the auditor of record for their own data.</li>
+    <li><strong>Two clear human gates.</strong> The CLI explicitly tells the customer when control transfers to a human (security review, deploy review) and what happens next. There is no ambiguity about who owes the next action.</li>
+    <li><strong>Refuse, don't paper over.</strong> When validation detects a filtered sample or a runaway cost configuration, the agent refuses to proceed and explains why. There is no "skip validation" flag without an explicit IDEAS Exp-side override.</li>
+  </ul>
+
+  <h3>Edge Cases &amp; Empty States</h3>
+  <ul>
+    <li><strong>Cosmos container empty or unreachable:</strong> Surface the access error verbatim and link to the permissions checklist for the missing grant.</li>
+    <li><strong>Schema doesn't look like flight telemetry:</strong> Agent reports what it found vs. what it expected and asks the customer to confirm the container is the correct one before proceeding.</li>
+    <li><strong>Customer disagrees with the agent's filtered-sample verdict:</strong> They can request an explicit IDEAS Exp-side override; this routes to an IDEAS Exp engineer with full context and is logged.</li>
+    <li><strong>Permissions wait stretches past 90 days:</strong> Agent warns the customer that long-stale state may need to be re-validated against current source schema before resume.</li>
+    <li><strong>Deploy reviewer rejects the package:</strong> Rejection feedback is structured (which acceptance criterion failed) and the agent can re-enter the relevant step with that context, rather than restarting from scratch.</li>
+  </ul>
+
+  <h3>Accessibility</h3>
+  <ul>
+    <li>CLI output uses semantic structure and avoids color-only signaling — every error, warning, and prompt is also conveyed in text.</li>
+    <li>All prompts have non-interactive equivalents (flags / config files) so the flow is usable by screen-reader and automation users alike.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 6 — Open Questions & Risks           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 6</div>
+  <h2>Open Questions &amp; Risks</h2>
+
+  <h3>Open Questions</h3>
+  <div class="question-card">
+    <div class="q-title">Q1: What is the formal xcard schema contract the agent maps source data into?</div>
+    <p>The agent's mapping step (R-02) requires a precise contract for the xcard expected schema. Greenfield — no existing artifact to wrap. <strong>Need:</strong> formalize this contract as a first-class deliverable of this workstream. <strong>Owner:</strong> IDEAS Exp Eng + David Lydston (PM).</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q2: What is the per-onboarding scorecard cost threshold above which the agent should block or escalate?</div>
+    <p>R-04 requires a numeric ceiling. We need an agreed-upon threshold (e.g., cost per scorecard cycle, total monthly spend) and a policy for who can grant overrides. <strong>Owner:</strong> IDEAS Exp Eng + Finance partner.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q3: Who is the human owner on the IDEAS Exp side for steps 4 and 6?</div>
+    <p>Permissions assistance (when escalations come back from the customer's security review) and production deploy review need named owners and a rotation. Today this is implicit and ad-hoc. <strong>Owner:</strong> IDEAS Exp Eng lead.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q4: V2 source priorities — which non-Cosmos source comes next?</div>
+    <p>Pilot will reveal which partner teams are blocked because their flight telemetry lives outside Cosmos. We should commit to instrumenting that demand signal during V1 so V2 source selection is data-driven, not anecdotal.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q5: Pilot cohort and exit criteria for GA?</div>
+    <p>Need 3–5 named partner teams willing to be design partners on V1 and a concrete bar to move from pilot to GA (e.g., "≥3 onboardings completed end-to-end self-service with no P0 scorecard defects").</p>
+  </div>
+
+  <h3>Risks</h3>
+  <div class="risk-card">
+    <div class="risk-title">Risk 1: Customer supplies a filtered telemetry sample instead of as-assigned / intent-to-treat data</div>
+    <p><strong>Likelihood:</strong> High · <strong>Impact:</strong> High. If a customer onboards a dataset that has been pre-filtered (e.g., to converters, to active users, to one platform), the resulting scorecards are biased and can lead to wrong experiment conclusions. This is the single highest-stakes failure mode for the feature. <strong>Mitigation:</strong> (1) Agent validation step (R-03) actively detects filtering signatures and refuses to proceed; (2) explicit IDEAS Exp-side override required if customer insists; (3) every onboarding's sample stats are part of the deploy review package so the IDEAS Exp reviewer can spot anomalies the agent missed; (4) post-deploy monitoring (R-08) tracks condition-mix drift.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 2: Customers configure high-cardinality segments that drive scorecard compute cost very high</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> High. Self-service exposes the cost knob to customers who don't internalize the cost. A few bad configurations could blow the team's compute budget. <strong>Mitigation:</strong> (1) Cost estimation step (R-04) projects spend before deploy; (2) hard threshold blocks configurations that exceed budget without explicit IDEAS Exp sign-off; (3) post-deploy cost monitoring with auto-alert if actual spend diverges from estimate.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 3: Security-process wait still dominates calendar time</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. The agent removes IDEAS Exp engineers from the critical path, but the customer's own org's security review can still stretch onboarding into weeks. <strong>Mitigation:</strong> (1) Reframe the calendar-time metric to exclude pure security-process wait, since it is outside IDEAS Exp's control; (2) the agent's permissions checklist (R-05) makes the customer's required actions explicit and actionable, shortening the wait; (3) measure end-to-end calendar time separately as a secondary signal.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 4: Support burden shifts to IDEAS Exp instead of disappearing</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. If the agent is brittle or its explanations are unclear, customers ping IDEAS Exp engineers for help and we end up doing the same work in a different shirt. <strong>Mitigation:</strong> (1) Treat "agent ticket volume" as a quality signal during pilot; (2) refuse to GA until self-service success rate clears a bar; (3) clear, actionable error messages and a built-in "what to do next" prompt for every failure mode.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 5: Customers stall mid-onboarding and abandon</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Low–Medium. Without an IDEAS Exp engineer pushing on their behalf, customers may de-prioritize and never finish. <strong>Mitigation:</strong> (1) Resumable session state (R-09) so picking back up is cheap; (2) onboarding analytics (R-13) surface stalled flows so PM can reach out where the unblock is real; (3) accept that some self-service churn is the correct price for the bottleneck removal.</p>
+  </div>
+</div>
+
+</div><!-- end .content -->
+
+<div class="footer">
+  Self-Service Flight Telemetry Onboarding Agent — Product Specification · IDEAS Exp · Last updated June 24, 2026
+</div>
+
+</body>
+</html>
