@@ -336,7 +336,7 @@
 
   <div class="section-title">
     <h2>Projects</h2>
-    <span class="count">12 live</span>
+    <span class="count">13 live</span>
   </div>
 
   <div class="projects">
@@ -596,6 +596,28 @@
         <div class="project-actions">
           <a class="btn primary" href="https://daddyinvolts.github.io/Next-Iteration-Recommender/" target="_blank" rel="noopener">View spec <span class="arrow">&rarr;</span></a>
           <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/Next-Iteration-Recommender" target="_blank" rel="noopener">Source &#8599;</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="project-banner alt4">
+        <span class="project-tag">Mini Spec</span>
+        <h3>Targeted Scorecarding in Expedite</h3>
+        <p class="subtitle">Metadata-driven scorecard selection that replaces blanket per-product scorecards</p>
+      </div>
+      <div class="project-body">
+        <p>A mini spec that replaces blanket per-product scorecards with a metadata-driven targeted set. When an experiment registers in Growth Orchestrator, IDEAS Expedite consumes its metadata &mdash; <code>initiative_classification</code>, <code>surface</code>, <code>intervention_area</code>, <code>audience_tier</code>, <code>hypothesis</code> &mdash; and looks up a deterministic, IDEAS-DS-owned rule dictionary (modeled on the Guardrail Decision Framework's) to pre-bind the small set of scorecards that actually measure that intervention. At the configured calendar threshold past full ramp (default 7 days; per-family configurable), only the targeted set executes. Replaces today's 15&ndash;25 mostly-flat scorecards per experiment with 3&ndash;7 meaningful reads, targeting a ≥40% reduction in scorecard count, ≥30% compute-spend savings, and missed-impact rate held under 5% via quarterly DS audits.</p>
+        <div class="project-meta">
+          <span class="chip">Targeted scorecards</span>
+          <span class="chip">Rule dictionary</span>
+          <span class="chip">Growth Orchestrator</span>
+          <span class="chip">Maturity trigger</span>
+          <span class="chip">Compute savings</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/Targeted-Scorecarding/" target="_blank" rel="noopener">View spec <span class="arrow">&rarr;</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/Targeted-Scorecarding" target="_blank" rel="noopener">Source &#8599;</a>
         </div>
       </div>
     </article>

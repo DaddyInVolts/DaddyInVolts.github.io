@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Spec — Targeted Scorecarding in Expedite</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-light: #e8f0fe;
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --risk-red: #d93025;
+    --risk-bg: #fce8e6;
+    --success-green: #1e8e3e;
+    --success-bg: #e6f4ea;
+    --warn-amber: #e37400;
+    --warn-bg: #fef7e0;
+    --p0: #d93025;
+    --p1: #e37400;
+    --p2: #1a73e8;
+    --dep-accent: #8a4fb8;
+    --dep-bg: #f3eaff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  /* ── Header (alt4 teal/cyan) ── */
+  .header {
+    background: linear-gradient(135deg, #0a1f3d 0%, #144a7a 55%, #1ea3a3 100%);
+    color: #fff;
+    padding: 48px 40px 36px;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    font-weight: 400;
+  }
+  .meta-bar {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    font-size: 0.85rem;
+    opacity: 0.95;
+  }
+  .meta-item strong {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.7;
+    margin-bottom: 2px;
+  }
+
+  /* ── Content ── */
+  .content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 60px;
+  }
+
+  /* ── Section ── */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .section-number {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .section h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 20px 0 10px;
+    color: var(--text);
+  }
+  .section p, .section li {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .section ul, .section ol {
+    padding-left: 22px;
+  }
+  .section code {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 0.85em;
+  }
+
+  /* ── Dependency callout ── */
+  .deps {
+    background: var(--dep-bg);
+    border: 1px solid #d8c2f0;
+    border-left: 4px solid var(--dep-accent);
+    border-radius: 0 10px 10px 0;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+  }
+  .deps .dep-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: var(--dep-accent);
+    margin-bottom: 8px;
+  }
+  .deps ul { padding-left: 22px; margin: 0; }
+  .deps li {
+    color: var(--text);
+    font-size: 0.92rem;
+    margin-bottom: 4px;
+  }
+  .deps a { color: var(--dep-accent); font-weight: 600; }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.9rem;
+  }
+  thead th {
+    background: var(--bg);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ── Priority badges ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-p0 { background: #fce8e6; color: var(--p0); }
+  .badge-p1 { background: var(--warn-bg); color: var(--p1); }
+  .badge-p2 { background: var(--primary-light); color: var(--p2); }
+
+  /* ── Metric cards ── */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .metric-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .metric-card .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .metric-card .value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .metric-card .target {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* ── Scenario cards ── */
+  .scenario-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .scenario-card .persona {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .scenario-card .narrative { font-size: 0.95rem; color: var(--text-secondary); }
+
+  /* ── Risk / Open Q cards ── */
+  .risk-card {
+    border-left: 4px solid var(--risk-red);
+    background: var(--risk-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .risk-card .risk-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--risk-red);
+    margin-bottom: 4px;
+  }
+  .risk-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .question-card {
+    border-left: 4px solid var(--warn-amber);
+    background: var(--warn-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .question-card .q-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--warn-amber);
+    margin-bottom: 4px;
+  }
+  .question-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  /* ── UX Flow box ── */
+  .ux-flow {
+    background: var(--bg);
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin: 14px 0;
+    font-size: 0.92rem;
+    line-height: 1.9;
+  }
+
+  /* ── Nongoal chip ── */
+  .nongoal {
+    background: #f1f3f4;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 6px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nongoal::before {
+    content: '✕';
+    color: var(--risk-red);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  /* ── Rule dictionary illustrative table ── */
+  .rule-table th, .rule-table td { font-size: 0.85rem; }
+  .rule-table code { background: #fff; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .content { padding: 0 20px; }
+    .section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- HEADER                                                       -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="header">
+  <h1>Targeted Scorecarding in Expedite</h1>
+  <div class="subtitle">Mini Spec — Metadata-driven scorecard selection that replaces blanket per-product scorecards with the small set that actually measures the intervention</div>
+  <div class="meta-bar">
+    <div class="meta-item"><strong>PM Owner</strong> David Lydston</div>
+    <div class="meta-item"><strong>Team</strong> IDEAS Experimentation</div>
+    <div class="meta-item"><strong>Last Updated</strong> June 24, 2026</div>
+    <div class="meta-item"><strong>Status</strong> Draft</div>
+    <div class="meta-item"><strong>Stakeholders</strong> Expedite, IDEAS DS, Growth Orchestrator, M365 Copilot Feature Crews, Scorecard Authors, Capacity / Compute</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════════════════════════════════════════════ -->
+<!-- DEPENDENCIES CALLOUT                          -->
+<!-- ════════════════════════════════════════════ -->
+<div class="deps">
+  <div class="dep-label">Depends on</div>
+  <ul>
+    <li><a href="https://daddyinvolts.github.io/GrowthOrchestrator-Metadata/" target="_blank" rel="noopener">Growth Orchestrator Metadata in Expedite</a> — provides the <code>initiative_classification</code>, <code>hypothesis</code>, <code>surface</code>, <code>intervention_area</code>, <code>audience_tier</code>, and <code>orchestrator_experiment_id</code> fields this spec consumes as inputs to the rule dictionary. Without that metadata join, targeting falls back to legacy blanket scorecards.</li>
+    <li>Reuses the existing Expedite scorecard execution scheduler and authoring catalog. No new scorecards are defined or executed by this spec — it only selects which existing scorecards run on which experiments.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 1 — Problem & Opportunity            -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 1</div>
+  <h2>Problem &amp; Opportunity</h2>
+
+  <h3>Problem Statement</h3>
+  <p>Today, IDEAS Expedite applies the same blanket set of scorecards to every experiment registered under a given product — typically 12 to 25 scorecards per experiment, covering every metric family the product has ever cared about. The result: for any specific experiment, roughly two-thirds of those scorecards are not even sensitive to the intervention being tested. PMs and DS partners open a scorecard surface that looks like fifteen flat results with two meaningful ones buried in the middle, and they cannot distinguish "this experiment didn't move the needle" from "this scorecard was never going to detect this kind of change." The signal-to-noise ratio degrades decision-making, the Guardrail Decision Framework runs verdicts on irrelevant metrics, and the experimentation platform spends real compute on scorecards that produce no useful signal.</p>
+
+  <h3>Opportunity</h3>
+  <p>The <em>Growth Orchestrator Metadata in Expedite</em> spec now lands canonical metadata for every Growth-Orchestrator-registered experiment — initiative classification, hypothesis, surface, intervention area, audience tier, and FC ownership — directly into Expedite at registration time. With this metadata as input, IDEAS DS can maintain a deterministic <strong>scorecard rule dictionary</strong> (modeled on the <em>Guardrail Decision Framework</em>'s rule dictionary) that maps each metadata tuple to a small, curated set of scorecards. At a configurable calendar threshold past full ramp, only the targeted set executes. The result: 3–7 scorecards per experiment instead of 15–25, every selected scorecard has a defensible reason for being there, PMs read fewer flat results, DS triage hours fall, and compute spend drops. Importantly, this is not a new measurement framework — every scorecard in the dictionary already exists; we are simply selecting which ones to run.</p>
+
+  <h3>Evidence</h3>
+  <ul>
+    <li><strong>Flat-result rate today:</strong> Sampled audit of 200 recent scorecard runs across M365 Copilot products shows ~60–70% of scorecards return flat (no stat-sig movement in either direction) on any given experiment — strong evidence that most scorecards are not sensitive to most interventions.</li>
+    <li><strong>DS triage cost:</strong> In partner interviews, DS reviewers report spending ~40% of scorecard-review time confirming that flat scorecards are flat (rather than analyzing the meaningful ones).</li>
+    <li><strong>Metadata coverage:</strong> ≥85% of Growth-Orchestrator-registered experiments have a populated <code>initiative_classification</code> and <code>intervention_area</code> at registration; coverage continues to improve as the Growth Orchestrator Metadata spec rolls out.</li>
+    <li><strong>Decision-Framework noise:</strong> The Guardrail Decision Framework today emits per-guardrail verdicts on irrelevant metrics, producing low-severity bugs that consume FC triage cycles per <em>FC-Guardrail-Bug-Filing</em>. Reducing irrelevant scorecards directly reduces this noise.</li>
+    <li><strong>Compute spend:</strong> Scorecard execution is a measurable line item in the IDEAS compute budget; running ~40% fewer scorecards on the targeted cohort directly reduces spend without reducing measurement coverage of actually-impacted metrics.</li>
+    <li><strong>Owner-written hypothesis quality:</strong> Sampled review shows owner-written hypotheses in Growth Orchestrator are specific enough (intervention + expected metric direction) to drive rule-dictionary matching in &gt;80% of cases.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 2 — Goals & Success Metrics          -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 2</div>
+  <h2>Goals &amp; Success Metrics</h2>
+
+  <h3>Goals</h3>
+  <ol>
+    <li>≥85% of Growth-Orchestrator-registered experiments receive a metadata-driven targeted scorecard set within 90 days of GA, replacing the legacy blanket per-product set.</li>
+    <li>Reduce the average count of executed scorecards per Growth-Orchestrator experiment by ≥40% — from ~18 (current blanket median) to ≤10 — while keeping coverage of actually-impacted metrics ≥95%.</li>
+    <li>Cut scorecard-execution compute spend on the targeted cohort by ≥30% within 90 days of GA.</li>
+  </ol>
+
+  <h3>Success Metrics</h3>
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="label">Primary Metric</div>
+      <div class="value">Targeting Coverage</div>
+      <div class="target">Target: ≥85% of Growth-Orchestrator experiments running on the targeted set · Baseline: 0% (blanket today)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Scorecard Count Reduction</div>
+      <div class="target">Target: average ≤10 scorecards per experiment · Baseline: ~18 (blanket median)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Missed-Impact Rate</div>
+      <div class="target">Must stay &lt;5% of post-hoc DS audits finding an impacted metric not included in the targeted set · Halt targeting if exceeded</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Rule Coverage</div>
+      <div class="target">≥95% of observed (classification × surface × intervention) tuples have a matching rule · Gaps reported to IDEAS DS weekly</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Cost Metric</div>
+      <div class="value">Compute Spend Delta</div>
+      <div class="target">Target: ≥30% reduction in scorecard-execution compute on targeted cohort · Baseline: legacy blanket spend per experiment</div>
+    </div>
+  </div>
+
+  <h3>Explicit Non-Goals</h3>
+  <div class="nongoal">Authoring or defining the scorecards themselves — we only <em>select</em> which existing scorecards run; scorecard authoring stays with the scorecard-author teams</div>
+  <div class="nongoal">ML-driven or learned scorecard selection at V1 — the rule dictionary is deterministic and DS-owned; a learned recommender is a V2 candidate only after the deterministic baseline is stable</div>
+  <div class="nongoal">Targeting for experiments not registered in Growth Orchestrator — those experiments continue to receive the legacy blanket per-product scorecards, unchanged, at V1</div>
+  <div class="nongoal">Changing the platform-wide definition of "maturity" — we use a per-scorecard-family calendar threshold (default 7 days at target ramp) and only as the <em>trigger</em> for the targeted execution</div>
+  <div class="nongoal">Retroactively re-running scorecards on already-matured experiments registered before this feature shipped — backfill is an explicit open question (see Q4), not a V1 commitment</div>
+  <div class="nongoal">Replacing the Guardrail Decision Framework's verdict logic — targeted scorecarding feeds the existing framework with a narrower input set; the framework's rules are unchanged</div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 3 — User Scenarios                   -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 3</div>
+  <h2>User Scenarios</h2>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 1 — "Ranker change in Chat" (Primary)</div>
+    <div class="narrative">
+      <p>Maya registers a new Chat ranker experiment in Growth Orchestrator with <code>initiative_classification = performance</code>, <code>surface = chat</code>, <code>intervention_area = ranking</code>, <code>audience_tier = global</code>. Within 5 minutes, IDEAS Expedite consumes the metadata, looks up the rule dictionary, and pre-binds a targeted set of five scorecards: <em>Chat p95 Latency</em>, <em>Chat Quality Sample</em>, <em>Chat Response Satisfaction</em>, <em>Chat Cost-per-Query</em>, and <em>Chat Engagement</em>. Maya can see the targeted set on the experiment detail page in Expedite, with each scorecard tagged "Selected by rule R-014 (performance × chat × ranking)." Ramp proceeds normally; at the seven-day calendar threshold past full ramp, only those five scorecards execute. Maya opens five meaningful scorecards instead of seventeen, three of which would have been flat. Decision time drops from a day to under an hour.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 2 — "UI change in Word"</div>
+    <div class="narrative">
+      <p>Jordan registers a Word UI tweak — <code>initiative_classification = engagement</code>, <code>surface = word</code>, <code>intervention_area = ui</code>. The rule dictionary maps to: <em>Word Engagement</em>, <em>Word Retention</em>, <em>Word Satisfaction</em>, <em>Word Sessions-per-User</em>. No latency or cost scorecards run — they're not sensitive to a UI tweak. Jordan's scorecard surface is four targeted reads instead of fifteen blanket ones; the conversation with DS is about engagement direction, not "why is Word Cost flat."</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 3 — "Multi-surface experiment"</div>
+    <div class="narrative">
+      <p>Priya registers an experiment that ships into both Chat and Excel — <code>surface = ['chat', 'excel']</code>, <code>intervention_area = prompt</code>, <code>classification = quality</code>. The rule dictionary returns the union of per-surface rules — six Chat-side scorecards and four Excel-side scorecards — de-duplicated to nine total. Both surfaces are covered without dragging in Word, PowerPoint, or Outlook scorecards that would have appeared in a blanket "Copilot quality" pack today.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 4 — "Owner override before maturity"</div>
+    <div class="narrative">
+      <p>Jordan reviews the targeted set on his experiment detail page and realizes he also wants <em>Word Tenant-Level Adoption</em> in the set — it's not auto-selected because his classification is "engagement," not "adoption," but his hypothesis touches both. He clicks "Add scorecard," selects it from the existing scorecard catalog, and saves. The override is logged in audit with Jordan's identity and the reason field. At maturity, both the rule-selected and the manually-added scorecards execute. The rule-dictionary owners see "manual additions on this rule pattern" in their coverage-gap report and consider whether the rule itself should be updated.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case — "No matching rule"</div>
+    <div class="narrative">
+      <p>Maya registers an experiment with a novel <code>intervention_area = federated-search</code> that has no rule in the dictionary. The rule-lookup miss is detected; the platform falls back to the legacy per-product blanket set for that experiment (so the owner is never left with zero scorecards), tags it <code>rule-fallback: no-match</code>, and files an entry in the rule-dictionary coverage-gap dashboard for IDEAS DS to address.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case — "Experiment never reaches target ramp"</div>
+    <div class="narrative">
+      <p>An experiment stalls at 5% ramp because the FC paused after a soft-warning verdict. The seven-day calendar maturity threshold is measured from full-ramp achievement — and the experiment never reaches full ramp. Expedite surfaces a clear "Did not reach maturity threshold" badge on the experiment, with a deep link to the targeted set that <em>would</em> have run. DS can manually trigger an early-read execution if needed; no targeted scorecards run automatically.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 4 — Requirements                     -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 4</div>
+  <h2>Requirements</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:70px">Priority</th>
+        <th style="width:50px">ID</th>
+        <th>Requirement</th>
+        <th style="width:200px">Acceptance Criteria</th>
+        <th style="width:140px">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-01</td>
+        <td>On Growth Orchestrator registration of a new experiment, consume the metadata fields (<code>initiative_classification</code>, <code>surface</code>, <code>intervention_area</code>, <code>audience_tier</code>, <code>hypothesis</code>, <code>orchestrator_experiment_id</code>) and compute the targeted scorecard set per the rule dictionary within 5 minutes of registration. Persist the set in Expedite keyed on <code>orchestrator_experiment_id</code>.</td>
+        <td>Targeted set persisted ≤5 min after registration on ≥99% of qualifying experiments in dogfood; per-experiment audit record links registration event to selected set.</td>
+        <td>Depends on Growth Orchestrator Metadata</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-02</td>
+        <td>Maintain a deterministic <strong>scorecard rule dictionary</strong> keyed on <code>(initiative_classification, surface, intervention_area, audience_tier?)</code> → ordered list of <code>scorecard_id</code> values. Each rule carries: <code>rule_id</code>, condition predicate, priority, target scorecard list, <code>created_by</code>, <code>created_at</code>, <code>last_validated_at</code>, and a one-line rationale. Rules are versioned; rule changes never silently rewrite history (an executed targeted set is immutable post-execution).</td>
+        <td>Rule dictionary schema documented and pinned; ≥95% of observed (classification × surface × intervention) tuples in the last 90 days of Growth-Orchestrator registrations have a matching rule; rule version stamped on every execution record.</td>
+        <td>Modeled on Guardrail Decision Framework rule dictionary</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-03</td>
+        <td>Calendar maturity trigger — execute the targeted scorecard set at the configured calendar threshold past <em>full-ramp achievement</em>. Default threshold is 7 days; the threshold is configurable per scorecard family (e.g., retention scorecards may use 14 or 30 days). If the experiment does not reach full ramp, the maturity execution does not auto-fire (see R-09 for the no-ramp behavior).</td>
+        <td>Trigger fires ≤2 hours after the calendar threshold passes on ≥99% of qualifying experiments; per-family override honored; full-ramp event source is the single source of truth and consumed via the existing ramp-event feed.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-04</td>
+        <td>Conflict resolution and union — when multiple rules match the same experiment (e.g., a multi-surface experiment matches one rule per surface), the targeted set is the de-duplicated union of all matched scorecards. Each scorecard in the set carries the <code>rule_id(s)</code> that selected it. No silent priority overrides; if rule designers want exclusivity, they encode it in rule conditions.</td>
+        <td>Union behavior verified on synthetic multi-rule tests; every selected scorecard has at least one <code>rule_id</code> attribution; multi-rule attribution visible in the experiment detail page.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-05</td>
+        <td>Owner override — the experiment owner or a DS partner can add or remove scorecards from the targeted set at any point before the maturity execution, via a structured edit affordance on the experiment detail page. Overrides require a reason from a fixed list (<em>missing metric, irrelevant metric, FC policy, DS recommendation, other</em>) and are logged in audit with identity and timestamp. Override changes after execution start are not allowed (no race conditions on partial sets).</td>
+        <td>Add/remove round-trip and persist; reason captured; audit log queryable; override events emit a feedback signal to the rule-dictionary coverage report.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-06</td>
+        <td>Surface the targeted set on the experiment detail page in Expedite — each scorecard in the set shows its <code>rule_id</code> attribution ("Selected by rule R-014 (performance × chat × ranking)"), a one-line rule rationale, and an "Override" affordance for R-05. Pre-execution, the set is editable; post-execution, the set is read-only with execution timestamps.</td>
+        <td>Detail page renders the set; attribution visible on every row; Fluent UI accessibility verified (keyboard nav, screen reader); pre/post-execution state transitions are visually distinct.</td>
+        <td>Coordinate with Expedite frontend</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-07</td>
+        <td>Missed-impact audit pipeline — quarterly, a stratified random sample of N=100 targeted-cohort experiments is reviewed by IDEAS DS to identify any actually-impacted metrics that were not in the targeted set. Findings feed the rule-dictionary update process; the missed-impact rate is the headline guardrail metric for the spec.</td>
+        <td>Quarterly audit runs on schedule; missed-impact rate published per quarter; rate stays &lt;5% (guardrail); audit methodology documented and reviewed annually.</td>
+        <td>Long-feedback-loop metric</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-08</td>
+        <td>Rule-dictionary admin UI — IDEAS DS rule owners can add, edit, retire, and version rules through a dedicated admin surface; can view per-rule usage (experiments matched, scorecards selected, manual-override rate); can review coverage-gap reports (unmatched tuples from R-02). All changes are versioned with a change-log entry.</td>
+        <td>Admin surface implements add/edit/retire/version; per-rule usage telemetry visible; coverage-gap report refreshes weekly; change-log queryable.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-09</td>
+        <td>Coverage dashboard for FC leads and DS — by product, by Feature Crew, by classification: % of experiments on targeted vs. fallback vs. legacy; average scorecard count per experiment; override rate; rule-match rate. Linked from the FC's main Expedite landing page.</td>
+        <td>Dashboard refreshes daily; all five counters present; deep-links from each counter to the underlying experiment list with filters pre-applied.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-10</td>
+        <td>Non-Growth-Orchestrator experiments — experiments not registered in Growth Orchestrator continue to receive the legacy blanket per-product scorecard set with no functional change. The Expedite detail page makes this state explicit ("Targeting unavailable: experiment not registered in Growth Orchestrator") with a one-click path to register.</td>
+        <td>Zero regression to non-registered experiments verified on the existing scorecard execution test suite; explanatory state visible on detail page.</td>
+        <td>Explicit V1 non-goal not to migrate</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-11</td>
+        <td>Configurable calendar threshold per scorecard family — IDEAS DS can configure the maturity threshold (in days at full ramp) per scorecard family in the rule dictionary. Default is 7 days; retention/long-cycle families typically configured to 14 or 30. Threshold per scorecard, taken as the max across the targeted set, determines the actual execution timestamp.</td>
+        <td>Configurable threshold persists in rule dictionary; max-across-set timing honored; per-family overrides verified on synthetic mixed-family sets.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-12</td>
+        <td>Targeting observability — emit metrics for: rule-match rate, targeted-set average size, override rate, missed-impact rate, compute-spend per experiment vs. legacy baseline. Refreshed daily; alerting wired on rule-match rate dropping below 85% or override rate exceeding 25%.</td>
+        <td>Five metrics visible in IDEAS telemetry within 60 days of GA; alerts fire on synthetic threshold breaches.</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 5 — Design Direction                 -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 5</div>
+  <h2>Design Direction</h2>
+
+  <h3>End-to-End Flow</h3>
+  <div class="ux-flow">
+    Experiment Registered in Growth Orchestrator &nbsp;→&nbsp; Metadata Lands in Expedite (per Growth Orchestrator Metadata spec)<br>
+    →&nbsp; Targeting Worker Reads Metadata &nbsp;→&nbsp; Rule Dictionary Lookup (classification × surface × intervention × audience)<br>
+    →&nbsp; Targeted Scorecard Set Persisted &amp; Surfaced in Expedite Detail Page &nbsp;→&nbsp; Owner Can Add/Remove (R-05)<br>
+    →&nbsp; Ramp Proceeds &nbsp;→&nbsp; Full-Ramp Event Fires &nbsp;→&nbsp; Calendar Threshold Clock Starts<br>
+    →&nbsp; At Threshold: Scheduler Executes <em>Only</em> Targeted Set &nbsp;→&nbsp; Verdicts Flow to Guardrail Decision Framework &amp; Scorecard Surfaces<br><br>
+    <small>Set is immutable post-execution &nbsp;·&nbsp; Override events feed rule-dictionary coverage report &nbsp;·&nbsp; Missed-impact audit (R-07) feeds rule refinement</small>
+  </div>
+
+  <h3>Rule Dictionary — Illustrative Examples</h3>
+  <table class="rule-table">
+    <thead>
+      <tr>
+        <th style="width:80px">Rule ID</th>
+        <th>Condition</th>
+        <th>Selected Scorecards</th>
+        <th style="width:160px">Rationale</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>R-014</code></td>
+        <td><code>classification=performance ∧ surface=chat ∧ intervention_area=ranking</code></td>
+        <td>Chat p95 Latency, Chat Quality Sample, Chat Response Satisfaction, Chat Cost-per-Query, Chat Engagement</td>
+        <td>Ranking changes in Chat move latency, quality, and cost; engagement is the read-through signal.</td>
+      </tr>
+      <tr>
+        <td><code>R-027</code></td>
+        <td><code>classification=engagement ∧ surface=word ∧ intervention_area=ui</code></td>
+        <td>Word Engagement, Word Retention, Word Satisfaction, Word Sessions-per-User</td>
+        <td>Word UI tweaks move user-facing engagement signals; performance and cost are insensitive.</td>
+      </tr>
+      <tr>
+        <td><code>R-031</code></td>
+        <td><code>classification=quality ∧ surface=chat ∧ intervention_area=prompt</code></td>
+        <td>Chat Response Satisfaction, Chat Quality Sample, Chat Helpfulness, Chat Refusal Rate, Chat Safety Sample</td>
+        <td>Prompt changes affect output quality and safety; latency and engagement are secondary.</td>
+      </tr>
+      <tr>
+        <td><code>R-042</code></td>
+        <td><code>classification=cost ∧ surface=any ∧ intervention_area=model-routing</code></td>
+        <td>GPT Token Consumption, AI Credit Volume, p95 Latency (selected surface), Response Satisfaction (selected surface)</td>
+        <td>Model-routing changes are about cost first; we keep two quality reads as guardrails.</td>
+      </tr>
+      <tr>
+        <td><code>R-058</code></td>
+        <td><code>classification=adoption ∧ audience_tier=enterprise</code></td>
+        <td>Enterprise Tenant Adoption, Enterprise Active Users, Enterprise Retention, License Utilization</td>
+        <td>Enterprise adoption surfaces are different from consumer; tenant-level metrics are required.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Calendar Maturity — Defaults</h3>
+  <ul>
+    <li><strong>Default threshold:</strong> 7 days at full-ramp achievement.</li>
+    <li><strong>Engagement / quality scorecards:</strong> 7 days (default).</li>
+    <li><strong>Retention scorecards:</strong> 14 days minimum (configured per family in R-11).</li>
+    <li><strong>Long-cycle adoption / enterprise scorecards:</strong> 30 days (configured per family).</li>
+    <li><strong>Set-level maturity:</strong> when scorecards in the targeted set have different family thresholds, the execution timestamp for each scorecard is its own threshold — the targeted set produces results progressively as each scorecard's threshold is reached.</li>
+  </ul>
+
+  <h3>Edge Cases &amp; Empty States</h3>
+  <ul>
+    <li><strong>No matching rule:</strong> Fallback to legacy per-product blanket set for that experiment, tagged <code>rule-fallback: no-match</code>; entry filed in the rule-dictionary coverage-gap dashboard. Owner is never left with zero scorecards.</li>
+    <li><strong>Metadata incomplete at registration:</strong> If a P0 metadata field is missing, the targeting worker waits up to 24 hours for the field to populate (via Growth Orchestrator Metadata's repair path); after 24 hours, falls back to legacy blanket with a warning.</li>
+    <li><strong>Metadata changes after registration:</strong> Re-compute the targeted set with a new version stamp; previously executed scorecards remain in the result history; newly added scorecards execute at their own family threshold from the metadata-change timestamp.</li>
+    <li><strong>Experiment never reaches full ramp:</strong> No automatic execution. Expedite surfaces "Did not reach maturity threshold" with a deep link to the would-have-been set and a "Trigger early read" affordance for DS partners.</li>
+    <li><strong>Owner override conflicts with rule:</strong> Owner wins; conflict is captured for the rule-dictionary coverage report. After repeated overrides on the same rule pattern (≥10 in 30 days, same metadata tuple), rule owners are alerted to update the rule itself.</li>
+    <li><strong>Multi-rule match producing very large set:</strong> If the unioned set exceeds 20 scorecards, surface a "wide targeting" warning to the owner with the rule list that contributed; rule owners are alerted in the coverage report.</li>
+    <li><strong>Rule retired after registration but before execution:</strong> The targeted set is re-computed at execution time using the active rule dictionary; the original set's <code>rule_id</code> attribution is preserved in audit for traceability.</li>
+    <li><strong>Scheduler outage:</strong> Targeted execution retries with exponential backoff (max 4h window); persistent failure emits an IcM to the IDEAS scheduler on-call.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 6 — Open Questions & Risks           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 6</div>
+  <h2>Open Questions &amp; Risks</h2>
+
+  <h3>Open Questions</h3>
+  <div class="question-card">
+    <div class="q-title">Q1: Initial set of rule-dictionary entries — handcrafted at GA, or seeded from a retrospective audit of the last 12 months of experiments?</div>
+    <p>Handcrafted gives DS full control but a narrow starting catalog; seeded-from-audit gets broader initial coverage but inherits whatever flat-result patterns the blanket era produced. <strong>Owner:</strong> IDEAS DS lead with David Lydston. <strong>Current leaning:</strong> Seed from a retrospective audit of the last 12 months, then have DS curate before GA — best of both.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q2: How do we coordinate with experiment owners who want earlier results than the calendar threshold?</div>
+    <p>Power-based early reads (the alternative trigger discussed in scoping) are useful when an experiment reaches sufficient power quickly. Do we expose a "DS-approved early read" affordance, or strictly enforce the calendar floor? <strong>Owner:</strong> David Lydston with IDEAS DS. <strong>Current leaning:</strong> Calendar floor by default; a DS-approved "early read" path for the targeted set is a V1.5 follow-up, not a V1 commitment.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q3: Rule-dictionary review cadence — quarterly at steady state, or monthly during the first 12 months?</div>
+    <p>Faster cadence catches coverage gaps and missed-impact patterns earlier but is operationally heavier on IDEAS DS. <strong>Owner:</strong> IDEAS DS lead. <strong>Current leaning:</strong> Monthly during the first 12 months post-GA, downshift to quarterly once missed-impact rate has been stable below 5% for two consecutive quarters.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q4: Backfill — do we re-run targeted scorecards on already-matured experiments registered in Growth Orchestrator before this feature shipped?</div>
+    <p>Backfill would unify the portfolio's measurement record but consumes significant compute and may produce results that owners no longer act on. <strong>Owner:</strong> David Lydston with Expedite eng. <strong>Current leaning:</strong> No backfill at V1; surface "Targeting unavailable — pre-GA experiment" on those experiments with the option for DS to manually trigger a targeted re-run on a per-experiment basis.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q5: Audience-tier handling — first-class condition field, or expressed inside the surface field?</div>
+    <p><code>audience_tier</code> (consumer / enterprise / dev / first-party) cuts across surfaces and intervention areas. Making it a first-class condition (current spec) doubles the rule space; folding it into surface keeps the dictionary simpler but loses an axis the missed-impact audits may want. <strong>Owner:</strong> IDEAS DS. <strong>Current leaning:</strong> First-class for V1 because enterprise vs. consumer scorecards diverge meaningfully; revisit after the first missed-impact audit cycle.</p>
+  </div>
+
+  <h3>Risks</h3>
+  <div class="risk-card">
+    <div class="risk-title">Risk 1: Missed-impact rate — the targeted set excludes a metric the experiment actually moved</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> High. False-negative coverage is the headline risk of any targeting system; missing a real regression because the relevant scorecard wasn't selected is materially worse than running a flat scorecard. <strong>Mitigation:</strong> (1) Hard guardrail metric: missed-impact rate must stay &lt;5% (R-07), with targeted execution halted and a return to blanket if exceeded; (2) Quarterly stratified random audit (R-07); (3) Conservative initial rule dictionary — when in doubt, IDEAS DS include the scorecard; (4) Easy owner override before execution (R-05); (5) Coverage dashboard surfaces rule-match-rate and rule-fallback rate per FC weekly.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 2: Rule dictionary drift — rules become stale as products and metrics evolve</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. Today's product-evolution rate is faster than a quarterly rule review; stale rules degrade targeting quality silently. <strong>Mitigation:</strong> (1) Monthly review during first 12 months (Q3); (2) <code>last_validated_at</code> per rule; rules unvalidated for &gt;180 days surface as "stale" in the admin UI; (3) Override-rate per rule is a continuous health signal — a rule with &gt;25% override rate triggers a re-review; (4) Coverage-gap dashboard catches new metadata tuples that don't yet have rules.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 3: Owners feel they've lost visibility</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. Some PMs and DS partners are accustomed to scrolling through 18 scorecards and may interpret "you got 6" as the platform hiding data from them. <strong>Mitigation:</strong> (1) Explicit per-scorecard rule attribution on the experiment detail page (R-06) — owners can see <em>why</em> each scorecard is there and what the rule excluded; (2) One-click "Add scorecard" override path with structured reasons (R-05) — no friction to opt in to additional reads; (3) Coverage dashboard normalizes the cohort view ("you have 6, the rule median for this metadata tuple is 7"); (4) Shadow-mode rollout for the first 30 days where the targeted set is computed and surfaced but the blanket set still executes — owners get the full audit trail before targeting becomes live.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 4: Calendar maturity is wrong for some scorecard families</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. A fixed 7-day threshold is too early for retention metrics and may be unnecessarily slow for high-traffic engagement metrics. <strong>Mitigation:</strong> (1) Per-family configurable threshold (R-11) — retention typically 14, long-cycle adoption 30; (2) Power-based early reads as a V1.5 follow-up (Q2); (3) Threshold values are surfaced explicitly to owners on the detail page so there are no surprises about when each scorecard runs; (4) DS-approved early read affordance for genuine urgency cases.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 5: Growth Orchestrator metadata is missing, wrong, or stale</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. Bad metadata in produces bad targeting out; silent fallback to legacy blanket masks the metadata-quality issue. <strong>Mitigation:</strong> (1) Registration-time validation per the Growth Orchestrator Metadata spec; (2) Targeting worker waits up to 24h for repair before falling back; (3) Fallback is loud — the experiment detail page makes the fallback state explicit with a "metadata incomplete" warning and a link to the field that's missing; (4) Per-FC dashboard surfaces fallback rate so FC leads can see metadata-quality patterns in their crew.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 6: Compute savings overstated if targeted execution shifts load to peak hours</div>
+    <p><strong>Likelihood:</strong> Low · <strong>Impact:</strong> Low. Targeted execution at calendar maturity may concentrate scorecard runs into specific windows (e.g., 7 days after a typical Tuesday ramp), changing the load shape even if total compute drops. <strong>Mitigation:</strong> (1) Capacity team consulted before GA; (2) Execution scheduler jitters maturity-triggered runs across a configurable window to spread peak load; (3) Compute-spend metric (R-12) is measured per run, not per wall clock, so savings are correctly attributed.</p>
+  </div>
+</div>
+
+</div><!-- end .content -->
+
+<div class="footer">
+  Targeted Scorecarding in Expedite — Mini Spec · IDEAS Experimentation · Last updated June 24, 2026
+</div>
+
+</body>
+</html>
