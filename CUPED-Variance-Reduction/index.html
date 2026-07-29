@@ -321,9 +321,22 @@
     <li><strong>Platform support already exists.</strong> ExP documents variance reduction as a metric-authoring configuration (<a href="https://eng.ms/docs/products/experimentation-platform/docs/metricauth/configurevariancereduction" target="_blank" rel="noopener">Configure Variance Reduction</a>) and publishes an explainer at <a href="https://aka.ms/exp/cupedvr" target="_blank" rel="noopener">aka.ms/exp/cupedvr</a>. This spec is a configuration and validation effort, not a platform build.</li>
     <li><strong>The math is well characterised.</strong> The CUPED-adjusted metric is <code>Ŷ<sub>i</sub> = Y<sub>i</sub> &minus; &theta;(X<sub>i</sub> &minus; X&#772;)</code> with <code>&theta; = cov(X,Y) / var(X)</code>, and the resulting variance is <code>var(Y) &times; (1 &minus; corr(X,Y)&sup2;)</code>. Variance reduction is therefore <em>entirely</em> a function of how well the pre-period covariate correlates with the in-experiment outcome &mdash; which makes covariate selection the single highest-leverage design decision in this spec.</li>
     <li><strong>ASHA is live and owned.</strong> ADO Deliverable <a href="https://dev.azure.com/O365Exchange/IDEAs/_workitems/edit/7219414" target="_blank" rel="noopener">#7219414 &mdash; ASHA Metrics for MCA on scorecard</a> (Area: IDEAs\Growth\Experimentation\Scorecard) established the ASHA metric set on IDEAS scorecards, tracking the App Boot, Chat Tried, and Interruptions pillars for MCA Win32, commercial first. Related delivery work continues under <a href="https://dev.azure.com/O365Exchange/IDEAs/_workitems/edit/7456513" target="_blank" rel="noopener">#7456513 &mdash; Create ASHA scorecards</a>. The scorecard exists; the variance reduction configuration is the gap.</li>
-    <li><strong>Guidance on window length.</strong> The original Microsoft work found the optimal pre-experiment window is typically 1&ndash;2 weeks &mdash; shorter windows do not capture enough variance, longer windows introduce noise &mdash; with longer windows needed for longer experiments so the same users are observed in both periods.</li>
+    <li><strong>Guidance on window length.</strong> The original Microsoft work found the optimal pre-experiment window is typically 1&ndash;2 weeks &mdash; shorter windows do not capture enough variance, longer windows introduce noise &mdash; with longer windows needed for longer experiments so the same users are observed in both periods. The Office implementation standardises on a <strong>7-day pre-experiment baseline</strong>, which sits at the short end of that range and removes window length as a decision for onboarding teams.</li>
+    <li><strong>There is already a productized onboarding path for Office.</strong> The <a href="https://www.owiki.ms/wiki/Variance_Reduced_Metrics_Onboarding_Guide" target="_blank" rel="noopener">Variance Reduced Metrics Onboarding Guide</a> documents a supported, scripted process: automated scripts identify VR-eligible metrics on a scorecard, generate a VR version of the scorecard plus a VR analysis template, and open a PR for the requesting team to review. Requests are submitted through the team's <a href="https://aka.ms/oexpchamps" target="_blank" rel="noopener">Experiment Champ</a> on an ADO intake form (title prefixed <em>VR Onboarding</em>) and are triaged on a <strong>monthly cadence</strong>. <strong>This materially de-risks the spec &mdash; we are joining an existing pipeline, not pioneering one.</strong></li>
+    <li><strong>Documented eligibility criteria constrain which ASHA metrics qualify.</strong> Per the onboarding guide, VR metrics are available only for (a) <em>average-based</em> metrics &mdash; no percentiles; (b) metrics matching the experiment's randomization unit &mdash; sub-randomization is unsupported; (c) metrics without dynamic parameters (e.g. <code>_Start_</code>, <code>_End_</code>) in their definition; and (d) metrics that have pre-experiment data counterparts &mdash; excluding new-user metrics and newly instrumented metrics. Screening the ASHA pillar metrics against these four criteria is now a concrete, answerable first step rather than an open research question.</li>
+    <li><strong>Cost is well understood and modest.</strong> The dominant cost is generating the 7-day AA (pre-experiment) stream, which is equivalent to the cost of generating a 7-day scorecard from the same analysis template. Critically, <strong>only one AA stream is required per layout</strong> and it is shared across analysis periods within the same stage rollout (e.g. across Prod 10/10 and 50/50). Storage increase is negligible (AA streams expire after 30 days, configurable), as is the incremental A/B scorecard cost.</li>
     <li><strong>Prior internal precedent.</strong> CUPED methodology was previously explored inside Microsoft for NPS impact variance reduction (ADO #3036909, #3036917), confirming both familiarity with the technique and the pattern of evaluating candidate covariates empirically before adoption.</li>
   </ul>
+
+  <h3>Pilot Evidence &mdash; VR for the WAC Excel Engagement Scorecard</h3>
+  <p>Office has already run this play. A pilot of variance reduction across GESM in client and <strong>WAC (Web) Engagement</strong> produced the first internal read on what VR actually buys on a real engagement scorecard &mdash; and the numbers are the closest available analogue for what ASHA should expect:</p>
+  <div class="ux-flow">
+    <strong>~30% median variance reduction on product-level metrics</strong>, and ~15% median across all metrics in scope.<br><br>
+    <strong>Equivalent to a 1.6&times; traffic multiplier for global metrics</strong>, and ~1.2&times; overall &mdash; i.e. the same statistical power as running the flight with 60% more users, at no additional exposure.<br><br>
+    <strong>Count-type metrics substantially outperform ratio metrics.</strong> Counts (# events, # days active, and similar) delivered a <strong>1.3&times;</strong> traffic multiplier versus <strong>1.14&times;</strong> for ratio metrics &mdash; the single most actionable finding for choosing which ASHA pillars to onboard first.<br><br>
+    <strong>Benefit is highly metric-dependent.</strong> The pilot's headline caution is that impact "varies significantly based on the type of metric under assessment" &mdash; reinforcing that per-pillar measurement, not a blanket rollout, is the right approach.
+  </div>
+  <p>Read against this spec's primary metric targets, the WAC pilot is a useful sanity check: a &ge;20% variance reduction target on ASHA pillar metrics is credible but not guaranteed, and the traffic-multiplier framing (1.2&ndash;1.6&times;) is the most legible way to express the benefit to feature crews &mdash; it converts a statistical property into the thing they actually care about, which is how much exposure they no longer have to wait for.</p>
 </div>
 
 <!-- ════════════════════════════════════════════ -->
@@ -352,12 +365,17 @@
     <div class="metric-card">
       <div class="label">Primary Metric</div>
       <div class="value">Realised Variance Reduction</div>
-      <div class="target">Target: &ge;20% variance reduction on at least 2 of the 3 ASHA pillar metrics &middot; Measured as 1 &minus; (adjusted variance / unadjusted variance) on production flights</div>
+      <div class="target">Target: &ge;20% variance reduction on at least 2 of the 3 ASHA pillar metrics &middot; Benchmarked against the WAC Excel Engagement pilot (~30% median on product-level metrics, ~15% overall)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Traffic Multiplier</div>
+      <div class="target">Target: &ge;1.25&times; effective traffic multiplier on onboarded ASHA pillars &middot; The WAC pilot achieved 1.6&times; on global metrics and ~1.2&times; overall &mdash; this is the framing used with feature crews</div>
     </div>
     <div class="metric-card">
       <div class="label">Secondary Metric</div>
       <div class="value">Covariate Coverage</div>
-      <div class="target">Target: &ge;80% of users in a typical MCA flight have usable pre-experiment covariate data &middot; Users without pre-period data fall back to the unadjusted metric</div>
+      <div class="target">Target: &ge;80% "AAStream Join Success Rate" on a typical MCA flight &middot; Users without pre-AA data fall back to the unadjusted metric</div>
     </div>
     <div class="metric-card">
       <div class="label">Secondary Metric</div>
@@ -377,7 +395,7 @@
     <div class="metric-card">
       <div class="label">Guardrail Metric</div>
       <div class="value">Scorecard Compute &amp; Freshness</div>
-      <div class="target">Must maintain: ASHA scorecard generation latency and freshness SLA (&le;24 hours) unchanged after the pre-period join is introduced</div>
+      <div class="target">Must maintain: ASHA scorecard freshness SLA (&le;24 hours) unchanged &middot; Incremental COGS bounded to one 7-day AA stream per layout per stage rollout, with negligible storage and A/B scorecard increase</div>
     </div>
   </div>
 
@@ -415,7 +433,7 @@
   <div class="scenario-card">
     <div class="persona">Scenario 3 &mdash; "Growth Leader Reading a Guardrail"</div>
     <div class="narrative">
-      <p>Jordan reviews the ASHA guardrails across the Copilot Growth portfolio. On the scorecard, variance-reduced metrics carry a visible indicator and a hover explaining "This metric uses CUPED variance reduction with a 14-day pre-experiment covariate; observed variance reduction 34%." Jordan does not need to understand the estimator &mdash; only that the number is more precise and that the adjustment does not change what the effect is, only how tightly it is bounded. Crucially, Jordan can see that a regression flagged this week would previously have taken another ten days to surface.</p>
+      <p>Jordan reviews the ASHA guardrails across the Copilot Growth portfolio. On the scorecard, variance-reduced metrics carry a visible indicator and a hover explaining "This metric uses CUPED variance reduction with a 7-day pre-experiment baseline; observed variance reduction 30%, equivalent to a 1.6&times; traffic multiplier." Jordan does not need to understand the estimator &mdash; only that the number is more precise and that the adjustment does not change what the effect is, only how tightly it is bounded. Crucially, Jordan can see that a regression flagged this week would previously have taken another ten days to surface.</p>
     </div>
   </div>
 
@@ -462,111 +480,132 @@
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
         <td>R-01</td>
-        <td>Identify and document a candidate pre-experiment covariate for each ASHA pillar metric (App Boot, Chat Tried, Interruptions), defaulting to the same metric measured over the pre-experiment window</td>
-        <td>Covariate definition written for all three pillars; measured correlation with in-experiment outcome reported for each</td>
-        <td>Correlation drives all downstream value</td>
+        <td>Screen every ASHA pillar metric (App Boot, Chat Tried, Interruptions) against the four documented VR eligibility criteria: average-based (not percentile), matches the experiment randomization unit, no dynamic parameters in the definition, and has a pre-experiment data counterpart</td>
+        <td>Eligibility verdict recorded per pillar metric with the failing criterion named where applicable; ineligible metrics explicitly descoped</td>
+        <td>Per the VR Onboarding Guide; gates everything downstream</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
         <td>R-02</td>
-        <td>Confirm pre-experiment covariate data availability and coverage in the ASHA / MetricFeed pipeline at the flight assignment unit, for the chosen pre-period window</td>
-        <td>Coverage measured on representative MCA flights; &ge;80% of users have usable covariate data, or a documented reason why not</td>
-        <td>Blocker for R-04</td>
+        <td>Classify each eligible ASHA pillar metric as count-type or ratio-type and prioritise accordingly, given the WAC pilot finding that counts deliver a 1.3&times; traffic multiplier versus 1.14&times; for ratios</td>
+        <td>Metric type documented per pillar; onboarding order reflects expected benefit</td>
+        <td>Directly informed by WAC pilot results</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
         <td>R-03</td>
-        <td>Select the pre-experiment window length, empirically validated against the 1&ndash;2 week guidance, including a rule for longer-running flights that need a longer lookback</td>
-        <td>Window length chosen with supporting correlation / variance-reduction evidence at each candidate length; documented</td>
-        <td>Per Microsoft 2013 guidance</td>
+        <td>Confirm pre-experiment (AA stream) data availability and coverage for the standard 7-day baseline at the MCA flight randomization unit</td>
+        <td>Coverage measured on representative MCA flights via the "AAStream Join Success Rate" metric; &ge;80% of users have usable pre-AA data, or a documented reason why not</td>
+        <td>Window is fixed at 7 days by the Office implementation</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
         <td>R-04</td>
-        <td>Configure CUPED variance reduction on the ASHA scorecard via ExP metric authoring for each pillar metric that clears the validation bar</td>
-        <td>Variance reduction is live in the ASHA scorecard configuration; adjusted results generate on schedule</td>
-        <td>Core deliverable</td>
+        <td>Submit the VR onboarding request through the IDEAS Experiment Champ using the ADO intake form (title prefixed <em>VR Onboarding</em>), supplying the ASHA scorecard link, analysis template link, Champ name, validation point of contact, auto-scheduled vs on-demand choice, and Cosmos privacy tags for the AA stream</td>
+        <td>Request submitted before a month-end cutoff and accepted into an onboarding iteration; automated scripts produce a VR scorecard, VR analysis template, and a PR for team review</td>
+        <td>Requests triaged monthly &mdash; drives the schedule</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
         <td>R-05</td>
+        <td>Review and approve the generated PR, confirming the VR scorecard and analysis template correctly mirror the existing ASHA scorecard's study details, segments, and schedule</td>
+        <td>PR reviewed by a named IDEAS owner; no unintended changes to the existing non-VR scorecard</td>
+        <td>Core deliverable</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-06</td>
+        <td>Complete the documented validation sequence: pre-production preview scorecard to confirm no breaking changes, then in production verify AA stream generation succeeds, the VR analysis template picks up the AA stream as a task dependency, and the VR scorecard renders</td>
+        <td>Preview scorecard attached to the PR; both AA streams (Blueshift and RoW) generate successfully; "AAStream Join Success Rate" is non-zero on the resulting VR scorecard</td>
+        <td>Per the onboarding guide's Step 1&ndash;3</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-07</td>
+        <td>Decide auto-scheduled vs on-demand for the ASHA VR template, based on a pilot-period impact assessment weighing the 7-day AA stream cost against days-of-analysis saved</td>
+        <td>Decision documented with supporting cost/benefit figures from a pilot period; analysis template schedule adjusted to offset AA stream cost if auto-scheduling</td>
+        <td>AA stream is the dominant cost; one stream shared per layout per stage</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-08</td>
         <td>Backtest on historical MCA flights: produce adjusted and unadjusted results side-by-side across the trailing 2 quarters of ASHA flights</td>
         <td>Point estimates agree within documented tolerance; variance reduction quantified per pillar; no verdict flips attributable to bias</td>
         <td>Unbiasedness proof</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
-        <td>R-06</td>
+        <td>R-09</td>
         <td>A/A validation: run CUPED-adjusted ASHA metrics through A/A tests and confirm the false-positive rate is not inflated above nominal &alpha;</td>
         <td>A/A false-positive rate at or below &alpha; across a documented number of A/A runs</td>
         <td>Statistical safety gate</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
-        <td>R-07</td>
+        <td>R-10</td>
         <td>Covariate balance check per flight: verify the covariate mean does not differ across arms beyond tolerance; suppress the adjustment and raise a warning where it does</td>
         <td>Automated check runs per scorecard; suppression path exercised in test; warning visible on the scorecard</td>
         <td>Guards against contaminated covariates</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
-        <td>R-08</td>
-        <td>Fallback handling for users without pre-experiment data: use the unadjusted metric for those users and surface a CUPED coverage indicator on the scorecard</td>
+        <td>R-11</td>
+        <td>Fallback handling for users without pre-experiment data: use the unadjusted metric for those users and surface a CUPED coverage indicator on the scorecard, driven by "AAStream Join Success Rate"</td>
         <td>Mixed-coverage flights compute correctly; coverage percentage displayed; below a configured floor the metric renders unadjusted with a note</td>
         <td>Standard CUPED missing-data handling</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
-        <td>R-09</td>
+        <td>R-12</td>
         <td>Scorecard transparency: variance-reduced metrics are visually identifiable, with hover / detail exposing the covariate used, the pre-period window, and the realised variance reduction</td>
         <td>Indicator present on every adjusted metric; detail view shows covariate, window, and % variance reduction</td>
         <td>Trust and legibility</td>
       </tr>
       <tr>
         <td><span class="badge badge-p1">P1</span></td>
-        <td>R-10</td>
+        <td>R-13</td>
         <td>Change communication: dated changelog banner on affected ASHA metrics at rollout explaining that intervals narrowed and point estimates did not shift</td>
         <td>Banner appears on affected metrics for a defined period post-rollout; links to the methodology page</td>
         <td>Prevents "my numbers changed" escalations</td>
       </tr>
       <tr>
         <td><span class="badge badge-p1">P1</span></td>
-        <td>R-11</td>
+        <td>R-14</td>
         <td>Ongoing monitoring: track realised variance reduction and covariate correlation per pillar over time; alert when reduction degrades materially</td>
         <td>Monitoring in place; degradation alert defined with a threshold and an owner</td>
         <td>Correlation can decay as the product changes</td>
       </tr>
       <tr>
         <td><span class="badge badge-p1">P1</span></td>
-        <td>R-12</td>
+        <td>R-15</td>
         <td>Measure and report the primary outcome: median days-to-confident-ASHA-read before vs after rollout</td>
         <td>Baseline established pre-rollout; post-rollout comparison published one quarter after GA</td>
         <td>Proves the duration thesis</td>
       </tr>
       <tr>
         <td><span class="badge badge-p1">P1</span></td>
-        <td>R-13</td>
+        <td>R-16</td>
         <td>Reconciliation with Expedite: confirm CUPED-adjusted ASHA results flow into Expedite verdicts correctly and that no verdict logic assumes unadjusted variance</td>
         <td>Expedite verdicts validated against adjusted scorecards on the backtest set; no unexpected verdict changes</td>
         <td>Scorecards remain the decision surface</td>
       </tr>
       <tr>
         <td><span class="badge badge-p2">P2</span></td>
-        <td>R-14</td>
+        <td>R-17</td>
         <td>Playbook documentation: publish the covariate-selection, validation, and rollout process so other IDEAS scorecards can adopt variance reduction as a configuration change</td>
         <td>Doc published and linked from IDEAS scorecard onboarding materials</td>
         <td>Enables expansion beyond ASHA</td>
       </tr>
       <tr>
         <td><span class="badge badge-p2">P2</span></td>
-        <td>R-15</td>
+        <td>R-18</td>
         <td>Announce GA to Copilot Growth feature crews with a short explainer on what CUPED does and does not change</td>
         <td>Announcement sent; explainer linked from the scorecard methodology page</td>
         <td>Adoption &amp; trust</td>
       </tr>
       <tr>
         <td><span class="badge badge-p2">P2</span></td>
-        <td>R-16</td>
+        <td>R-19</td>
         <td>Evaluate additional or alternative covariates (multi-covariate / non-linear adjustment) for pillars where single-covariate CUPED delivers weak reduction</td>
         <td>Evaluation documented; recommendation made for V2</td>
         <td>Deferred &mdash; V2 candidate</td>
@@ -584,7 +623,7 @@
 
   <h3>How the Adjustment Works</h3>
   <div class="ux-flow">
-    <strong>1. Pick the covariate (X)</strong> &mdash; for each ASHA pillar, the same pillar metric measured over a 1&ndash;2 week pre-experiment window. Must be strongly correlated with the in-experiment outcome and untouched by the treatment.<br><br>
+    <strong>1. Pick the covariate (X)</strong> &mdash; for each ASHA pillar, the same pillar metric measured over the standard <strong>7-day</strong> pre-experiment baseline. Must be correlated with the in-experiment outcome and untouched by the treatment.<br><br>
     <strong>2. Estimate &theta;</strong> &mdash; <code>&theta; = cov(X,Y) / var(X)</code>, fit on the pooled sample across arms (never per-arm, which reintroduces bias).<br><br>
     <strong>3. Adjust each unit</strong> &mdash; <code>Ŷ<sub>i</sub> = Y<sub>i</sub> &minus; &theta;(X<sub>i</sub> &minus; X&#772;)</code>. Centering on the covariate mean preserves unbiasedness.<br><br>
     <strong>4. Variance falls</strong> &mdash; <code>var(Ŷ) = var(Y) &times; (1 &minus; corr(X,Y)&sup2;)</code>. A covariate correlating at 0.6 removes ~36% of the variance; at 0.8, ~64%.<br><br>
@@ -603,11 +642,12 @@
 
   <h3>Rollout Sequencing</h3>
   <ul>
-    <li><strong>Phase 0 &mdash; Feasibility:</strong> covariate availability and coverage confirmed in the ASHA / MetricFeed pipeline (R-01, R-02)</li>
-    <li><strong>Phase 1 &mdash; Validation:</strong> historical backtest and A/A runs; per-pillar go / no-go based on measured correlation and variance reduction (R-05, R-06)</li>
-    <li><strong>Phase 2 &mdash; Shadow:</strong> adjusted values computed alongside unadjusted, visible to IDEAS DS only, for a defined period on live flights</li>
-    <li><strong>Phase 3 &mdash; GA:</strong> variance reduction enabled on qualifying ASHA pillars with the changelog banner, indicators, and methodology page live</li>
-    <li><strong>Phase 4 &mdash; Expand:</strong> playbook published; candidate next scorecards identified</li>
+    <li><strong>Phase 0 &mdash; Eligibility &amp; Feasibility:</strong> screen ASHA pillar metrics against the four VR eligibility criteria; classify count vs ratio; confirm 7-day AA stream coverage at the MCA randomization unit (R-01, R-02, R-03)</li>
+    <li><strong>Phase 1 &mdash; Intake:</strong> submit the VR Onboarding request via the IDEAS Experiment Champ ahead of a month-end cutoff; automated scripts generate the VR scorecard, VR analysis template, and PR; team reviews and approves (R-04, R-05)</li>
+    <li><strong>Phase 2 &mdash; Validation:</strong> pre-production preview scorecard, then production AA stream generation, dependency check, and a non-zero "AAStream Join Success Rate"; historical backtest and A/A runs give per-pillar go / no-go (R-06, R-08, R-09)</li>
+    <li><strong>Phase 3 &mdash; Shadow &amp; cost assessment:</strong> run the VR template for a pilot period (~1 month) alongside the existing scorecard, visible to IDEAS DS, to measure realised variance reduction and days-of-analysis saved; decide auto-scheduled vs on-demand (R-07)</li>
+    <li><strong>Phase 4 &mdash; GA:</strong> variance reduction enabled on qualifying ASHA pillars with the changelog banner, indicators, and methodology page live</li>
+    <li><strong>Phase 5 &mdash; Expand:</strong> playbook published; candidate next scorecards identified</li>
   </ul>
 
   <h3>Positioning Boundary</h3>
@@ -624,15 +664,15 @@
   <h3>Open Questions</h3>
   <div class="question-card">
     <div class="q-title">Q1: How strongly does pre-period ASHA correlate with in-experiment ASHA, per pillar?</div>
-    <p>This is the question that determines whether the whole spec is worth doing, and it must be answered empirically before Phase 3. Variance reduction is exactly <code>1 &minus; corr&sup2;</code> &mdash; a covariate correlating at 0.3 buys ~9% and is probably not worth the complexity; at 0.7 it buys ~49% and transforms flight duration. App Boot, Chat Tried, and Interruptions may land in very different places. <strong>Owner:</strong> IDEAS DS. <strong>Blocker for:</strong> per-pillar go / no-go.</p>
+    <p>This is the question that determines whether the whole spec is worth doing, and it must be answered empirically. Variance reduction is exactly <code>1 &minus; corr&sup2;</code> &mdash; a covariate correlating at 0.3 buys ~9% and is probably not worth the complexity; at 0.7 it buys ~49% and transforms flight duration. App Boot, Chat Tried, and Interruptions may land in very different places. The WAC Excel Engagement pilot gives us a benchmark to test against (~30% median on product-level metrics, ~15% overall), and its count-vs-ratio finding suggests the ASHA pillars that behave like counts will fare best. <strong>Owner:</strong> IDEAS DS. <strong>Blocker for:</strong> per-pillar go / no-go.</p>
   </div>
   <div class="question-card">
     <div class="q-title">Q2: Is pre-experiment ASHA data actually available at flight assignment time?</div>
-    <p>ASHA flows through Nitro v2 into MetricFeed to generate daily user / day / outcome streams. We need to confirm the retained history is deep enough to construct a 1&ndash;2 week pre-period for the users in a flight, at the right assignment unit, without building a new pipeline. <strong>Owner:</strong> Engineering + IDEAS DS.</p>
+    <p>ASHA flows through Nitro v2 into MetricFeed to generate daily user / day / outcome streams. We need to confirm the retained history is deep enough to construct the standard 7-day AA (pre-experiment) stream for the users in a flight, at the MCA randomization unit, without building a new pipeline. The "AAStream Join Success Rate" metric on a generated VR scorecard answers this directly. <strong>Owner:</strong> Engineering + IDEAS DS.</p>
   </div>
   <div class="question-card">
-    <div class="q-title">Q3: What is the right pre-period window, and how does it change for long flights?</div>
-    <p>Microsoft's original guidance is 1&ndash;2 weeks, with longer windows for longer experiments so the same users appear in both periods. MCA flights vary widely in duration. Do we set a single fixed window, or scale it with planned flight duration? <strong>Owner:</strong> IDEAS DS.</p>
+    <div class="q-title">Q3: Do the ASHA pillar metrics actually clear the four eligibility criteria?</div>
+    <p><em>Largely answerable now, and the window question is settled:</em> the Office implementation standardises on a 7-day baseline, so window length is not ours to tune. What remains is screening. VR requires average-based metrics (no percentiles), a match to the experiment's randomization unit, no dynamic parameters in the definition, and an existing pre-experiment counterpart. ASHA pillar definitions need to be checked against each of these before anything else happens &mdash; a failure on any one criterion descopes that pillar entirely. <strong>Owner:</strong> IDEAS DS + PM.</p>
   </div>
   <div class="question-card">
     <div class="q-title">Q4: How much of the MCA flight population is genuinely new (no pre-period)?</div>
@@ -644,41 +684,49 @@
   </div>
   <div class="question-card">
     <div class="q-title">Q6: Do overlapping flights contaminate the covariate?</div>
-    <p>If a user was in a prior flight during the pre-period, the covariate may already reflect a treatment effect. On a heavily-flighted surface like MCA this is not hypothetical. Does the balance check (R-07) catch this adequately, or do we need explicit exclusion rules? <strong>Owner:</strong> IDEAS DS + Flights.</p>
+    <p>If a user was in a prior flight during the pre-period, the covariate may already reflect a treatment effect. On a heavily-flighted surface like MCA this is not hypothetical. Does the balance check (R-10) catch this adequately, or do we need explicit exclusion rules? <strong>Owner:</strong> IDEAS DS + Flights.</p>
   </div>
   <div class="question-card">
     <div class="q-title">Q7: Which scorecard is next after ASHA?</div>
     <p>The playbook is only valuable if it gets used. Candidates should be scored on metric variance, pre-period data availability, and how often duration is the binding constraint on the decision. <strong>Owner:</strong> PM.</p>
   </div>
+  <div class="question-card">
+    <div class="q-title">Q8: Who is the IDEAS Experiment Champ for this request, and what are the Cosmos privacy tags?</div>
+    <p>Two concrete intake blockers. VR onboarding requests must be routed through the team's assigned Experiment Champ (see <a href="https://aka.ms/oexpchamps" target="_blank" rel="noopener">aka.ms/oexpchamps</a>), and the request must specify the Cosmos privacy tags for the AA stream &mdash; which will be stored on the scorecard VC and may include EUPI columns (UserId, ClientId) for the MCA analysis unit. Both need answers before a request can be filed. <strong>Owner:</strong> PM + Privacy.</p>
+  </div>
 
   <h3>Risks</h3>
   <div class="risk-card">
     <div class="risk-title">Risk 1: Correlation is too weak to matter</div>
-    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> High &mdash; if pre-period ASHA correlates weakly with in-experiment ASHA, variance reduction will be marginal and the effort will not move flight duration. <strong>Mitigation:</strong> Measure correlation first (Q1) as a Phase 0/1 gate before any configuration work; be willing to enable CUPED on only the pillars that clear the bar, and to evaluate alternative covariates (R-16) for the ones that do not.</p>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> High &mdash; if pre-period ASHA correlates weakly with in-experiment ASHA, variance reduction will be marginal and the effort will not move flight duration. The WAC pilot's ~15% median across all metrics (versus ~30% on product-level metrics) shows the downside case is real, not hypothetical. <strong>Mitigation:</strong> Screen eligibility and metric type first (R-01, R-02), then measure realised reduction in the shadow / pilot phase before committing to auto-scheduling; be willing to enable VR on only the pillars that clear the bar, and to evaluate alternative covariates (R-19) for the ones that do not.</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 2: Loss of trust when scorecard numbers change</div>
-    <p><strong>Likelihood:</strong> High &middot; <strong>Impact:</strong> Medium &mdash; feature crews will notice intervals narrowing and may suspect the data changed, or that results are being massaged toward "ship". <strong>Mitigation:</strong> Publish the backtest showing point estimates unchanged; ship the changelog banner (R-10), the per-metric indicators (R-09), and a plain-language methodology page before GA, not after; brief the highest-volume crews directly.</p>
+    <p><strong>Likelihood:</strong> High &middot; <strong>Impact:</strong> Medium &mdash; feature crews will notice intervals narrowing and may suspect the data changed, or that results are being massaged toward "ship". <strong>Mitigation:</strong> Publish the backtest showing point estimates unchanged; ship the changelog banner (R-13), the per-metric indicators (R-09), and a plain-language methodology page before GA, not after; brief the highest-volume crews directly.</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 3: Contaminated covariate produces biased results</div>
-    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> High &mdash; CUPED is only valid when the covariate is unaffected by the treatment. Overlapping flights, pre-period leakage, or a mis-specified assignment boundary would silently bias guardrail reads on the metrics leadership trusts most. <strong>Mitigation:</strong> Automated covariate balance check per flight with suppression (R-07); explicit A/A validation (R-06); shadow phase before GA.</p>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> High &mdash; CUPED is only valid when the covariate is unaffected by the treatment. Overlapping flights, pre-period leakage, or a mis-specified assignment boundary would silently bias guardrail reads on the metrics leadership trusts most. <strong>Mitigation:</strong> Automated covariate balance check per flight with suppression (R-10); explicit A/A validation (R-06); shadow phase before GA.</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 4: Poor covariate coverage on new-user flights</div>
-    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> Medium &mdash; growth flights frequently target acquisition and onboarding, exactly the population with no pre-period. The advertised benefit would not materialise where crews most want speed. <strong>Mitigation:</strong> Report coverage per flight (R-08); set expectations explicitly that acquisition flights see limited benefit; investigate alternative covariates (device / tenant-level priors) as a V2 candidate.</p>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> Medium &mdash; growth flights frequently target acquisition and onboarding, exactly the population with no pre-period. The advertised benefit would not materialise where crews most want speed. <strong>Mitigation:</strong> Report coverage per flight (R-11); set expectations explicitly that acquisition flights see limited benefit; investigate alternative covariates (device / tenant-level priors) as a V2 candidate.</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 5: Correlation decays over time</div>
-    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> Low&ndash;Medium &mdash; as MCA evolves, the relationship between pre-period and in-experiment ASHA may weaken, quietly eroding the benefit while the scorecard still advertises variance reduction. <strong>Mitigation:</strong> Ongoing monitoring of realised reduction and correlation, with a degradation alert and a named owner (R-11).</p>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> Low&ndash;Medium &mdash; as MCA evolves, the relationship between pre-period and in-experiment ASHA may weaken, quietly eroding the benefit while the scorecard still advertises variance reduction. <strong>Mitigation:</strong> Ongoing monitoring of realised reduction and correlation, with a degradation alert and a named owner (R-14).</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 6: Compute cost or freshness regression</div>
-    <p><strong>Likelihood:</strong> Low&ndash;Medium &middot; <strong>Impact:</strong> Medium &mdash; joining a pre-period window per user adds work to ASHA scorecard generation and could push against the freshness SLA. <strong>Mitigation:</strong> Guardrail metric on scorecard latency and freshness; measure during the shadow phase before GA; window length is a tunable lever if cost becomes an issue.</p>
+    <p><strong>Likelihood:</strong> Low&ndash;Medium &middot; <strong>Impact:</strong> Medium &mdash; generating the 7-day AA stream costs roughly the same as generating a 7-day scorecard from the same template, which is a real if bounded COGS increase, and auto-scheduling multiplies it across every analysis period. <strong>Mitigation:</strong> The cost structure is well understood from the Office rollout: only one AA stream is needed per layout and it is shared across analysis periods within a stage rollout, storage expiry is 30 days and configurable, and the incremental A/B scorecard cost is negligible. Run the pilot-period impact assessment (R-07) to compare days-of-analysis saved against AA stream cost before committing to auto-scheduling, and fall back to on-demand VR for the flights where speed matters most if the economics do not hold.</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 7: Dependency on ASHA scorecard delivery timeline</div>
-    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> Medium &mdash; ASHA scorecard work is still active (#7219414 In Progress, #7456513 On Track). Configuring variance reduction on a scorecard whose metric set is still settling risks rework. <strong>Mitigation:</strong> Sequence Phase 0/1 analysis to run in parallel with ASHA scorecard stabilisation; gate configuration (Phase 3) on the pillar metric definitions being locked.</p>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> Medium &mdash; ASHA scorecard work is still active (#7219414 In Progress, #7456513 On Track). Configuring variance reduction on a scorecard whose metric set is still settling risks rework. <strong>Mitigation:</strong> Sequence Phase 0 eligibility screening to run in parallel with ASHA scorecard stabilisation; gate the intake request (Phase 1) on the pillar metric definitions being locked, since the automated scripts snapshot the scorecard as it exists at request time.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 8: Monthly intake cadence delays the schedule</div>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> Low&ndash;Medium &mdash; VR onboarding requests are assessed and prioritised monthly, must arrive before month-end to make the next iteration, and must be routed through an Experiment Champ. A missed cutoff or an unidentified Champ costs a full month against an FY27 Q2 target. <strong>Mitigation:</strong> Identify the IDEAS Experiment Champ early (Q8) and brief them before submitting; complete Phase 0 eligibility screening well ahead of a month-end so the request is submission-ready; treat the intake date as a tracked milestone rather than an afterthought.</p>
   </div>
 </div>
 
