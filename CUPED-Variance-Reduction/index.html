@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Spec &#8212; CUPED Variance Reduction for IDEAS Experimentation Scorecards</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-light: #e8f0fe;
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --risk-red: #d93025;
+    --risk-bg: #fce8e6;
+    --success-green: #1e8e3e;
+    --success-bg: #e6f4ea;
+    --warn-amber: #e37400;
+    --warn-bg: #fef7e0;
+    --p0: #d93025;
+    --p1: #e37400;
+    --p2: #1a73e8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #1a2332 0%, #2d4a6f 60%, var(--primary) 100%);
+    color: #fff;
+    padding: 48px 40px 36px;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.85;
+    font-weight: 400;
+  }
+  .meta-bar {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+  .meta-item strong {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.65;
+    margin-bottom: 2px;
+  }
+
+  .content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 60px;
+  }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .section-number {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .section h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 20px 0 10px;
+    color: var(--text);
+  }
+  .section p, .section li {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .section ul, .section ol {
+    padding-left: 22px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.9rem;
+  }
+  thead th {
+    background: var(--bg);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-p0 { background: #fce8e6; color: var(--p0); }
+  .badge-p1 { background: var(--warn-bg); color: var(--p1); }
+  .badge-p2 { background: var(--primary-light); color: var(--p2); }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .metric-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .metric-card .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .metric-card .value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .metric-card .target {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .scenario-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .scenario-card .persona {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .scenario-card .narrative {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  .risk-card {
+    border-left: 4px solid var(--risk-red);
+    background: var(--risk-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .risk-card .risk-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--risk-red);
+    margin-bottom: 4px;
+  }
+  .risk-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .question-card {
+    border-left: 4px solid var(--warn-amber);
+    background: var(--warn-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .question-card .q-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--warn-amber);
+    margin-bottom: 4px;
+  }
+  .question-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .ux-flow {
+    background: var(--bg);
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    color: var(--text-secondary);
+    margin: 14px 0;
+  }
+
+  .nongoal {
+    background: #f1f3f4;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 6px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nongoal::before {
+    content: '✕';
+    color: var(--risk-red);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .content { padding: 0 20px; }
+    .section { break-inside: avoid; }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>CUPED Variance Reduction for IDEAS Experimentation Scorecards</h1>
+  <div class="subtitle">Product Specification &mdash; Cutting Flight Duration on the ASHA Scorecard Through Pre-Experiment Variance Reduction</div>
+  <div class="meta-bar">
+    <div class="meta-item"><strong>PM Owner</strong> David Lydston</div>
+    <div class="meta-item"><strong>Team</strong> IDEAS Experimentation</div>
+    <div class="meta-item"><strong>Last Updated</strong> July 2026</div>
+    <div class="meta-item"><strong>Status</strong> Draft</div>
+    <div class="meta-item"><strong>Target</strong> FY27 Q2</div>
+    <div class="meta-item"><strong>Customer</strong> Copilot Growth feature crews &amp; IDEAS DS</div>
+    <div class="meta-item"><strong>V1 Scope</strong> ASHA Scorecard (MCA)</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 1 — Problem & Opportunity           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 1</div>
+  <h2>Problem &amp; Opportunity</h2>
+
+  <h3>Problem Statement</h3>
+  <p>Aggregated Session Happiness (ASHA) metrics are the critical guardrails for the Microsoft Copilot App &mdash; they tell us whether a shipped feature degraded App Boot, Chat Tried, or Interruptions. But ASHA metrics are inherently high-variance: they are built from session-level user experience signals whose per-user values swing widely for reasons that have nothing to do with the treatment (device class, network conditions, tenant configuration, individual usage habits). <strong>The consequence is duration.</strong> To detect a movement in ASHA that matters, a flight has to accumulate enough users to overwhelm that natural noise &mdash; so flights sit at a given ramp far longer than the product decision needs, and crews wait weeks for a guardrail read that the underlying data could have supported far sooner.</p>
+  <p>This is the exact problem CUPED (Controlled-experiment Using Pre-Existing Data) was invented to solve, at Microsoft, in 2013. The ExP platform already supports CUPED-based variance reduction as a metric-authoring configuration. <strong>IDEAS scorecards do not use it.</strong> Variance reduction is a per-scorecard configuration change, and no one has made that change for the ASHA scorecard &mdash; so every ASHA flight pays the full duration cost of unreduced variance even though the pre-experiment data needed to remove much of it already exists in our pipelines.</p>
+
+  <h3>Opportunity</h3>
+  <p>Configuring CUPED variance reduction on the ASHA scorecard converts existing, already-collected pre-period data into experiment velocity:</p>
+  <ul>
+    <li><strong>Shorter flights at the same confidence.</strong> Variance reduction lowers the standard error of the treatment effect without touching the point estimate. The same decision quality arrives with less accumulated exposure &mdash; published implementations report meaningful reductions in required sample size when the covariate is well correlated with the outcome.</li>
+    <li><strong>Guardrails that keep pace with the product.</strong> If ASHA can be read sooner, guardrail evaluation stops being the long pole that holds a ramp at 5% or 20% while the feature crew waits.</li>
+    <li><strong>More real regressions caught.</strong> Higher sensitivity at a fixed flight duration means genuine ASHA degradations that previously sat below the detection threshold now surface &mdash; the guardrail actually guards.</li>
+    <li><strong>A repeatable pattern.</strong> ASHA is the pilot. Once the covariate selection, validation, and communication playbook exists, the same per-scorecard configuration can be extended to other IDEAS scorecards with high-variance metrics.</li>
+    <li><strong>Zero new data collection.</strong> The covariate for ASHA is, in the standard formulation, the same ASHA metric measured over a pre-experiment window &mdash; data we already produce.</li>
+  </ul>
+
+  <h3>Evidence</h3>
+  <ul>
+    <li><strong>Method provenance.</strong> CUPED was created by Microsoft in 2013 (Deng, Xu, Kohavi, Walker &mdash; <em>Improving the Sensitivity of Online Controlled Experiments by Utilizing Pre-Experiment Data</em>) and has since been adopted as industry standard at Netflix, Booking.com, and the BBC. It is not experimental &mdash; it is mature, well-understood, and already supported by our platform.</li>
+    <li><strong>Platform support already exists.</strong> ExP documents variance reduction as a metric-authoring configuration (<a href="https://eng.ms/docs/products/experimentation-platform/docs/metricauth/configurevariancereduction" target="_blank" rel="noopener">Configure Variance Reduction</a>) and publishes an explainer at <a href="https://aka.ms/exp/cupedvr" target="_blank" rel="noopener">aka.ms/exp/cupedvr</a>. This spec is a configuration and validation effort, not a platform build.</li>
+    <li><strong>The math is well characterised.</strong> The CUPED-adjusted metric is <code>Ŷ<sub>i</sub> = Y<sub>i</sub> &minus; &theta;(X<sub>i</sub> &minus; X&#772;)</code> with <code>&theta; = cov(X,Y) / var(X)</code>, and the resulting variance is <code>var(Y) &times; (1 &minus; corr(X,Y)&sup2;)</code>. Variance reduction is therefore <em>entirely</em> a function of how well the pre-period covariate correlates with the in-experiment outcome &mdash; which makes covariate selection the single highest-leverage design decision in this spec.</li>
+    <li><strong>ASHA is live and owned.</strong> ADO Deliverable <a href="https://dev.azure.com/O365Exchange/IDEAs/_workitems/edit/7219414" target="_blank" rel="noopener">#7219414 &mdash; ASHA Metrics for MCA on scorecard</a> (Area: IDEAs\Growth\Experimentation\Scorecard) established the ASHA metric set on IDEAS scorecards, tracking the App Boot, Chat Tried, and Interruptions pillars for MCA Win32, commercial first. Related delivery work continues under <a href="https://dev.azure.com/O365Exchange/IDEAs/_workitems/edit/7456513" target="_blank" rel="noopener">#7456513 &mdash; Create ASHA scorecards</a>. The scorecard exists; the variance reduction configuration is the gap.</li>
+    <li><strong>Guidance on window length.</strong> The original Microsoft work found the optimal pre-experiment window is typically 1&ndash;2 weeks &mdash; shorter windows do not capture enough variance, longer windows introduce noise &mdash; with longer windows needed for longer experiments so the same users are observed in both periods.</li>
+    <li><strong>Prior internal precedent.</strong> CUPED methodology was previously explored inside Microsoft for NPS impact variance reduction (ADO #3036909, #3036917), confirming both familiarity with the technique and the pattern of evaluating candidate covariates empirically before adoption.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 2 — Goals & Success Metrics          -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 2</div>
+  <h2>Goals &amp; Success Metrics</h2>
+
+  <h3>Goals</h3>
+  <ol>
+    <li>Reduce the flight duration required to reach a confident ASHA guardrail read, by configuring CUPED variance reduction on the ASHA scorecard using ExP's existing metric-authoring capability</li>
+    <li>Select and empirically validate the pre-experiment covariate for each ASHA pillar metric (App Boot, Chat Tried, Interruptions), documenting the measured correlation and the realised variance reduction for each</li>
+    <li>Prove unbiasedness before rollout &mdash; demonstrate on historical flights and A/A tests that CUPED-adjusted point estimates match unadjusted estimates while confidence intervals narrow</li>
+    <li>Make the change legible to feature crews: it must be obvious on the scorecard which metrics are variance-reduced, by how much, and what that means for interpreting the result</li>
+    <li>Produce a reusable playbook so extending variance reduction to the next IDEAS scorecard is a configuration exercise, not a research project</li>
+  </ol>
+
+  <h3>Success Metrics</h3>
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="label">Primary Metric</div>
+      <div class="value">Time-to-Confident ASHA Read</div>
+      <div class="target">Target: &ge;30% reduction in median days-to-statistical-significance for ASHA pillar metrics on flights with a true effect &middot; Baseline: measured on the trailing 2 quarters of ASHA flights before rollout</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Primary Metric</div>
+      <div class="value">Realised Variance Reduction</div>
+      <div class="target">Target: &ge;20% variance reduction on at least 2 of the 3 ASHA pillar metrics &middot; Measured as 1 &minus; (adjusted variance / unadjusted variance) on production flights</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Covariate Coverage</div>
+      <div class="target">Target: &ge;80% of users in a typical MCA flight have usable pre-experiment covariate data &middot; Users without pre-period data fall back to the unadjusted metric</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Regression Detection Rate</div>
+      <div class="target">Target: measurable increase in the share of flights where an ASHA guardrail movement is flagged stat-sig at a fixed exposure level, without an increase in false positives</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Point-Estimate Stability (Unbiasedness)</div>
+      <div class="target">Must maintain: CUPED-adjusted treatment effect matches the unadjusted effect within a documented tolerance across the historical backtest &mdash; CUPED must narrow intervals, never shift conclusions</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">A/A False-Positive Rate</div>
+      <div class="target">Must maintain: false-positive rate on A/A tests with CUPED applied stays at or below the nominal &alpha; (no inflation from the adjustment)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Scorecard Compute &amp; Freshness</div>
+      <div class="target">Must maintain: ASHA scorecard generation latency and freshness SLA (&le;24 hours) unchanged after the pre-period join is introduced</div>
+    </div>
+  </div>
+
+  <h3>Explicit Non-Goals</h3>
+  <div class="nongoal">Building a variance reduction engine &mdash; ExP already provides CUPED; this is metric authoring and configuration</div>
+  <div class="nongoal">Applying variance reduction to every IDEAS scorecard in V1 &mdash; ASHA is the pilot, expansion is a follow-on</div>
+  <div class="nongoal">Non-linear or ML-based variance reduction (CUPAC, multi-covariate regression adjustment) &mdash; V1 uses standard single-covariate linear CUPED</div>
+  <div class="nongoal">Changing ASHA metric definitions, pillars, or thresholds &mdash; the metric semantics are consumed as-is</div>
+  <div class="nongoal">Changing the decision framework or shipping criteria &mdash; Expedite verdict logic is unchanged; only the precision of the inputs improves</div>
+  <div class="nongoal">Retroactively restating historical scorecards with CUPED-adjusted values &mdash; applies going forward</div>
+  <div class="nongoal">Variance reduction for flights with no pre-experiment period (brand-new-user cohorts) &mdash; those fall back to unadjusted metrics</div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 3 — User Scenarios                   -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 3</div>
+  <h2>User Scenarios</h2>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 1 &mdash; "Feature Crew Ramping Faster" (Primary)</div>
+    <div class="narrative">
+      <p>Sam owns a Copilot App feature and is ramping a flight from 5% to 20%. The gate is ASHA: leadership will not approve the ramp until the guardrails read clean. Today, Sam waits roughly three weeks for the ASHA confidence intervals to tighten enough to say anything. With CUPED configured on the ASHA scorecard, the same flight reaches a confident read in noticeably less time, because the pre-period ASHA values for those same users have absorbed a large share of the natural user-to-user variation. Sam sees the tighter interval on the scorecard, notes the "Variance reduced (CUPED)" chip on the App Boot metric, and takes the ramp decision materially earlier.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 2 &mdash; "Data Scientist Validating the Adjustment"</div>
+    <div class="narrative">
+      <p>Dana is an IDEAS Data Scientist responsible for signing off on the change. Before rollout she runs the backtest harness across the trailing two quarters of MCA flights, comparing adjusted and unadjusted results side-by-side for each ASHA pillar. She confirms the point estimates line up within tolerance, the intervals narrow, and the A/A false-positive rate is unchanged. She records the measured correlation between the pre-period covariate and the in-experiment outcome for each pillar &mdash; App Boot correlates strongly, Interruptions less so &mdash; and this evidence determines which pillars get CUPED enabled at launch.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 3 &mdash; "Growth Leader Reading a Guardrail"</div>
+    <div class="narrative">
+      <p>Jordan reviews the ASHA guardrails across the Copilot Growth portfolio. On the scorecard, variance-reduced metrics carry a visible indicator and a hover explaining "This metric uses CUPED variance reduction with a 14-day pre-experiment covariate; observed variance reduction 34%." Jordan does not need to understand the estimator &mdash; only that the number is more precise and that the adjustment does not change what the effect is, only how tightly it is bounded. Crucially, Jordan can see that a regression flagged this week would previously have taken another ten days to surface.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case &mdash; New Users With No Pre-Experiment Data</div>
+    <div class="narrative">
+      <p>A flight targets newly-installed MCA users, most of whom have no pre-experiment window. The scorecard applies the standard fallback: users without covariate data use the unadjusted metric, and the scorecard surfaces a coverage chip ("CUPED coverage: 31% of users &mdash; limited variance reduction on this flight"). Where coverage falls below a configured floor, the metric renders unadjusted with an explicit note rather than advertising a reduction it did not achieve.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case &mdash; Covariate Contaminated by Treatment</div>
+    <div class="narrative">
+      <p>A flight's assignment predates the nominal pre-period boundary, or a prior overlapping flight has already shifted the covariate for one arm. CUPED is only valid when the covariate is untouched by the treatment. The validation check compares covariate means across arms; if they differ beyond tolerance, the scorecard suppresses the adjustment for that flight and raises a data-quality warning rather than reporting a biased result.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case &mdash; Numbers Change Mid-Flight</div>
+    <div class="narrative">
+      <p>Rollout lands while flights are in-flight, and a crew notices their ASHA confidence interval narrowed overnight without the underlying data changing. The scorecard carries a dated changelog banner on affected metrics ("CUPED variance reduction enabled on 2026-11-03 &mdash; intervals narrowed; point estimates unchanged") with a link to methodology, so the change is explained at the point of confusion rather than in a mail thread.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 4 — Requirements                     -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 4</div>
+  <h2>Requirements</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:70px">Priority</th>
+        <th style="width:50px">ID</th>
+        <th>Requirement</th>
+        <th style="width:180px">Acceptance Criteria</th>
+        <th style="width:100px">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-01</td>
+        <td>Identify and document a candidate pre-experiment covariate for each ASHA pillar metric (App Boot, Chat Tried, Interruptions), defaulting to the same metric measured over the pre-experiment window</td>
+        <td>Covariate definition written for all three pillars; measured correlation with in-experiment outcome reported for each</td>
+        <td>Correlation drives all downstream value</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-02</td>
+        <td>Confirm pre-experiment covariate data availability and coverage in the ASHA / MetricFeed pipeline at the flight assignment unit, for the chosen pre-period window</td>
+        <td>Coverage measured on representative MCA flights; &ge;80% of users have usable covariate data, or a documented reason why not</td>
+        <td>Blocker for R-04</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-03</td>
+        <td>Select the pre-experiment window length, empirically validated against the 1&ndash;2 week guidance, including a rule for longer-running flights that need a longer lookback</td>
+        <td>Window length chosen with supporting correlation / variance-reduction evidence at each candidate length; documented</td>
+        <td>Per Microsoft 2013 guidance</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-04</td>
+        <td>Configure CUPED variance reduction on the ASHA scorecard via ExP metric authoring for each pillar metric that clears the validation bar</td>
+        <td>Variance reduction is live in the ASHA scorecard configuration; adjusted results generate on schedule</td>
+        <td>Core deliverable</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-05</td>
+        <td>Backtest on historical MCA flights: produce adjusted and unadjusted results side-by-side across the trailing 2 quarters of ASHA flights</td>
+        <td>Point estimates agree within documented tolerance; variance reduction quantified per pillar; no verdict flips attributable to bias</td>
+        <td>Unbiasedness proof</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-06</td>
+        <td>A/A validation: run CUPED-adjusted ASHA metrics through A/A tests and confirm the false-positive rate is not inflated above nominal &alpha;</td>
+        <td>A/A false-positive rate at or below &alpha; across a documented number of A/A runs</td>
+        <td>Statistical safety gate</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-07</td>
+        <td>Covariate balance check per flight: verify the covariate mean does not differ across arms beyond tolerance; suppress the adjustment and raise a warning where it does</td>
+        <td>Automated check runs per scorecard; suppression path exercised in test; warning visible on the scorecard</td>
+        <td>Guards against contaminated covariates</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-08</td>
+        <td>Fallback handling for users without pre-experiment data: use the unadjusted metric for those users and surface a CUPED coverage indicator on the scorecard</td>
+        <td>Mixed-coverage flights compute correctly; coverage percentage displayed; below a configured floor the metric renders unadjusted with a note</td>
+        <td>Standard CUPED missing-data handling</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-09</td>
+        <td>Scorecard transparency: variance-reduced metrics are visually identifiable, with hover / detail exposing the covariate used, the pre-period window, and the realised variance reduction</td>
+        <td>Indicator present on every adjusted metric; detail view shows covariate, window, and % variance reduction</td>
+        <td>Trust and legibility</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-10</td>
+        <td>Change communication: dated changelog banner on affected ASHA metrics at rollout explaining that intervals narrowed and point estimates did not shift</td>
+        <td>Banner appears on affected metrics for a defined period post-rollout; links to the methodology page</td>
+        <td>Prevents "my numbers changed" escalations</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-11</td>
+        <td>Ongoing monitoring: track realised variance reduction and covariate correlation per pillar over time; alert when reduction degrades materially</td>
+        <td>Monitoring in place; degradation alert defined with a threshold and an owner</td>
+        <td>Correlation can decay as the product changes</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-12</td>
+        <td>Measure and report the primary outcome: median days-to-confident-ASHA-read before vs after rollout</td>
+        <td>Baseline established pre-rollout; post-rollout comparison published one quarter after GA</td>
+        <td>Proves the duration thesis</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-13</td>
+        <td>Reconciliation with Expedite: confirm CUPED-adjusted ASHA results flow into Expedite verdicts correctly and that no verdict logic assumes unadjusted variance</td>
+        <td>Expedite verdicts validated against adjusted scorecards on the backtest set; no unexpected verdict changes</td>
+        <td>Scorecards remain the decision surface</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-14</td>
+        <td>Playbook documentation: publish the covariate-selection, validation, and rollout process so other IDEAS scorecards can adopt variance reduction as a configuration change</td>
+        <td>Doc published and linked from IDEAS scorecard onboarding materials</td>
+        <td>Enables expansion beyond ASHA</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-15</td>
+        <td>Announce GA to Copilot Growth feature crews with a short explainer on what CUPED does and does not change</td>
+        <td>Announcement sent; explainer linked from the scorecard methodology page</td>
+        <td>Adoption &amp; trust</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-16</td>
+        <td>Evaluate additional or alternative covariates (multi-covariate / non-linear adjustment) for pillars where single-covariate CUPED delivers weak reduction</td>
+        <td>Evaluation documented; recommendation made for V2</td>
+        <td>Deferred &mdash; V2 candidate</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 5 — Design Direction                 -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 5</div>
+  <h2>Design Direction</h2>
+
+  <h3>How the Adjustment Works</h3>
+  <div class="ux-flow">
+    <strong>1. Pick the covariate (X)</strong> &mdash; for each ASHA pillar, the same pillar metric measured over a 1&ndash;2 week pre-experiment window. Must be strongly correlated with the in-experiment outcome and untouched by the treatment.<br><br>
+    <strong>2. Estimate &theta;</strong> &mdash; <code>&theta; = cov(X,Y) / var(X)</code>, fit on the pooled sample across arms (never per-arm, which reintroduces bias).<br><br>
+    <strong>3. Adjust each unit</strong> &mdash; <code>Ŷ<sub>i</sub> = Y<sub>i</sub> &minus; &theta;(X<sub>i</sub> &minus; X&#772;)</code>. Centering on the covariate mean preserves unbiasedness.<br><br>
+    <strong>4. Variance falls</strong> &mdash; <code>var(Ŷ) = var(Y) &times; (1 &minus; corr(X,Y)&sup2;)</code>. A covariate correlating at 0.6 removes ~36% of the variance; at 0.8, ~64%.<br><br>
+    <strong>5. Same test, tighter interval</strong> &mdash; the test runs on the adjusted metric and variance. The point estimate is unchanged; the confidence interval narrows.
+  </div>
+
+  <h3>Where It Shows Up on the Scorecard</h3>
+  <ul>
+    <li><strong>Metric row indicator:</strong> a compact "VR" / "CUPED" chip next to any variance-reduced ASHA metric, consistent with existing scorecard chip styling</li>
+    <li><strong>Detail on hover / expand:</strong> covariate used, pre-period window length, measured correlation, realised variance reduction (%), and covariate coverage (%)</li>
+    <li><strong>Coverage warning:</strong> where covariate coverage is below the configured floor, the chip switches to a muted state and the detail explains that the metric is reported unadjusted</li>
+    <li><strong>Balance warning:</strong> where the covariate balance check fails, the adjustment is suppressed and a data-quality warning renders on the metric</li>
+    <li><strong>Rollout changelog banner:</strong> dated, dismissible, on affected metrics for a defined window post-launch</li>
+    <li><strong>Methodology link:</strong> every indicator links to a single canonical methodology page explaining CUPED in plain language for non-statisticians</li>
+  </ul>
+
+  <h3>Rollout Sequencing</h3>
+  <ul>
+    <li><strong>Phase 0 &mdash; Feasibility:</strong> covariate availability and coverage confirmed in the ASHA / MetricFeed pipeline (R-01, R-02)</li>
+    <li><strong>Phase 1 &mdash; Validation:</strong> historical backtest and A/A runs; per-pillar go / no-go based on measured correlation and variance reduction (R-05, R-06)</li>
+    <li><strong>Phase 2 &mdash; Shadow:</strong> adjusted values computed alongside unadjusted, visible to IDEAS DS only, for a defined period on live flights</li>
+    <li><strong>Phase 3 &mdash; GA:</strong> variance reduction enabled on qualifying ASHA pillars with the changelog banner, indicators, and methodology page live</li>
+    <li><strong>Phase 4 &mdash; Expand:</strong> playbook published; candidate next scorecards identified</li>
+  </ul>
+
+  <h3>Positioning Boundary</h3>
+  <p>Variance reduction changes the <em>precision</em> of scorecard inputs, not the decision framework. ExP scorecards and Expedite remain the decision surface; CUPED makes their verdicts available sooner and on firmer statistical footing. Nothing about what constitutes a ship-blocking ASHA regression changes in this spec.</p>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 6 — Open Questions & Risks           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 6</div>
+  <h2>Open Questions &amp; Risks</h2>
+
+  <h3>Open Questions</h3>
+  <div class="question-card">
+    <div class="q-title">Q1: How strongly does pre-period ASHA correlate with in-experiment ASHA, per pillar?</div>
+    <p>This is the question that determines whether the whole spec is worth doing, and it must be answered empirically before Phase 3. Variance reduction is exactly <code>1 &minus; corr&sup2;</code> &mdash; a covariate correlating at 0.3 buys ~9% and is probably not worth the complexity; at 0.7 it buys ~49% and transforms flight duration. App Boot, Chat Tried, and Interruptions may land in very different places. <strong>Owner:</strong> IDEAS DS. <strong>Blocker for:</strong> per-pillar go / no-go.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q2: Is pre-experiment ASHA data actually available at flight assignment time?</div>
+    <p>ASHA flows through Nitro v2 into MetricFeed to generate daily user / day / outcome streams. We need to confirm the retained history is deep enough to construct a 1&ndash;2 week pre-period for the users in a flight, at the right assignment unit, without building a new pipeline. <strong>Owner:</strong> Engineering + IDEAS DS.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q3: What is the right pre-period window, and how does it change for long flights?</div>
+    <p>Microsoft's original guidance is 1&ndash;2 weeks, with longer windows for longer experiments so the same users appear in both periods. MCA flights vary widely in duration. Do we set a single fixed window, or scale it with planned flight duration? <strong>Owner:</strong> IDEAS DS.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q4: How much of the MCA flight population is genuinely new (no pre-period)?</div>
+    <p>CUPED degrades gracefully for users without pre-period data, but if a large share of a typical MCA flight is new users, realised reduction will fall well short of the theoretical maximum. We need the coverage distribution across recent flights before locking the primary metric target. <strong>Owner:</strong> IDEAS DS.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q5: Should CUPED be default-on for the ASHA scorecard, or opt-in per flight?</div>
+    <p>Default-on maximises the duration benefit and keeps interpretation consistent across the portfolio; opt-in gives crews an escape hatch but fragments how results are read. Recommendation is default-on per qualifying pillar, with suppression driven by automated data-quality checks rather than user choice &mdash; but this needs confirmation with DS and Growth leadership. <strong>Owner:</strong> PM + DS.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q6: Do overlapping flights contaminate the covariate?</div>
+    <p>If a user was in a prior flight during the pre-period, the covariate may already reflect a treatment effect. On a heavily-flighted surface like MCA this is not hypothetical. Does the balance check (R-07) catch this adequately, or do we need explicit exclusion rules? <strong>Owner:</strong> IDEAS DS + Flights.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q7: Which scorecard is next after ASHA?</div>
+    <p>The playbook is only valuable if it gets used. Candidates should be scored on metric variance, pre-period data availability, and how often duration is the binding constraint on the decision. <strong>Owner:</strong> PM.</p>
+  </div>
+
+  <h3>Risks</h3>
+  <div class="risk-card">
+    <div class="risk-title">Risk 1: Correlation is too weak to matter</div>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> High &mdash; if pre-period ASHA correlates weakly with in-experiment ASHA, variance reduction will be marginal and the effort will not move flight duration. <strong>Mitigation:</strong> Measure correlation first (Q1) as a Phase 0/1 gate before any configuration work; be willing to enable CUPED on only the pillars that clear the bar, and to evaluate alternative covariates (R-16) for the ones that do not.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 2: Loss of trust when scorecard numbers change</div>
+    <p><strong>Likelihood:</strong> High &middot; <strong>Impact:</strong> Medium &mdash; feature crews will notice intervals narrowing and may suspect the data changed, or that results are being massaged toward "ship". <strong>Mitigation:</strong> Publish the backtest showing point estimates unchanged; ship the changelog banner (R-10), the per-metric indicators (R-09), and a plain-language methodology page before GA, not after; brief the highest-volume crews directly.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 3: Contaminated covariate produces biased results</div>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> High &mdash; CUPED is only valid when the covariate is unaffected by the treatment. Overlapping flights, pre-period leakage, or a mis-specified assignment boundary would silently bias guardrail reads on the metrics leadership trusts most. <strong>Mitigation:</strong> Automated covariate balance check per flight with suppression (R-07); explicit A/A validation (R-06); shadow phase before GA.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 4: Poor covariate coverage on new-user flights</div>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> Medium &mdash; growth flights frequently target acquisition and onboarding, exactly the population with no pre-period. The advertised benefit would not materialise where crews most want speed. <strong>Mitigation:</strong> Report coverage per flight (R-08); set expectations explicitly that acquisition flights see limited benefit; investigate alternative covariates (device / tenant-level priors) as a V2 candidate.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 5: Correlation decays over time</div>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> Low&ndash;Medium &mdash; as MCA evolves, the relationship between pre-period and in-experiment ASHA may weaken, quietly eroding the benefit while the scorecard still advertises variance reduction. <strong>Mitigation:</strong> Ongoing monitoring of realised reduction and correlation, with a degradation alert and a named owner (R-11).</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 6: Compute cost or freshness regression</div>
+    <p><strong>Likelihood:</strong> Low&ndash;Medium &middot; <strong>Impact:</strong> Medium &mdash; joining a pre-period window per user adds work to ASHA scorecard generation and could push against the freshness SLA. <strong>Mitigation:</strong> Guardrail metric on scorecard latency and freshness; measure during the shadow phase before GA; window length is a tunable lever if cost becomes an issue.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 7: Dependency on ASHA scorecard delivery timeline</div>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> Medium &mdash; ASHA scorecard work is still active (#7219414 In Progress, #7456513 On Track). Configuring variance reduction on a scorecard whose metric set is still settling risks rework. <strong>Mitigation:</strong> Sequence Phase 0/1 analysis to run in parallel with ASHA scorecard stabilisation; gate configuration (Phase 3) on the pillar metric definitions being locked.</p>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">
+  <p>CUPED Variance Reduction for IDEAS Experimentation Scorecards &middot; Product Specification &middot; Draft &middot; July 2026</p>
+  <p>IDEAS Experimentation &middot; PM Owner: David Lydston</p>
+</div>
+
+</body>
+</html>

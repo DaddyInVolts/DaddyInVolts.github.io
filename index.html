@@ -336,10 +336,32 @@
 
   <div class="section-title">
     <h2>Projects</h2>
-    <span class="count">15 live</span>
+    <span class="count">16 live</span>
   </div>
 
   <div class="projects">
+
+    <article class="project">
+      <div class="project-banner alt4">
+        <span class="project-tag">Product Spec</span>
+        <h3>CUPED Variance Reduction for Experimentation Scorecards</h3>
+        <p class="subtitle">Cutting flight duration on the ASHA guardrail scorecard</p>
+      </div>
+      <div class="project-body">
+        <p>ASHA (Aggregated Session Happiness) metrics are the critical guardrails for the Microsoft Copilot App — and they're noisy enough that flights run for weeks before a guardrail read is trustworthy. This spec configures CUPED variance reduction, the technique Microsoft invented in 2013 and that Netflix, Booking.com and the BBC now run in production, on the ASHA scorecard. Because variance reduction equals <em>1 − corr²</em>, the whole bet rests on how well pre-period ASHA predicts in-experiment ASHA — so the spec gates configuration behind a measured, per-pillar correlation study, a historical backtest proving point estimates don't shift, and A/A validation proving false positives don't inflate. Covers covariate selection, coverage fallback for new users, an automated covariate-balance check that suppresses the adjustment when overlapping flights contaminate it, and the scorecard transparency needed so narrower intervals read as precision rather than as numbers being massaged.</p>
+        <div class="project-meta">
+          <span class="chip">CUPED</span>
+          <span class="chip">Variance reduction</span>
+          <span class="chip">Statistical power</span>
+          <span class="chip">ASHA guardrails</span>
+          <span class="chip">IDEAS Experimentation</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/CUPED-Variance-Reduction/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/CUPED-Variance-Reduction" target="_blank" rel="noopener">Source ↗</a>
+        </div>
+      </div>
+    </article>
 
     <article class="project">
       <div class="project-banner alt">
