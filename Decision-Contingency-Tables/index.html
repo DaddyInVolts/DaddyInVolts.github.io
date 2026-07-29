@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Spec — Decision Contingency Tables</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-light: #e8f0fe;
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --risk-red: #d93025;
+    --risk-bg: #fce8e6;
+    --success-green: #1e8e3e;
+    --success-bg: #e6f4ea;
+    --warn-amber: #e37400;
+    --warn-bg: #fef7e0;
+    --p0: #d93025;
+    --p1: #e37400;
+    --p2: #1a73e8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #1a2332 0%, #2d4a6f 60%, var(--primary) 100%);
+    color: #fff;
+    padding: 48px 40px 36px;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.85;
+    font-weight: 400;
+  }
+  .meta-bar {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+  .meta-item strong {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.65;
+    margin-bottom: 2px;
+  }
+
+  .content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 60px;
+  }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .section-number {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .section h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 20px 0 10px;
+    color: var(--text);
+  }
+  .section p, .section li {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .section ul, .section ol {
+    padding-left: 22px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.9rem;
+  }
+  thead th {
+    background: var(--bg);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-p0 { background: #fce8e6; color: var(--p0); }
+  .badge-p1 { background: var(--warn-bg); color: var(--p1); }
+  .badge-p2 { background: var(--primary-light); color: var(--p2); }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .metric-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .metric-card .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .metric-card .value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .metric-card .target {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .scenario-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .scenario-card .persona {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .scenario-card .narrative {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  .risk-card {
+    border-left: 4px solid var(--risk-red);
+    background: var(--risk-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .risk-card .risk-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--risk-red);
+    margin-bottom: 4px;
+  }
+  .risk-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .question-card {
+    border-left: 4px solid var(--warn-amber);
+    background: var(--warn-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .question-card .q-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--warn-amber);
+    margin-bottom: 4px;
+  }
+  .question-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .ux-flow {
+    background: var(--bg);
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    color: var(--text-secondary);
+    margin: 14px 0;
+  }
+
+  .nongoal {
+    background: #f1f3f4;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 6px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nongoal::before {
+    content: '✕';
+    color: var(--risk-red);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .content { padding: 0 20px; }
+    .section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Decision Contingency Tables</h1>
+  <div class="subtitle">Product Specification — Recommendation vs. Actual Ship Outcome</div>
+  <div class="meta-bar">
+    <div class="meta-item"><strong>PM Owner</strong> David Lydston</div>
+    <div class="meta-item"><strong>Team</strong> IDEAS Experimentation</div>
+    <div class="meta-item"><strong>Last Updated</strong> July 2026</div>
+    <div class="meta-item"><strong>Status</strong> Draft</div>
+    <div class="meta-item"><strong>Target</strong> FY27 H1 (V1) · FY27 H2 (V2)</div>
+    <div class="meta-item"><strong>Customer</strong> Copilot / Growth Leadership</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 1 — Problem & Opportunity           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 1</div>
+  <h2>Problem &amp; Opportunity</h2>
+
+  <h3>Problem Statement</h3>
+  <p>Expedite issues thousands of definitive ship recommendations every quarter — "Ship Recommended" or "No-Ship — Regressions Detected" — but feature teams make the actual ship/stop call. Leadership has no systematic view of <strong>how often teams override these recommendations, and what happens when they do</strong>. Do overrides usually reflect legitimate business judgment that the scorecard missed, or do they represent shipping over real regressions? Today, answering this question requires a bespoke pull across Expedite's scorecard tables and the feature ship/stop signals — the exact analysis produced by the two prototypes referenced by this spec. Without a live, trusted view, leadership cannot quantify the value the Expedite recommendation engine is delivering, cannot identify products or teams whose override behavior warrants a closer look, and cannot show that experimentation-informed decisions actually translate into shipping outcomes.</p>
+
+  <h3>Opportunity</h3>
+  <p>Ship a live Decision Contingency Table in Growth Analytics Hub that plots Expedite's Ship/No-Ship recommendation against each feature's actual shipped/not-shipped outcome. This gives leadership a single, refreshable view that answers the core question <strong>"How often do teams override our recommendations, and does that lead to good or bad outcomes?"</strong>:</p>
+  <ul>
+    <li>Quantifies override behavior at the portfolio level: how many Ship recs were <em>not</em> shipped, and how many No-Ship recs shipped anyway</li>
+    <li>Enables drill-through from any cell into the specific list of features, so leadership can investigate override cases in seconds — not days</li>
+    <li>Slices by product so leaders can see whether override behavior is uniform or concentrated</li>
+    <li>Establishes a shared vocabulary and dataset for calibration conversations — replacing anecdotal debates with an auditable, reproducible view</li>
+    <li>Creates the foundation for V2 (per-metric analysis, prototype 2) which will identify which individual guardrail regressions actually track shipping decisions</li>
+  </ul>
+
+  <h3>Evidence</h3>
+  <ul>
+    <li><strong>Prototype 1 results:</strong> On a 226-feature sample, overall agreement between Expedite recommendations and actual outcomes is <strong>54%</strong> — barely above coin-flip. 56 features got Ship recs and were not shipped; 48 got No-Ship recs and shipped anyway.</li>
+    <li><strong>Product-level asymmetry:</strong> Stripping Iris (where nothing shipped) drops agreement to 47.6%. Office and BizChat sit around 48%, indicating override behavior is a material portfolio-level phenomenon, not a single-team anomaly.</li>
+    <li><strong>Leadership demand:</strong> Copilot / Growth leadership has explicitly asked for a view showing the value of Expedite decisions and their impact on features actually shipping.</li>
+    <li><strong>No live view exists today:</strong> The prototype was produced as a one-off query. Repeating the analysis at any cadence today requires re-running SQL against scorecard tables and feature status data.</li>
+    <li><strong>Individual case study exists:</strong> The Word/OCG 9624 holdout investigation demonstrates that some No-Ship recs are legitimately overridden (three positive impactful metrics vs. a single −2.6% regression). Leadership needs to see the population of such cases, not one anecdote.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 2 — Goals & Success Metrics          -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 2</div>
+  <h2>Goals &amp; Success Metrics</h2>
+
+  <h3>Goals</h3>
+  <ol>
+    <li>Ship a live 2×2 Decision Contingency Table in Growth Analytics Hub that plots Expedite Ship/No-Ship recommendation against actual feature shipped/stopped outcome</li>
+    <li>Enable leadership to drill through from any of the four cells into the underlying list of features, so override cases can be investigated in-product</li>
+    <li>Provide a product-level breakdown (by ProductName) so leadership can identify concentration of override behavior</li>
+    <li>Publish the methodology, filters, and exclusions transparently on the same page so numbers can be quoted with full context</li>
+  </ol>
+
+  <h3>Success Metrics</h3>
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="label">Primary Metric</div>
+      <div class="value">Leadership Adoption</div>
+      <div class="target">Target: Contingency table view is referenced in ≥80% of recurring Copilot/Growth leadership decision reviews within 1 quarter of GA · Baseline: 0% (view does not exist)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Drill-Through Usage</div>
+      <div class="target">Target: ≥50% of view sessions include at least one drill-through into an exception cell (Ship→Not Shipped, or No-Ship→Shipped)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Data Freshness</div>
+      <div class="target">Target: Underlying data refreshed ≤24 hours after new scorecard or ship/stop events; freshness timestamp visible in-page</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Numeric Reproducibility</div>
+      <div class="target">Must maintain: Numbers on the page match a re-run of the documented methodology within ±1 feature; verified quarterly</div>
+    </div>
+  </div>
+
+  <h3>Explicit Non-Goals</h3>
+  <div class="nongoal">Per-metric regression-vs-outcome analysis (prototype 2) — deferred to V2 in FY27 H2 as a follow-on view linked from V1</div>
+  <div class="nongoal">Including Iterate / Awaiting Clarity / No Significant Movement / Blocked-SRM recommendations — V1 covers only the two definitive verdicts (Ship Recommended, No-Ship — Regressions Detected), consistent with the prototype</div>
+  <div class="nongoal">Slicers other than ProductName — no time window, ring, audience, or org filters in V1; can be added later based on demand</div>
+  <div class="nongoal">Automatically labeling overrides as "good" or "bad" — the view surfaces overrides and lets humans investigate; it does not editorialize</div>
+  <div class="nongoal">Editing or write-back into Expedite from this view — read-only surface</div>
+  <div class="nongoal">Recomputing the Expedite recommendation engine or changing the ShipDecision definitions — this is an observational view over existing data</div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 3 — User Scenarios                   -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 3</div>
+  <h2>User Scenarios</h2>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 1 — "Growth Leader Preparing for a Portfolio Review" (Primary)</div>
+    <div class="narrative">
+      <p>Jordan is a Copilot / Growth org leader preparing for a monthly portfolio review. Today, to answer "how much are teams overriding Expedite recommendations, and where is that concentrated?" Jordan asks an analyst to re-run the prototype query — taking days. With this spec shipped, Jordan opens the Decision Contingency Table in Growth Analytics Hub. The 2×2 shows the current agreement rate at the top and the four cells with counts. Jordan filters to "Office" from the ProductName selector and sees Office's cell counts and agreement rate update instantly. Jordan clicks the "No-Ship rec / Shipped anyway" cell, sees the list of Office features that shipped over a No-Ship recommendation, and shares the top three cases with the relevant PMs for follow-up.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 2 — "PM Investigating a Specific Override Cell"</div>
+    <div class="narrative">
+      <p>Priya is a Growth PM who receives a Teams message from her leader linking to the "Ship rec / Not shipped" cell filtered to her product. She sees the list of features that got a Ship recommendation but were not shipped. Each row shows the feature name, latest scorecard link, ship/stop timestamp, and the top guardrail direction that informed the recommendation. Priya opens each scorecard directly to understand the story behind the override — was it a launch-sequencing decision? A leadership call? A guardrail that lived outside Expedite? — and reports back with a concise summary.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 3 — "Data Scientist Validating the Numbers"</div>
+    <div class="narrative">
+      <p>Dana is a Data Scientist responsible for the calibration story. She opens the Decision Contingency Table and cross-checks the counts against a fresh SQL run of the documented methodology. She confirms the numbers match within ±1 feature. She uses the methodology section on the page to answer clarifying questions from leadership about the exclusions (multi-treatment scorecards, ambiguous shipped-and-stopped features).</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case — Product with Zero Ships in the Window</div>
+    <div class="narrative">
+      <p>When a product (e.g., Iris) has zero features shipped in the current window, its per-product row still renders with 0 counts in the shipped columns and an inline note: "No shipped features in this window — agreement rate is dominated by No-Ship agreement." This avoids implying calibration quality when the diagonal is one-sided, matching the caveat surfaced by the prototype.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case — Ambiguous or Multi-Treatment Features</div>
+    <div class="narrative">
+      <p>Features that are flagged as both shipped and stopped (data-integrity issues, ~15 in the prototype) and features whose latest scorecard contains &gt;1 treatment (A/B/C designs) are excluded from the 2×2 counts. Their totals are surfaced in an "Excluded" tile beside the main 2×2 so leadership can see how many features were dropped and why, with drill-through to the excluded list.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 4 — Requirements                     -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 4</div>
+  <h2>Requirements</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:70px">Priority</th>
+        <th style="width:50px">ID</th>
+        <th>Requirement</th>
+        <th style="width:180px">Acceptance Criteria</th>
+        <th style="width:100px">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-01</td>
+        <td>Render a 2×2 Decision Contingency Table with cells for (Ship rec × Shipped), (Ship rec × Not shipped), (No-Ship rec × Shipped), (No-Ship rec × Not shipped), and row/column totals</td>
+        <td>Cells display count and percentage-of-total; row and column totals present; matches prototype 1 headline layout</td>
+        <td>Prototype 1 is the visual reference</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-02</td>
+        <td>Compute the underlying dataset using the documented methodology: definitive verdict, (Audience=production AND IsProd=1) OR ProductName=Iris, latest progression per feature, drop multi-treatment scorecards, drop ambiguous shipped-and-stopped features</td>
+        <td>Result reproduces prototype 1's 226 feature count within ±1 on the same historical window; DS-signed off before GA</td>
+        <td>See prototype 1 pipeline / methodology sections</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-03</td>
+        <td>Enable drill-through from each of the 4 cells into a list of the underlying features (feature name, product, latest scorecard link, ship/stop timestamp, recommendation)</td>
+        <td>Clicking any cell reveals the feature list; each row deep-links to the corresponding Expedite scorecard; list respects the current ProductName filter</td>
+        <td>Primary use case per Section 3</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-04</td>
+        <td>Provide a ProductName filter that recomputes the 2×2 counts, percentages, and drill-through list to the selected product</td>
+        <td>Filter change updates all cells and drill-throughs within 2 seconds; "All Products" default state matches unfiltered view</td>
+        <td>Only slicer in V1</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-05</td>
+        <td>Refresh the underlying dataset on a defined cadence and display a "last refreshed" timestamp prominently on the page</td>
+        <td>Data refreshed ≤24 hours after new scorecard or ship/stop events; freshness timestamp visible; banner alert when freshness exceeds SLA</td>
+        <td>Coordinate with data pipeline team</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-06</td>
+        <td>Render an "Exclusions" tile beside the 2×2 showing counts of excluded features (ambiguous shipped-and-stopped, multi-treatment) with drill-through to each excluded set</td>
+        <td>Counts render; each row is clickable and shows the excluded feature list with the exclusion reason</td>
+        <td>Transparency requirement</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-07</td>
+        <td>Render a "By product" breakdown table (below the 2×2) showing per-product cell counts and agreement rate, matching the prototype's Breakdown section</td>
+        <td>Table renders for all products with at least one qualifying feature; rows update with any active filter (except ProductName, which becomes single-row when filtered)</td>
+        <td>Matches prototype 1's Section 3</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-08</td>
+        <td>Include a Methodology section on-page (collapsible) that documents scope, recommendation definitions, actual-outcome definitions, same-stage enforcement, and all exclusions</td>
+        <td>Methodology text matches the current data logic; updated whenever methodology changes; a "last verified" date is displayed</td>
+        <td>Matches prototype 1's Sections 4–5</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-09</td>
+        <td>Handle the zero-ship-in-window edge case per product with a visible inline note explaining that the diagonal is one-sided</td>
+        <td>Any product with 0 shipped features in the current window shows the note; note text is reviewed by DS</td>
+        <td>Prevents misreading agreement rate</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-10</td>
+        <td>Enable export of any drill-through feature list to CSV for offline follow-up</td>
+        <td>Export button visible on each drill-through; CSV includes all displayed columns plus feature ID and scorecard URL</td>
+        <td>Supports investigation workflow</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-11</td>
+        <td>Link to V2 (per-metric contingency analysis, prototype 2) once shipped, from a clearly marked "Related view" link on the V1 page</td>
+        <td>Link visible after V2 GA; link text describes what V2 answers</td>
+        <td>V2 target FY27 H2</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-12</td>
+        <td>Announce V1 GA to Copilot and Growth leadership with a short walkthrough and FAQ</td>
+        <td>Announcement sent via standard release channel; includes screenshots and top FAQs</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 5 — Design Direction                 -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 5</div>
+  <h2>Design Direction</h2>
+
+  <h3>Reference Prototypes</h3>
+  <ul>
+    <li><strong>V1 (this spec):</strong> <a href="https://daddyinvolts.github.io/Expedite_2x2/prototype1/" target="_blank" rel="noopener">Prototype 1</a> — the headline 2×2, methodology, and per-product breakdown</li>
+    <li><strong>V2 (follow-on, FY27 H2):</strong> <a href="https://daddyinvolts.github.io/Expedite_2x2/prototype2/" target="_blank" rel="noopener">Prototype 2</a> — per-metric regression-vs-outcome analysis</li>
+  </ul>
+
+  <h3>Page Layout</h3>
+  <div class="ux-flow">
+    <strong>Growth Analytics Hub → "Decision Contingency" page</strong><br><br>
+    Header row: <em>Page title · ProductName filter · Last refreshed timestamp · Total features counted</em><br><br>
+    Section 1 — Headline: <em>2×2 table with clickable cells; top-line agreement rate; total features N</em><br>
+    Section 2 — Exclusions tile: <em>counts of excluded features with drill-through</em><br>
+    Section 3 — By-product breakdown: <em>per-product 2×2 counts + agreement rate</em><br>
+    Section 4 — Methodology (collapsible): <em>scope, definitions, exclusions, caveats</em>
+  </div>
+
+  <h3>Interaction Notes</h3>
+  <ul>
+    <li>Each of the 4 cells in the headline 2×2 is a click target that opens the drill-through list below the table (or in a side panel), respecting the active ProductName filter</li>
+    <li>The by-product breakdown table's product-name cells are clickable and apply that product as the ProductName filter</li>
+    <li>Row-level "Open scorecard" and "Open feature" links deep-link into Expedite from any drill-through</li>
+    <li>Percentages in cells are computed against the current filtered total, not the global total, to avoid confusion when a filter is active</li>
+  </ul>
+
+  <h3>Empty &amp; Edge States</h3>
+  <ul>
+    <li><strong>No qualifying features (e.g., extreme filter combination):</strong> The 2×2 shows zeros and an inline note "No features match the current filter"</li>
+    <li><strong>Zero-ship product:</strong> Per-product row includes an inline warning: "No shipped features in this window — agreement rate is dominated by No-Ship agreement"</li>
+    <li><strong>Data stale:</strong> If freshness exceeds SLA, show a banner at the top of the page with the last-refreshed timestamp</li>
+    <li><strong>Loading:</strong> Skeleton state for the 2×2 cells and breakdown table while data loads</li>
+  </ul>
+
+  <h3>Accessibility</h3>
+  <ul>
+    <li>Cells are keyboard-focusable and expose the count, percentage, and cell label (e.g., "Ship recommendation, actually shipped, 36 features, 15.9%") to screen readers</li>
+    <li>Drill-through list is a semantic table with sortable columns via Tab/Enter</li>
+    <li>Color is not the sole encoding for cell meaning — labels ("Agree · True ship", "Over-recommendation", "Override & ship", "Agree · True no-ship") appear in every cell as in the prototype</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 6 — Open Questions & Risks           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 6</div>
+  <h2>Open Questions &amp; Risks</h2>
+
+  <h3>Open Questions</h3>
+  <div class="question-card">
+    <div class="q-title">Q1: What is the exact refresh cadence and data-source path?</div>
+    <p>The prototype was a one-shot query. For a live view we need to decide: which pipeline computes the joined dataset (scorecards × ship/stop signals × ProductName), how often it runs, and where it lands (Kusto, semantic model, direct query). ≤24 hours is proposed as the SLA. <strong>Owner:</strong> Engineering + Data Science.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q2: What is the definitive source-of-truth for feature ship/stop signals?</div>
+    <p>Prototype 1 relies on <code>IsFeatureShipped</code> and <code>IsFeatureStopped</code> feature flags. We should confirm this is the correct source-of-truth for a leadership-grade view, and how frequently it is updated. <strong>Owner:</strong> Data Science.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q3: How do we enforce "same stage" more rigorously?</div>
+    <p>The prototype uses the latest progression per feature as a heuristic. A stricter version would join to <code>ProgressionShippedTime</code> / <code>ProgressionStoppedTime</code> to confirm the recommendation was made on the exact scorecard that informed the decision. Should V1 adopt the rigorous version or stay heuristic and document the caveat? <strong>Owner:</strong> Data Science.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q4: Should the view expose the ~15 ambiguous features (shipped &amp; stopped) separately, or just count them in the exclusions tile?</div>
+    <p>Ambiguous features often indicate real data-integrity issues (e.g., shipped-then-rolled-back). Leadership may want a persistent "investigate" queue for these rather than a static count. <strong>Owner:</strong> PM + Design.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q5: What time window does V1 default to?</div>
+    <p>The prototype is a snapshot with no explicit window. Options include (a) all-time; (b) trailing 12 months; (c) fiscal-year-to-date. Given no time slicer in V1, the default choice matters. Current leaning: trailing 12 months. <strong>Owner:</strong> PM.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q6: Access control — who can see this view?</div>
+    <p>Feature ship/stop plus recommendation is potentially sensitive at the individual-feature grain. Should visibility be restricted to a specific audience (leadership + Growth PMs + DS), or open to all Growth Analytics Hub users? <strong>Owner:</strong> PM + Privacy.</p>
+  </div>
+
+  <h3>Risks</h3>
+  <div class="risk-card">
+    <div class="risk-title">Risk 1: Numbers Are Misquoted Without Methodology Context</div>
+    <p><strong>Likelihood:</strong> High · <strong>Impact:</strong> High. The prototype's headline "54% agreement" is barely above coin-flip, but it depends heavily on inclusion of Iris (drops to 47.6% without). If leadership quotes the headline without context, it can drive incorrect conclusions about the recommendation engine's quality. <strong>Mitigation:</strong> (1) Methodology section is visible on the same page — not hidden; (2) Product-level breakdown is always shown alongside the aggregate; (3) Inline notes for zero-ship products; (4) The GA announcement includes a "how to read this" section.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 2: Perception of "Grading" Feature Teams</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium–High. Surfacing override behavior at the product/team level may be interpreted as a report card on individual teams' judgement, generating defensive behavior and reducing trust in the view. <strong>Mitigation:</strong> (1) Explicit non-goal: the view does not label overrides as good or bad; (2) Case-study language emphasizes that many overrides reflect legitimate judgement (e.g., the OCG 9624 example); (3) Access control (see Q6) can be scoped narrowly if needed; (4) Announcement framing centers on portfolio calibration, not team performance.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 3: Data Freshness Lag Undermines Trust</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. If underlying scorecard or ship/stop signals lag, leadership may make portfolio conclusions on stale data. <strong>Mitigation:</strong> (1) Prominent last-refreshed timestamp; (2) Banner alert when freshness exceeds SLA; (3) Monitor and alert on pipeline health; (4) Document what "shipped" and "stopped" mean and when those signals actually land.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 4: Heuristic "Same Stage" Enforcement Misclassifies Some Features</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Low–Medium. Using the latest progression per feature (rather than joining to shipped/stopped timestamps) can attribute a recommendation to a stage that didn't actually inform the decision. <strong>Mitigation:</strong> (1) Document the heuristic in the Methodology section; (2) Track error rate via periodic manual audit; (3) V1.1 or V2 can adopt the rigorous timestamp join if the audit shows meaningful drift.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 5: Volume of Excluded Features Grows Silently</div>
+    <p><strong>Likelihood:</strong> Low · <strong>Impact:</strong> Medium. If multi-treatment scorecards or ambiguous shipped-and-stopped features become more common, the counted population shrinks and the headline agreement rate becomes less representative. <strong>Mitigation:</strong> (1) Exclusions tile makes the excluded count visible; (2) Alert if excluded share exceeds a threshold (e.g., &gt;25% of candidate features); (3) Track excluded share over time as a health metric on the view.</p>
+  </div>
+</div>
+
+</div><!-- end .content -->
+
+<div class="footer">
+  Decision Contingency Tables — Product Specification · IDEAS Experimentation · Draft · FY27 H1
+</div>
+
+</body>
+</html>
