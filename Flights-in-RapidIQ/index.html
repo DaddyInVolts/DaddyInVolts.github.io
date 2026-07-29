@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Spec — Experimentation Flight Assignments in RapidIQ</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-light: #e8f0fe;
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --risk-red: #d93025;
+    --risk-bg: #fce8e6;
+    --success-green: #1e8e3e;
+    --success-bg: #e6f4ea;
+    --warn-amber: #e37400;
+    --warn-bg: #fef7e0;
+    --p0: #d93025;
+    --p1: #e37400;
+    --p2: #1a73e8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #1a2332 0%, #2d4a6f 60%, var(--primary) 100%);
+    color: #fff;
+    padding: 48px 40px 36px;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.85;
+    font-weight: 400;
+  }
+  .meta-bar {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+  .meta-item strong {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.65;
+    margin-bottom: 2px;
+  }
+
+  .content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 60px;
+  }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .section-number {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .section h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 20px 0 10px;
+    color: var(--text);
+  }
+  .section p, .section li {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .section ul, .section ol {
+    padding-left: 22px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.9rem;
+  }
+  thead th {
+    background: var(--bg);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-p0 { background: #fce8e6; color: var(--p0); }
+  .badge-p1 { background: var(--warn-bg); color: var(--p1); }
+  .badge-p2 { background: var(--primary-light); color: var(--p2); }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .metric-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .metric-card .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .metric-card .value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .metric-card .target {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .scenario-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .scenario-card .persona {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .scenario-card .narrative {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  .risk-card {
+    border-left: 4px solid var(--risk-red);
+    background: var(--risk-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .risk-card .risk-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--risk-red);
+    margin-bottom: 4px;
+  }
+  .risk-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .question-card {
+    border-left: 4px solid var(--warn-amber);
+    background: var(--warn-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .question-card .q-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--warn-amber);
+    margin-bottom: 4px;
+  }
+  .question-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .ux-flow {
+    background: var(--bg);
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    color: var(--text-secondary);
+    margin: 14px 0;
+  }
+
+  .nongoal {
+    background: #f1f3f4;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 6px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nongoal::before {
+    content: '✕';
+    color: var(--risk-red);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .content { padding: 0 20px; }
+    .section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Experimentation Flight Assignments in RapidIQ</h1>
+  <div class="subtitle">Product Specification — Self-serve Segmenting &amp; On-the-fly Experimentation Insights</div>
+  <div class="meta-bar">
+    <div class="meta-item"><strong>PM Owner</strong> David Lydston</div>
+    <div class="meta-item"><strong>Team</strong> IDEAS Experimentation</div>
+    <div class="meta-item"><strong>Last Updated</strong> July 2026</div>
+    <div class="meta-item"><strong>Status</strong> Draft</div>
+    <div class="meta-item"><strong>Target</strong> TBD (unfunded FY27 Q1)</div>
+    <div class="meta-item"><strong>Customer</strong> IDEAS Growth PMs &amp; DS</div>
+    <div class="meta-item"><strong>ADO</strong> #7483279 · IDEAs\Growth\Experimentation</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 1 — Problem & Opportunity           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 1</div>
+  <h2>Problem &amp; Opportunity</h2>
+
+  <h3>Problem Statement</h3>
+  <p>RapidIQ is IDEAS' modern self-serve analytics environment: PMs, DS, engineering, and business stakeholders build dashboards and insights without needing deep knowledge of datasets or pipelines. It supports UDM and Agile metrics, deep-links from AskIDEAS, and produces custom insights in minutes. What it does not yet expose is <strong>experimentation flight assignments</strong> — the mapping of users (or other assignment units) into the treatment and control groups of IDEAS flights and flight extensions. As a result, Growth PMs and DS today cannot use RapidIQ to (a) filter any RapidIQ dashboard to the population inside a specific flight or variant ("self-serve segmenting"), or (b) compute metric lifts across variants on the fly — including on the provisional and Agile metrics that RapidIQ already carries but that scorecards do not. To answer either question today, growth crews leave RapidIQ, request a bespoke analysis, and wait — often days — for someone to join flight-assignment data to user-level metric data by hand.</p>
+
+  <h3>Opportunity</h3>
+  <p>Onboarding IDEAS flights and flight extensions into RapidIQ unlocks two closely related capabilities for Growth crews in the same interface they already use for portfolio analytics:</p>
+  <ul>
+    <li><strong>Self-serve segmenting.</strong> Any RapidIQ dashboard can be filtered to the users assigned to a specific flight, variant, or extension — turning existing dashboards into flight-scoped views without a rebuild</li>
+    <li><strong>On-the-fly experimentation insights.</strong> Growth crews can compute metric-level lifts (treatment vs control) inside RapidIQ, across the full RapidIQ metrics catalog — including <strong>provisional metrics</strong> that scorecards do not carry</li>
+    <li><strong>Faster iteration.</strong> Insight cycles collapse from days (bespoke pulls) to minutes (self-serve), matching RapidIQ's core value proposition for the rest of the analytics surface area</li>
+    <li><strong>Consistent flight semantics.</strong> A single canonical source for "who was in what variant when" avoids the drift that emerges when each crew joins flight data on their own</li>
+  </ul>
+
+  <h3>Evidence</h3>
+  <ul>
+    <li><strong>Existing ADO commitment:</strong> Deliverable <a href="https://dev.azure.com/O365Exchange/IDEAs/_workitems/edit/7483279" target="_blank" rel="noopener">#7483279 "Experimentation in RapidIQ"</a> (Area: IDEAs\Growth\Experimentation, State: New) captures customer demand: "Onboard IDEAS flights/flight extension to RapidIQ so users can self serve segments and experimentation insights. Especially powerful when RapidIQ has data that scorecards do not, like provisional data."</li>
+    <li><strong>Provisional-metric coverage gap:</strong> Scorecards expose only the metric set they were built for; RapidIQ carries a broader, faster-moving catalog including Agile and provisional metrics. Growth crews consistently ask "is my experiment moving <em>this</em> RapidIQ metric?" and today have no self-serve path to answer it.</li>
+    <li><strong>Adjacent RapidIQ investments already landing:</strong> RapidIQ Provisional Metrics integration (#7566969), RapidIQ WorkIQ metrics (#7469097), and the completed RapidIQ IGI Handshake (#7394747) show the platform is actively growing its catalog — experimentation is the missing dimension.</li>
+    <li><strong>Known engineering signal:</strong> Comment from Kenny Long: <em>"Large investment to bring in and join user level data in CH to calculate metrics on the fly in RapidIQ."</em> This is a real cost driver and shapes the phasing of this work — see Open Questions.</li>
+    <li><strong>Funding status:</strong> Not funded in FY27 Q1 (per PM comment); H1 direction is to drive clarity and unblock estimation.</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 2 — Goals & Success Metrics          -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 2</div>
+  <h2>Goals &amp; Success Metrics</h2>
+
+  <h3>Goals</h3>
+  <ol>
+    <li>Make IDEAS flight-assignment data (flight, flight extension, variant, assignment unit) available inside RapidIQ so any dashboard can be filtered by flight cohort — the "self-serve segmenting" capability</li>
+    <li>Enable metric-level treatment-vs-control comparisons in RapidIQ across the full metric catalog, including provisional metrics — the "on-the-fly experimentation insights" capability</li>
+    <li>Establish a canonical, RapidIQ-native flight dimension whose semantics match how ExP / IDEAS Flights defines assignment today — no drift, no per-crew reimplementation</li>
+    <li>Ship in a way that respects RapidIQ's self-serve UX model: no scripting required, metadata-driven, discoverable from the existing left-pane catalog and right-pane filters</li>
+  </ol>
+
+  <h3>Success Metrics</h3>
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="label">Primary Metric</div>
+      <div class="value">Adoption by Growth Crews</div>
+      <div class="target">Target: ≥60% of active IDEAS Growth PMs and DS use the flight dimension at least monthly within 1 quarter of GA · Baseline: 0% (not available today)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Bespoke-Pull Displacement</div>
+      <div class="target">Target: ≥40% reduction in ad-hoc "join flight assignments to user data" requests filed against IDEAS DS partners within 1 quarter of GA</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Provisional-Metric Experimentation Coverage</div>
+      <div class="target">Target: ≥50% of active provisional metrics are queryable in treatment-vs-control view within RapidIQ</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Query Performance</div>
+      <div class="target">Must maintain: P95 dashboard render latency with an active flight filter within existing RapidIQ P95 baseline + 20%</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Semantic Consistency</div>
+      <div class="target">Must maintain: Variant counts and metric lifts computed in RapidIQ reconcile with ExP scorecards within a documented tolerance for the same flight × metric × window</div>
+    </div>
+  </div>
+
+  <h3>Explicit Non-Goals</h3>
+  <div class="nongoal">Replacing ExP scorecards or the Expedite decision surface — this spec is complementary, not a substitute</div>
+  <div class="nongoal">Full statistical machinery (CI, MDE, stat-sig, guardrail verdicts) — V1 exposes lifts and confidence intervals where cheap; deeper stats are a follow-on aligned to scorecard semantics</div>
+  <div class="nongoal">Cross-product experimentation joins (e.g., pre-login → referral app) — out of scope; separate infrastructure</div>
+  <div class="nongoal">Writing back experiment decisions into ExP / Growth Orchestrator from RapidIQ — read-only integration</div>
+  <div class="nongoal">Redefining flight-assignment semantics — flight/variant/extension definitions are consumed as-is from the source-of-truth</div>
+  <div class="nongoal">Onboarding non-IDEAS experimentation systems in V1</div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 3 — User Scenarios                   -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 3</div>
+  <h2>User Scenarios</h2>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 1 — "Growth PM Self-Serving a Flight Segment" (Primary)</div>
+    <div class="narrative">
+      <p>Priya is a Growth PM running a flight on the Copilot Home Page CTA. She wants to answer "how do the users in the treatment variant behave across our standard usage dashboard?" Today she requests a bespoke Kusto pull and waits a couple of days. With this spec shipped, Priya opens her regular RapidIQ dashboard, opens the filter panel, selects <em>Flight = "CopilotHomeCTA-2026H1", Variant = Treatment</em>, and every chart on the dashboard recomputes against that cohort. She toggles between Treatment and Control to eyeball the difference in engagement, session-length, and retention metrics — all within the same dashboard she already uses for portfolio monitoring.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 2 — "Data Scientist Computing Provisional Lifts"</div>
+    <div class="narrative">
+      <p>Dana is a Data Scientist investigating whether a Copilot flight moves a provisional metric that isn't yet in the scorecard catalog. Today, the scorecard says nothing about it and she has to write a one-off pipeline. With this spec, she opens RapidIQ, adds the provisional metric to a dashboard, applies the flight filter, and switches to a "By variant" breakdown. She sees the treatment vs control lift on the provisional metric side-by-side with the established metrics, decides the signal warrants a real experiment scorecard extension, and files that request with a concrete lift estimate in hand.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 3 — "Growth Leader Reviewing Flight Behavior at Portfolio Level"</div>
+    <div class="narrative">
+      <p>Jordan is a Growth org leader wanting to see how active flights are shifting core engagement metrics across the portfolio. Jordan opens the "Copilot Engagement" RapidIQ dashboard, applies a Flight filter to "Any active flight in area = Copilot Growth", and sees per-metric lift decomposition. Instead of aggregating scorecards after the fact, Jordan can see the current state of the experimentation portfolio inside the same dashboard everyone already trusts.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case — Metric Not Available at the Assignment Unit</div>
+    <div class="narrative">
+      <p>A flight is assigned at the user level, but the metric under analysis is only defined at the tenant grain. The UI surfaces an inline warning: "This metric is defined at Tenant grain; the current flight is assigned at User grain. Treatment/control assignment will be inherited to the tenant level via a documented rule, and results may include tenant-level assignment collisions." The user can proceed with the caveat visible, or switch to a metric at the compatible grain.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge Case — Flight Still Ramping / SRM Detected</div>
+    <div class="narrative">
+      <p>The flight has an SRM (sample-ratio mismatch) or is still ramping. Rather than silently displaying misleading lifts, RapidIQ tags the flight filter with a data-quality chip ("SRM detected", "Ramping — variant counts still growing") and any lift computations render with an explicit warning. Users can dismiss to proceed, matching the transparency posture ExP uses.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 4 — Requirements                     -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 4</div>
+  <h2>Requirements</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:70px">Priority</th>
+        <th style="width:50px">ID</th>
+        <th>Requirement</th>
+        <th style="width:180px">Acceptance Criteria</th>
+        <th style="width:100px">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-01</td>
+        <td>Expose IDEAS flight assignments (flight ID, flight extension ID, variant, assignment unit, assignment window) as a first-class dimension in RapidIQ's metadata-driven query engine</td>
+        <td>Users can select the Flight dimension in the right-pane filter panel; controls render dynamically from metadata; selection validates against canonical flight definitions</td>
+        <td>Matches RapidIQ metadata-driven UX pattern per Overview wiki</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-02</td>
+        <td>Support filtering any RapidIQ dashboard by (Flight, Variant), including combined filters like "Flight = X AND Variant = Treatment"</td>
+        <td>Applying the filter recomputes every chart on the dashboard; results respect the user's current time window and other active filters</td>
+        <td>"Self-serve segmenting" capability</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-03</td>
+        <td>Support a "By Variant" breakdown that renders per-variant series (Treatment, Control) side-by-side, with a computed lift and a coarse confidence indicator where cheap</td>
+        <td>Users can switch any metric on a dashboard to a By-Variant view; lift is displayed and interpretable; documented tolerance for CI approximation</td>
+        <td>"On-the-fly experimentation insights" capability</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-04</td>
+        <td>Coverage across the full RapidIQ metric catalog: UDM, Agile, and provisional metrics all support Flight filtering and By-Variant breakdown</td>
+        <td>≥50% of active provisional metrics queryable in treatment-vs-control view at GA; ≥90% of Agile and UDM metrics supported at GA</td>
+        <td>Provisional coverage is a differentiator vs scorecards</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-05</td>
+        <td>Semantic consistency: variant counts, base metric values, and lifts computed in RapidIQ reconcile with ExP scorecards within a documented tolerance for the same flight × metric × window</td>
+        <td>Reconciliation test on ≥10 sample flights before GA; delta &lt; documented tolerance; discrepancies triaged and either resolved or documented</td>
+        <td>Prevents "which system is right?" fragmentation</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-06</td>
+        <td>Data-quality signals surfaced inline on the Flight filter: ramping state, SRM detection, insufficient sample warnings</td>
+        <td>Signals match the corresponding ExP/scorecard state within an agreed lag; UI treatment reviewed with DS</td>
+        <td>Prevents misleading lifts</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-07</td>
+        <td>Discovery: flights are searchable in RapidIQ's left-pane catalog (or an equivalent surface) with owner, area, state, ramp state, and start/end dates visible</td>
+        <td>Users can find any active or recently completed flight by name or area filter; entries deep-link back to the ExP flight page</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-08</td>
+        <td>Deep-link support: RapidIQ dashboards can be shared with a Flight filter baked into the URL; opening the link reconstructs the exact segmented view</td>
+        <td>Deep-linked dashboards render identically for any user with One Access</td>
+        <td>Matches AskIDEAS ↔ RapidIQ deep-link pattern</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-09</td>
+        <td>Access &amp; entitlement: only users authorized to see the flight's population (per existing IDEAS/ExP access model) can filter dashboards by that flight</td>
+        <td>Unauthorized users cannot see the flight in the catalog; filter application is rejected server-side with a clear error</td>
+        <td>Reuse One Access model where possible</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-10</td>
+        <td>Freshness SLA: flight-assignment data in RapidIQ is refreshed within a defined SLA of ExP updates (proposed: ≤24 hours) with a visible last-refreshed timestamp on the flight dimension</td>
+        <td>SLA documented; monitored; banner alert when freshness lapses</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td>
+        <td>R-11</td>
+        <td>Metadata documentation: each flight-related field has metric-catalog metadata (definition, source, allowed values, caveats) matching the pattern used for other RapidIQ metrics</td>
+        <td>Metadata visible in tooltip; matches RapidIQ metadata schema</td>
+        <td>Consistent with RapidIQ UX pattern</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-12</td>
+        <td>Templates: publish 1–2 dashboard templates for common experimentation views (e.g., "Flight × Copilot Engagement", "Flight × Provisional Metrics") so users can start from a good baseline</td>
+        <td>Templates linked from the Flight dimension's help surface and from the RapidIQ template gallery</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-13</td>
+        <td>Announce GA to IDEAS Growth PMs, DS, and adjacent RapidIQ users with examples, FAQ, and a "how to segment your dashboard by a flight" walkthrough</td>
+        <td>Announcement via standard RapidIQ release channel</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p2">P2</span></td>
+        <td>R-14</td>
+        <td>Broader stat rigor (CI matching scorecards, MDE overlay, stat-sig flags) — deferred follow-on aligned to the Anytime-Valid Inference / Guardrail Decision Framework work</td>
+        <td>Design doc referenced; scoped as V2</td>
+        <td>See related specs</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 5 — Design Direction                 -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 5</div>
+  <h2>Design Direction</h2>
+
+  <h3>Where the Feature Shows Up in RapidIQ</h3>
+  <div class="ux-flow">
+    <strong>Left pane — Metrics catalog</strong>: new "Experimentation" tag alongside existing workload tags; flights surface in the catalog by area/owner/state.<br><br>
+    <strong>Right pane — Filter &amp; dimension panel</strong>: new "Flight" filter, dynamically populated from metadata (Flight, Extension, Variant); an "Assignment unit" chip clarifies grain.<br><br>
+    <strong>Canvas — per-chart controls</strong>: a "By Variant" toggle on any metric that supports it; renders Treatment/Control side-by-side plus a lift chip.<br><br>
+    <strong>Header — data-quality banner</strong>: SRM detected · Ramping · Freshness stale — matches existing RapidIQ banner style.
+  </div>
+
+  <h3>Interaction Notes</h3>
+  <ul>
+    <li>Flight filter follows RapidIQ's metadata-driven pattern — controls render from flight metadata; nothing is hard-coded</li>
+    <li>When a Flight filter is active, the dashboard header shows a chip: "Segmented by Flight: X · Variant: Treatment" with a one-click "Compare variants" action to switch to By-Variant view</li>
+    <li>By-Variant view exposes a per-metric lift chip; hover reveals the underlying counts, the assignment window used, and any caveats</li>
+    <li>Deep links carry the Flight filter as URL state so a shared link opens the exact view</li>
+    <li>Where a metric's grain doesn't match the flight's assignment unit, an inline warning explains the inherited-assignment rule and links to methodology</li>
+  </ul>
+
+  <h3>Empty &amp; Edge States</h3>
+  <ul>
+    <li><strong>No qualifying flights (e.g., extreme filter combination):</strong> Empty state with "No flights match the current filter" and a link to browse the catalog</li>
+    <li><strong>Insufficient sample per variant:</strong> Lifts hidden with a "Sample too small for this window" message; base counts still visible</li>
+    <li><strong>SRM detected:</strong> Header banner; lifts still render but with a warning chip on every affected metric</li>
+    <li><strong>Data stale:</strong> Banner with last-refreshed timestamp when SLA is exceeded</li>
+    <li><strong>Loading:</strong> Skeleton state on charts while the flight join executes</li>
+  </ul>
+
+  <h3>Accessibility</h3>
+  <ul>
+    <li>Flight filter is keyboard-accessible; screen reader announces "Flight filter, current selection: X, Y variants available"</li>
+    <li>By-Variant view exposes numerical values as text alongside charts</li>
+    <li>Data-quality banners and inline warnings are announced with role="alert" or matching semantics</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SECTION 6 — Open Questions & Risks           -->
+<!-- ════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-number">Section 6</div>
+  <h2>Open Questions &amp; Risks</h2>
+
+  <h3>Open Questions</h3>
+  <div class="question-card">
+    <div class="q-title">Q1: What is the integration architecture for flight assignments in ClickHouse?</div>
+    <p>Kenny Long's comment on the deliverable — <em>"large investment to bring in and join user-level data in CH to calculate metrics on the fly in RapidIQ"</em> — is the biggest single open question. Three broad options:
+    <br>(a) Join flight-assignment tables into ClickHouse at user grain and let RapidIQ query joined tables directly;
+    <br>(b) Expose flight assignments as a queryable metadata source (dimension) that RapidIQ resolves at query time;
+    <br>(c) A hybrid — assignments as a dimension, backed by CH user-grain joins for on-the-fly metric computation.
+    <br>The choice drives cost, latency, and freshness. <strong>Owner:</strong> Engineering + IDEAS DS. <strong>Blocker for:</strong> dev estimate and funding decision.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q2: What is the canonical source-of-truth for flight assignment history?</div>
+    <p>Need to confirm which IDEAS Flights / ExP dataset is the authoritative user-to-variant assignment record with the required history depth. <strong>Owner:</strong> IDEAS Flights team + Engineering.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q3: How do we handle metric-grain vs assignment-unit mismatch?</div>
+    <p>Flights may be assigned at user grain but metrics may be defined at tenant or device grain. Need a documented inheritance rule (e.g., "assign a tenant to a variant if ≥N% of its users are in that variant") and a UX pattern for warning users. <strong>Owner:</strong> DS + PM.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q4: What is the reconciliation tolerance vs ExP scorecards?</div>
+    <p>Variant counts and metric lifts will not necessarily match ExP scorecards to the row, especially given different windowing and stat frameworks. Need to define an acceptable tolerance and a public methodology page. <strong>Owner:</strong> DS.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q5: Access &amp; entitlement — does One Access already grant flight-level visibility?</div>
+    <p>One Access unifies portal access. We need to confirm whether flight-level access can be inherited from One Access + IDEAS Flights entitlements, or whether new authorization plumbing is required. <strong>Owner:</strong> Privacy + Engineering.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q6: What is the acceptable freshness SLA?</div>
+    <p>≤24 hours is proposed; growth crews may want tighter (near-real-time) for ramp monitoring. Trade-off against integration cost. <strong>Owner:</strong> PM + Engineering.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q7: How does this relate to Anytime-Valid Inference and Guardrail Decision Framework?</div>
+    <p>V1 exposes lifts and coarse CIs. Deeper stat rigor should align with the Anytime-Valid Inference and Guardrail Decision Framework specs. Need to define the boundary — RapidIQ as a lightweight lens, scorecards as the deciding artifact — so users don't misuse RapidIQ for decision-grade calls. <strong>Owner:</strong> PM + DS.</p>
+  </div>
+
+  <h3>Risks</h3>
+  <div class="risk-card">
+    <div class="risk-title">Risk 1: Integration Cost Blocks Funding (Large-Investment Signal)</div>
+    <p><strong>Likelihood:</strong> High · <strong>Impact:</strong> High. The unresolved architecture question (Q1) is what drove the "not funded in Q1" status. Without a costed, phased plan, the deliverable will keep sliding. <strong>Mitigation:</strong> (1) Drive Q1 to resolution before requesting funding; (2) Phase the work: dimension-only (self-serve segmenting) as a cheap V1 slice, on-the-fly lift computation as a costlier V1.1 or V2; (3) Time-box a technical spike to characterize the CH-join cost.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 2: Semantic Drift Between RapidIQ Lifts and ExP Scorecards</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> High. If numbers computed in RapidIQ diverge from scorecards, users will lose trust in both and default to bespoke pulls. <strong>Mitigation:</strong> (1) Publish reconciliation tolerance and methodology; (2) Automated reconciliation tests before GA and periodically after; (3) UX language explicitly frames RapidIQ as an exploration lens, scorecards as the decision surface.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 3: Misinterpretation of Provisional-Metric Lifts as Decision-Grade</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. Provisional metrics are provisional by definition — self-serve access could invite premature "shipping on a provisional signal" decisions. <strong>Mitigation:</strong> (1) Tag provisional metrics with a visible "provisional — not scorecard-graded" chip in the By-Variant view; (2) Documentation on how to promote a provisional finding into a scorecard extension; (3) Reference the Guardrail Decision Framework for what qualifies as decision-grade.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 4: Query Performance Regression Under Flight Joins</div>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. Adding user-level flight joins can regress dashboard render performance, particularly on high-cardinality flights or across large windows. <strong>Mitigation:</strong> (1) Perf budget defined in R-guardrail; (2) Pre-aggregation strategies (e.g., variant × cohort × day rollups) for common patterns; (3) Perf testing before GA; (4) Feature flag rollout with monitoring.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 5: Access &amp; Entitlement Complexity</div>
+    <p><strong>Likelihood:</strong> Low–Medium · <strong>Impact:</strong> Medium. Flight-assignment data can expose information about who is in a treatment before the experiment is publicly discussed. <strong>Mitigation:</strong> (1) Reuse One Access + IDEAS Flights entitlements where possible; (2) Privacy review before GA; (3) Confidential-flight support (opt-in list, restricted visibility).</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 6: Displacing (Rather Than Complementing) Scorecards</div>
+    <p><strong>Likelihood:</strong> Low · <strong>Impact:</strong> Medium. If self-serve segmenting is fast and flexible, teams may over-index on RapidIQ views instead of maintaining scorecard discipline. <strong>Mitigation:</strong> (1) Clear positioning: RapidIQ = exploration; scorecards + Expedite = decision; (2) Deep-links back to scorecards from any flight view; (3) Announcement framing that reinforces the boundary.</p>
+  </div>
+</div>
+
+</div><!-- end .content -->
+
+<div class="footer">
+  Experimentation Flight Assignments in RapidIQ — Product Specification · IDEAS Experimentation · Draft · Target TBD
+</div>
+
+</body>
+</html>
