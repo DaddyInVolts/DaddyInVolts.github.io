@@ -434,18 +434,19 @@
   <h2>Problem &amp; Opportunity</h2>
 
   <h3>Problem Statement</h3>
-  <p>When an M365 Copilot experiment regresses a guardrail or fails to move its primary metric, the Feature Crew's next move today is "look at the scorecard, talk to DS, guess at a follow-up." There is no platform-side proposal for "given what your flag changed and how it landed, here's a starting menu of what V2 should change differently." The result varies wildly across teams: strong FCs run rigorous iteration loops, weaker ones ship V1 and quietly move on when regressions appear. Of regressing experiments, ~41% have no documented follow-up experiment within 60 days, and only ~12% of regressions get a follow-up that specifically targets the guardrail that regressed. The platform has all of the inputs needed to do better — inferred flag description, scorecard results, guardrail verdict, and a rich archive of past similar interventions — but they have never been joined into a recommendation surface.</p>
+  <p>When an M365 Copilot experiment regresses a guardrail or fails to move its primary metric, the Feature Crew's next move today is "look at the scorecard, talk to DS, guess at a follow-up." There is no platform-side proposal for "given what your flag changed and how it landed, here's a starting menu of what V2 should change differently." The result varies wildly across teams: strong FCs run rigorous iteration loops, weaker ones ship V1 and quietly move on when regressions appear. Many regressions receive no documented follow-up at all, and those that do are often aimed at a different metric than the one that regressed. The platform has all of the inputs needed to do better — inferred flag description, scorecard results, guardrail verdict, and a rich archive of past similar interventions — but they have never been joined into a recommendation surface.</p>
 
   <h3>Opportunity</h3>
   <p>With (a) <em>Feature Flag Insights</em> surfacing the <strong>what</strong> (inferred description + intervention tags), (b) the Expedite scorecard supplying the <strong>result</strong>, and (c) the Guardrail Decision Framework specifying the <strong>regressing metrics</strong>, an LLM-driven recommender can read all three together and propose a ranked list of concrete next-iteration changes. Each recommendation is tied to a written hypothesis, a small set of similar past experiments retrieved from the Copilot portfolio archive, an expected impact direction, and a suggested primary guardrail to watch on the follow-up flight. Owners get a starting menu they can <strong>accept</strong>, <strong>modify</strong>, or <strong>reject with reason</strong> — and the rejection signal feeds back into model evaluation. The portfolio learns from acceptance over time, and FCs get a consistent, evidence-grounded starting point for iteration instead of an empty page.</p>
 
   <h3>Evidence</h3>
+  <p><em>Qualitative at this stage.</em> The observations below come from Feature Crew conversations, review of the current Expedite surface, and the inputs already available on the platform. They have <strong>not</strong> yet been quantified against the portfolio — establishing baselines is tracked as <strong>Q6</strong> and is a gate for approval.</p>
   <ul>
-    <li><strong>No-follow-up rate:</strong> ~41% of experiments that ship a regression have no documented follow-up experiment registered within 60 days (sampled portfolio audit, last four quarters).</li>
-    <li><strong>Targeted-follow-up rate:</strong> Of regressions that do receive a follow-up, only ~12% have a follow-up that specifically targets the guardrail that regressed; the rest target unrelated metrics or repeat the original intervention.</li>
-    <li><strong>FC retro signal:</strong> "We didn't know what to try next" is the most-cited reason for not iterating in published M365 Copilot FC retros over the last six months.</li>
-    <li><strong>Archive richness:</strong> The Copilot portfolio archive contains 8,000+ past experiments with structured intervention + guardrail outcome data — sufficient retrieval depth for a recommender.</li>
-    <li><strong>Time-to-follow-up:</strong> Median time from regression detection to a registered follow-up flight is ~38 days today; FC retros consistently target ≤14 days as the threshold for "iteration loop is healthy."</li>
+    <li><strong>Regressions frequently go un-iterated:</strong> A substantial share of experiments that regress a guardrail have no documented follow-up experiment registered afterward. The flag is turned down or shipped anyway, and the learning is not carried forward into a next iteration.</li>
+    <li><strong>Follow-ups often miss the actual regression:</strong> When a follow-up does get registered, it commonly targets a different metric than the one that regressed, or repeats the original intervention with minor changes — because nothing on the platform connects the regression back to what the flag actually changed.</li>
+    <li><strong>"We didn't know what to try next" is a recurring theme:</strong> Feature Crews consistently describe the blank-page problem after a not-safe verdict. The scorecard tells them <em>what</em> regressed; nothing tells them <em>what to change</em>. Iteration quality therefore tracks the individual crew's experience rather than any platform capability.</li>
+    <li><strong>Practice varies sharply by crew, not by problem difficulty:</strong> Experienced crews run rigorous iteration loops on the same class of regression that less-experienced crews abandon. This variance is the clearest sign the gap is a tooling gap, not a capability gap.</li>
+    <li><strong>The inputs already exist and are already joined-in-principle:</strong> Inferred flag description (<em>Feature Flag Insights</em>), scorecard results, guardrail verdict (<em>Guardrail Decision Framework</em>), and a large archive of past interventions with structured outcome data all live on the platform today. No new instrumentation is required — only a surface that reads them together.</li>
   </ul>
 </div>
 
@@ -460,7 +461,7 @@
   <ol>
     <li>Every experiment with a not-safe guardrail verdict gets a ranked list of ≥3 candidate next-iteration changes in the Expedite detail view within 24 hours of the cadence run that produced the verdict.</li>
     <li>Owner acceptance rate (Feature Crew marks a recommendation as "trying this," registering a follow-up flight shell) reaches ≥30% on Sev≤2 regressions within 60 days of GA.</li>
-    <li>Median time from regression detection to a registered follow-up experiment drops from ~38 days to ≤14 days within 90 days of GA.</li>
+    <li>Median time from regression detection to a registered follow-up experiment is at least halved against the measured pre-launch baseline, targeting ≤14 days within 90 days of GA. Baseline to be established under Q6 before launch.</li>
   </ol>
 
   <h3>Success Metrics</h3>
@@ -473,7 +474,7 @@
     <div class="metric-card">
       <div class="label">Secondary Metric</div>
       <div class="value">Time-to-Follow-Up</div>
-      <div class="target">Target: median ≤14 days regression → registered follow-up · Baseline: ~38 days</div>
+      <div class="target">Target: median ≤14 days regression → registered follow-up · Baseline: to be measured pre-launch (Q6)</div>
     </div>
     <div class="metric-card">
       <div class="label">Guardrail Metric</div>
@@ -745,6 +746,10 @@
     <div class="q-title">Q5: Does the model see PII or sensitive metric values?</div>
     <p>The scorecard input includes guardrail values (e.g., Harmful Content Rate) and the archive includes the same. Some guardrail metrics carry sensitive aggregate signals. Do we redact, summarize, or send raw? <strong>Owner:</strong> Privacy Review + IDEAS DS. <strong>Current leaning:</strong> Summarize guardrail outcomes as direction + magnitude bucket (e.g., "regression: 100–250ms p95") rather than raw values for the recommender's prompt; raw values remain available only for the scorecard surface itself.</p>
   </div>
+  <div class="question-card">
+    <div class="q-title">Q6: What are the actual baselines — and does the portfolio audit confirm the premise?</div>
+    <p>The Evidence section is qualitative. Before this spec is approved we need a portfolio audit answering three things: (a) what share of regressing experiments receive <em>no</em> registered follow-up; (b) of those that do, what share target the metric that actually regressed; (c) the current median time from regression detection to registered follow-up, which is the baseline for the Time-to-Follow-Up success metric. The audit should be scoped to flag-shipping partners so the denominator matches the population the recommender can actually serve (Risk 8). If the audit shows follow-up behavior is already healthy, the premise weakens and this spec should be re-scoped rather than built. <strong>Owner:</strong> David Lydston with IDEAS DS. <strong>Current leaning:</strong> Run the audit against the Expedite flight archive during spec review; treat it as a go/no-go gate, not a formality.</p>
+  </div>
 
   <h3>Risks</h3>
   <div class="risk-card">
@@ -765,7 +770,7 @@
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 5: Latency budget for 24h SLA blown by large archive retrieval</div>
-    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. Real-time embedding retrieval over an 8,000+ flight archive plus LLM generation may not consistently fit a 24h SLA at scale, especially as the archive grows. <strong>Mitigation:</strong> (1) Pre-compute retrieval embeddings nightly (R-03); (2) Batch generation in scheduled windows aligned to cadence-run completion peaks; (3) "Recommendations pending" placeholder rather than a degraded set if generation fails; (4) Capacity model reviewed quarterly against archive growth.</p>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. Real-time embedding retrieval over the full portfolio archive plus LLM generation may not consistently fit a 24h SLA at scale, especially as the archive grows. <strong>Mitigation:</strong> (1) Pre-compute retrieval embeddings nightly (R-03); (2) Batch generation in scheduled windows aligned to cadence-run completion peaks; (3) "Recommendations pending" placeholder rather than a degraded set if generation fails; (4) Capacity model reviewed quarterly against archive growth.</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 6: Recommendations contradict an in-flight override from the Decision Framework</div>
