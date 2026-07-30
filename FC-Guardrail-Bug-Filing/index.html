@@ -379,11 +379,12 @@
   <p>The Guardrail Decision Framework now produces a deterministic per-guardrail verdict on every scorecard cadence run. If we wire those verdicts directly into automatic ADO bug filing — and additionally fire IcM for Sev≤2 guardrails (reliability, safety, compliance) — we close the loop between detection and action without adding human triage overhead. Combined with the Growth-orchestrator metadata for canonical FC routing and family-level de-duplication, we get <strong>exactly one accountable artifact per orchestrated experiment family per regression</strong>. This is the missing connective tissue that turns a verdict into ownership and creates the audit trail that lets the M365 Copilot portfolio measure (and improve) its guardrail-violation response SLA.</p>
 
   <h3>Evidence</h3>
+  <p><em>Qualitative at this stage &mdash; requires validation and verification.</em> The observations below come from Feature Crew and DS conversations and from how guardrail escalations are handled today. None have been quantified against the experiment portfolio. Establishing these baselines is tracked as <strong>Q5</strong> and is a gate for approval.</p>
   <ul>
-    <li><strong>Decision-Framework rollout signal:</strong> ~11% of M365 Copilot experiments today ship on guardrail signals that are either uninformative or trip a verdict that no human triages within the rollout window.</li>
-    <li><strong>FC escalation channel:</strong> The most common origin of guardrail-regression IcMs today is a Teams ping from a DS partner to an FC on-call — not the experimentation platform. There is no SLA on that hand-off.</li>
-    <li><strong>Growth-orchestrator fan-out:</strong> Orchestrated experiments routinely fan out into 4–10 child flights. Today each child can independently trip the same guardrail; without de-dup, a manual filing flow would create 4–10× the noise.</li>
-    <li><strong>Stakeholder ask:</strong> FC leads have repeatedly asked for a "platform should tell me, I shouldn't have to go find it" model — particularly for safety guardrails where minutes matter.</li>
+    <li><strong>Guardrail verdicts can go untriaged through a rollout:</strong> Some experiments complete their rollout on guardrail signals that are either uninformative or trip a verdict no human reviews inside the rollout window. There is no platform mechanism that guarantees a regression reaches an owner. <em>Share of experiments affected not yet measured.</em></li>
+    <li><strong>Escalation runs on a person, not a system:</strong> The common origin of a guardrail-regression IcM today is a Teams ping from a DS partner to an FC on-call rather than the experimentation platform. That hand-off carries no SLA and no audit trail, so a missed ping is an undetectable failure. This is a structural observation about the current process, not an estimate.</li>
+    <li><strong>Orchestrated experiments fan out into child flights:</strong> A single Growth Orchestrator initiative can produce many child flights, each able to trip the same guardrail independently. Without de-duplication, any automated filing flow multiplies noise by the fan-out factor &mdash; which makes de-dup a correctness requirement, not an optimization. <em>Typical fan-out breadth not yet measured; it directly sizes the de-dup requirement.</em></li>
+    <li><strong>Feature Crews are asking for push, not pull:</strong> FC leads consistently describe wanting a "the platform should tell me, I shouldn't have to go find it" model, particularly for safety guardrails where minutes matter. <em>Reported anecdotally; not collected through structured interviews.</em></li>
   </ul>
 </div>
 
@@ -654,6 +655,10 @@
   <div class="question-card">
     <div class="q-title">Q4: Bug ownership when a Feature Crew spans multiple sub-teams</div>
     <p>If an FC's ADO area path covers three sub-teams, does the bug auto-assign to a specific person (FC PM? FC on-call rotation?) or stay unassigned in the area path for the FC's triage process to claim? <strong>Owner:</strong> David Lydston with FC leads. <strong>Current leaning:</strong> Unassigned; let FC's existing triage own routing within the crew.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q5: What is the actual untriaged-regression rate, and how wide is orchestrator fan-out?</div>
+    <p>The Evidence section is qualitative and requires validation before approval. Two measurements matter: (a) the share of experiments that complete a rollout with a guardrail verdict no human triaged inside the window &mdash; this sizes the problem and is the number leadership will ask for; and (b) the distribution of child flights per Growth Orchestrator initiative, which directly determines how aggressive de-duplication must be to avoid this feature becoming a noise generator. (b) should be measured <em>before</em> the de-dup design is finalized, not after. <strong>Owner:</strong> David Lydston with IDEAS DS and the Growth Orchestrator owner. <strong>Current leaning:</strong> Both measurable from existing Expedite and orchestrator data during spec review; (b) is a design input and blocks the de-dup requirement.</p>
   </div>
 
   <h3>Risks</h3>
