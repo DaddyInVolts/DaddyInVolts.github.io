@@ -498,6 +498,7 @@
   <div class="nongoal">Replacing the FC's design judgement — recommendations are a starting menu, not a verdict or a mandate</div>
   <div class="nongoal">Recommending follow-ups for neutral or winning experiments at V1 — V1 focuses on regression follow-up; expanding to "how to amplify a win" is a V2 candidate</div>
   <div class="nongoal">Cross-portfolio recommendations that leak intervention specifics across FC trust boundaries — retrieval respects per-FC opt-in for cross-FC intervention details</div>
+  <div class="nongoal">Partners that do not ship features behind feature flags — V1 inherits the <em>Feature Flag Insights</em> dependency, so a flag is a precondition for an inferred description and therefore for a recommendation. Partners like <strong>Iris</strong> are structurally out of scope until an equivalent intervention-description source exists for their delivery model; extending to non-flag partners is a V2 candidate</div>
 </div>
 
 <!-- ════════════════════════════════════════════ -->
@@ -571,9 +572,9 @@
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
         <td>R-01</td>
-        <td>Trigger — on every cadence run that produces a <strong>not-safe</strong> verdict (per Guardrail Decision Framework), compute and persist a recommendation set within 24 hours of cadence completion. Re-compute on subsequent cadence runs if the verdict persists and the underlying inputs (description, scorecard, archive) have changed materially.</td>
-        <td>≥99% of qualifying verdicts have a persisted recommendation set within 24h in dogfood; re-compute on input change verified on synthetic flip-flop test.</td>
-        <td>Depends on Guardrail Decision Framework</td>
+        <td>Trigger — on every cadence run that produces a <strong>not-safe</strong> verdict (per Guardrail Decision Framework) <em>for an experiment whose feature ships behind a feature flag</em>, compute and persist a recommendation set within 24 hours of cadence completion. Eligibility is evaluated before generation: experiments from partners with no flag-based delivery (e.g. Iris) are excluded and recorded as ineligible rather than generating a degraded set. Re-compute on subsequent cadence runs if the verdict persists and the underlying inputs (description, scorecard, archive) have changed materially.</td>
+        <td>≥99% of <em>eligible</em> qualifying verdicts have a persisted recommendation set within 24h in dogfood; ineligible experiments produce no recommendation set and are counted in the ineligibility report; re-compute on input change verified on synthetic flip-flop test.</td>
+        <td>Depends on Guardrail Decision Framework and Feature Flag Insights coverage</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
@@ -704,6 +705,7 @@
 
   <h3>Edge Cases &amp; Empty States</h3>
   <ul>
+    <li><strong>Partner does not ship behind feature flags (e.g. Iris):</strong> No panel is rendered at all — <em>not</em> a low-confidence set. This is a structural ineligibility, distinct from the upstream coverage gap above: there is no flag, so there will never be an inferred description. Showing a permanently low-confidence set for an entire partner would train owners to ignore the surface and increases the risk of infeasible recommendations (Risk 7). Where the experiment detail page would otherwise host the panel, show a one-line explanation and a link to the V2 scope note.</li>
     <li><strong>No inferred flag description (upstream gap):</strong> Recommend using scorecard + guardrail + flag-name embedding only. Surface with a <em>"Low confidence — no flag description available"</em> badge and a deep link to request inference. Cap set size at 2.</li>
     <li><strong>No strong historical analogs:</strong> Return up to 2 recommendations with low-confidence labels and an <code>[Exploratory — no strong analog]</code> prefix on each hypothesis. Honest signaling beats fabricated specificity.</li>
     <li><strong>Owner hypothesis disagreement:</strong> If the experiment regressed a metric the owner's hypothesis did not target, surface the disagreement explicitly at the top of the panel and target recommendations at the regressed metric, not the owner's original hypothesis target.</li>
@@ -772,6 +774,10 @@
       <div class="risk-card">
         <div class="risk-title">Risk 7: Recommendations may be illegal, non-compliant, privacy-violating, unethical, or technically impossible</div>
         <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> High. An LLM asked to propose "what to change next" can generate options that are unlawful, that breach the Microsoft Privacy Standard or regional data-protection obligations, that violate Responsible AI principles or accessibility and compliance requirements, or that are simply not buildable given the product architecture. The exposure is amplified by context: recommendations arrive framed as evidence-grounded next steps inside a trusted decision surface, so a bad option carries more apparent authority than it deserves — and an owner under time pressure may act on it. <strong>Mitigation:</strong> Mandatory owner feedback on every recommendation (R-06) is the primary control. The structured reason list includes an explicit <em>non-compliant or unethical</em> category alongside <em>not feasible</em>, the free-text rationale captures <em>why</em>, and that corpus feeds model evaluation and prompt tuning so the same class of recommendation is measurably suppressed over time. Because no recommendation set can be closed without recorded feedback, every generated option is reviewed by a human rather than silently ignored. Reinforced by the standing <em>"AI-generated; verify before acting"</em> disclaimer (R-04) and by the principle that the owner, not the recommender, holds the decision.</p>
+      </div>
+      <div class="risk-card">
+        <div class="risk-title">Risk 8: Success metrics read as portfolio-wide but only cover flag-shipping partners</div>
+        <p><strong>Likelihood:</strong> High without explicit framing · <strong>Impact:</strong> Medium. Because V1 requires a feature flag to produce an inferred description, every headline metric — acceptance rate, Recommendation-Driven Fix Rate (R-07), worse-than-nothing rate — is computed over only the flag-shipping slice of the portfolio. Partners like Iris contribute regressions but no recommendations, so they are silently absent from the denominator. Reported to leadership without qualification, this overstates coverage and makes the recommender look more broadly adopted than it is; it also hides the fact that a whole class of regressing experiments is receiving no iteration support at all. <strong>Mitigation:</strong> (1) Report every success metric with an explicit eligible-population denominator, not a portfolio denominator; (2) Publish a standing <em>coverage</em> figure — share of regressing experiments that were eligible for recommendations — alongside the quality metrics; (3) Track ineligible-but-regressing experiments (R-01) as a named gap so the V2 case for non-flag partners is evidence-backed rather than anecdotal.</p>
       </div>
 </div>
 
