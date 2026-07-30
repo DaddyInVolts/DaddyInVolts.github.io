@@ -599,49 +599,56 @@
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
         <td>R-05</td>
-        <td>Owner actions per recommendation — <strong>"Try this"</strong> (creates a follow-up flight shell with hypothesis, suggested guardrail, parent flight link, and analog past flights pre-populated; routes to the FC's flight intake queue), <strong>"Modify"</strong> (opens an editable form with the recommendation pre-loaded), <strong>"Reject with reason"</strong> (captures structured reason from a small fixed list: <em>not feasible, misreads what we changed, wrong analog, conflicts with strategy, other</em>).</td>
+        <td>Owner actions per recommendation — <strong>"Try this"</strong> (creates a follow-up flight shell with hypothesis, suggested guardrail, parent flight link, and analog past flights pre-populated; routes to the FC's flight intake queue), <strong>"Modify"</strong> (opens an editable form with the recommendation pre-loaded), <strong>"Reject with reason"</strong> (captures structured reason from a small fixed list: <em>not feasible, misreads what we changed, wrong analog,         conflicts with strategy, non-compliant or unethical, other</em>).</td>
         <td>All three actions round-trip; "Try this" produces a follow-up flight shell in &lt;5 seconds; rejection reasons persist; FC can see their own action history.</td>
         <td></td>
       </tr>
+              <tr>
+                <td><span class="badge badge-p0">P0</span></td>
+                <td>R-06</td>
+                <td>Mandatory feedback in Expedite — a recommendation set is not closed until its owner records a judgement on the <em>"Suggested next iterations"</em> panel in Expedite. Every surfaced recommendation must receive one of <strong>"Try this"</strong> / <strong>"Modify"</strong> / <strong>"Reject with reason"</strong>, plus a short free-text <em>why</em> alongside the structured reason code. Feedback is captured only on the Expedite recommendation page — the auto-filed ADO bug (R-10) deep-links back to it rather than accepting inline resolution — so every judgement lands in one place, attributable to a recommendation ID and model / prompt version. Outstanding sets appear in a pending-feedback queue for the owner and FC lead, with reminders. This corpus (action, reason code, free-text rationale) is the labeled signal used to learn which recommendations are better and why, and feeds directly into model evaluation and prompt tuning.</td>
+                <td>≥90% of recommendation sets receive owner feedback within 14 days of surfacing in dogfood; 100% of feedback events carry recommendation ID, model version, structured reason, and free-text rationale, and land in the model evaluation pipeline; pending-feedback queue and reminders verified end-to-end; no path exists to close a recommendation set without recorded feedback.</td>
+                <td>Primary learning signal — also the mitigation for Risk 7</td>
+              </tr>
       <tr>
         <td><span class="badge badge-p1">P1</span></td>
-        <td>R-06</td>
+        <td>R-07</td>
         <td>Outcome feedback loop — when a follow-up flight created via "Try this" runs to a result (cadence verdict reached), capture whether the follow-up actually closed the originally regressed guardrail. Aggregate into the Recommendation-Driven Fix Rate metric and surface a per-FC dashboard.</td>
         <td>End-to-end outcome capture works on dogfood; per-FC dashboard shows fix rate refreshed weekly; outcome signal feeds back into the model evaluation pipeline.</td>
         <td>Long-feedback-loop metric</td>
       </tr>
       <tr>
         <td><span class="badge badge-p1">P1</span></td>
-        <td>R-07</td>
+        <td>R-08</td>
         <td>Diversity floor — recommendation engine guarantees ≥2 distinct intervention categories per recommendation set. If only one category has strong analogs, force the second slot to a different category even at lower confidence, labeled accordingly. Avoid mode collapse where every option is "add a cache."</td>
         <td>Synthetic test: 100 generated recommendation sets exhibit ≥2 distinct tags in 100% of cases; manual audit of 50 production sets shows no category-collapse complaints.</td>
         <td>Diversity check is post-generation filter</td>
       </tr>
       <tr>
         <td><span class="badge badge-p1">P1</span></td>
-        <td>R-08</td>
+        <td>R-09</td>
         <td>Confidence labels — each recommendation is labeled high / medium / low based on (a) count of strong analog past experiments, (b) model confidence, and (c) whether inferred flag description was available. Rules pinned in the rule dictionary alongside the Decision Framework rules.</td>
         <td>Confidence rules documented and pinned; manual eval on 200 recommendations shows ≥80% agreement between human raters and the rule-based label.</td>
         <td></td>
       </tr>
       <tr>
         <td><span class="badge badge-p1">P1</span></td>
-        <td>R-09</td>
+        <td>R-10</td>
         <td>Surface the top recommendation in the auto-filed ADO bug (per the <em>Auto-File Bug / IcM for FCs on Guardrail Violations</em> spec) — a "Suggested next iteration" section in the bug body with the top option, hypothesis, and a deep link back to the full panel in Expedite.</td>
         <td>Top recommendation appears in every qualifying bug body; deep link round-trips to Expedite; only the top is included to keep bug body scannable.</td>
         <td>Coordinate with FC-Guardrail-Bug-Filing spec</td>
       </tr>
       <tr>
         <td><span class="badge badge-p2">P2</span></td>
-        <td>R-10</td>
+        <td>R-11</td>
         <td>Per-FC opt-out — FCs can opt their experiments out of recommendations at the experiment-creation or flight-creation stage (e.g., highly sensitive experiments where an AI-suggested next move is inappropriate). Opt-out is logged and visible to the FC lead in the per-FC dashboard.</td>
         <td>Opt-out flag persists; recommender skips opted-out experiments; FC dashboard counter shows opted-out count.</td>
         <td></td>
       </tr>
       <tr>
         <td><span class="badge badge-p2">P2</span></td>
-        <td>R-11</td>
-        <td>Recommender observability — emit metrics for acceptance rate, time-to-follow-up, worse-than-nothing rate, diversity coverage, generation latency, and recommendation-driven fix rate (R-06) to IDEAS telemetry.</td>
+        <td>R-12</td>
+        <td>Recommender observability — emit metrics for acceptance rate, time-to-follow-up, worse-than-nothing rate, diversity coverage, generation latency, and recommendation-driven fix rate (R-07) to IDEAS telemetry.</td>
         <td>All six metrics visible in IDEAS telemetry within 60 days of GA; alert wired on worse-than-nothing rate &gt;5% per FC.</td>
         <td></td>
       </tr>
@@ -691,7 +698,7 @@
     <li><strong>Primary signal:</strong> Number and strength of analog past experiments that closed a similar regression with the candidate intervention type.</li>
     <li><strong>Secondary signal:</strong> Model confidence on the (description, regression, intervention) tuple.</li>
     <li><strong>Tertiary signal:</strong> Estimated effort to implement (proxied by intervention category — e.g., a host carve-out is cheap; a cache layer is moderate; an architecture change is heavy). Lower effort breaks ties when other signals are equal.</li>
-    <li><strong>Diversity post-filter (R-07):</strong> After ranking, the top-ranked option in each distinct intervention category gets a guaranteed slot; remaining slots fill by rank.</li>
+    <li><strong>Diversity post-filter (R-08):</strong> After ranking, the top-ranked option in each distinct intervention category gets a guaranteed slot; remaining slots fill by rank.</li>
     <li><strong>Repeated-regression escalation:</strong> If this is the third iteration of the same intervention area with the same regression, the "Consider stopping this intervention" option is force-promoted to rank 1.</li>
   </ul>
 
@@ -702,7 +709,7 @@
     <li><strong>Owner hypothesis disagreement:</strong> If the experiment regressed a metric the owner's hypothesis did not target, surface the disagreement explicitly at the top of the panel and target recommendations at the regressed metric, not the owner's original hypothesis target.</li>
     <li><strong>Repeated regression on the same intervention area (3+ iterations):</strong> Top-ranked recommendation is "Consider stopping this intervention" with the analog evidence cited. Other change-oriented recommendations remain in the set but below.</li>
     <li><strong>Cross-FC archive retrieval restricted by opt-out:</strong> Recommender retrieves only the public summary (intervention tag + outcome direction) for restricted past flights; intervention specifics are redacted. The recommendation card shows "Analog details redacted (cross-FC privacy)" instead of full hypothesis text.</li>
-    <li><strong>FC opted out (R-10):</strong> No recommendations generated or surfaced. The opt-out is visible to the FC lead on the per-FC dashboard for audit.</li>
+    <li><strong>FC opted out (R-11):</strong> No recommendations generated or surfaced. The opt-out is visible to the FC lead on the per-FC dashboard for audit.</li>
     <li><strong>Model service outage:</strong> Recommendation panel shows <em>"Recommendations pending — retrying"</em> with the last-known set (if any) visible read-only. Outage exceeding 4 hours emits an IcM to the recommender on-call.</li>
     <li><strong>Worse-than-nothing rate exceeds guardrail per FC:</strong> Recommendation surfacing is paused for that FC pending model + retrieval review. The FC is notified explicitly so the absence is not silent.</li>
   </ul>
@@ -718,7 +725,7 @@
   <h3>Open Questions</h3>
   <div class="question-card">
     <div class="q-title">Q1: Opt-in default vs. opt-out default per FC</div>
-    <p>Should recommendations surface for every regressing experiment by default (opt-out, R-10), or require an FC lead to explicitly opt their crew in? Opt-in is safer but slows adoption; opt-out gets coverage fast but risks FCs feeling AI-suggested next moves are imposed. <strong>Owner:</strong> David Lydston with Copilot Eng leadership. <strong>Current leaning:</strong> Opt-out (surfaced by default) for V1, with a single-click per-experiment opt-out at flight creation. Re-evaluate at the 90-day post-GA mark based on worse-than-nothing rate.</p>
+    <p>Should recommendations surface for every regressing experiment by default (opt-out, R-11), or require an FC lead to explicitly opt their crew in? Opt-in is safer but slows adoption; opt-out gets coverage fast but risks FCs feeling AI-suggested next moves are imposed. <strong>Owner:</strong> David Lydston with Copilot Eng leadership. <strong>Current leaning:</strong> Opt-out (surfaced by default) for V1, with a single-click per-experiment opt-out at flight creation. Re-evaluate at the 90-day post-GA mark based on worse-than-nothing rate.</p>
   </div>
   <div class="question-card">
     <div class="q-title">Q2: Cross-FC archive retrieval policy</div>
@@ -740,15 +747,15 @@
   <h3>Risks</h3>
   <div class="risk-card">
     <div class="risk-title">Risk 1: Mode collapse — every recommendation is "add a cache"</div>
-    <p><strong>Likelihood:</strong> High without explicit mitigation · <strong>Impact:</strong> High. If archive retrieval is weak or the model defaults to a small set of high-prior interventions, recommendations become boilerplate and FCs stop reading them. <strong>Mitigation:</strong> (1) Hard diversity floor — ≥2 distinct intervention categories per set (R-07); (2) Per-category retrieval depth tuned to surface uncommon successful interventions; (3) Monthly red-team review of 50 recent recommendation sets by IDEAS DS; (4) Repeated-recommendation detection — if the same hypothesis pattern is recommended on &gt;20% of regressions in a 30-day window, alert the model owners.</p>
+    <p><strong>Likelihood:</strong> High without explicit mitigation · <strong>Impact:</strong> High. If archive retrieval is weak or the model defaults to a small set of high-prior interventions, recommendations become boilerplate and FCs stop reading them. <strong>Mitigation:</strong> (1) Hard diversity floor — ≥2 distinct intervention categories per set (R-08); (2) Per-category retrieval depth tuned to surface uncommon successful interventions; (3) Monthly red-team review of 50 recent recommendation sets by IDEAS DS; (4) Repeated-recommendation detection — if the same hypothesis pattern is recommended on &gt;20% of regressions in a 30-day window, alert the model owners.</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 2: Owner over-trust — FCs ship recommendations without independent design review</div>
-    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> High. AI-suggested next moves accepted without scrutiny could produce real downstream regressions. <strong>Mitigation:</strong> (1) Persistent <em>"AI-generated; verify before acting"</em> disclaimer on every panel (R-04); (2) "Try this" creates a flight <em>shell</em>, not a ramped flight — the owner still designs and approves the rollout; (3) Confidence labels with clear low-confidence visual treatment (R-08); (4) Outcome feedback loop (R-06) tracks whether accepted recommendations actually fixed the regression — published per FC so under-performing acceptance patterns are visible.</p>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> High. AI-suggested next moves accepted without scrutiny could produce real downstream regressions. <strong>Mitigation:</strong> (1) Persistent <em>"AI-generated; verify before acting"</em> disclaimer on every panel (R-04); (2) "Try this" creates a flight <em>shell</em>, not a ramped flight — the owner still designs and approves the rollout; (3) Confidence labels with clear low-confidence visual treatment (R-09); (4) Outcome feedback loop (R-07) tracks whether accepted recommendations actually fixed the regression — published per FC so under-performing acceptance patterns are visible.</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 3: Regressive feedback loop on acceptance signal</div>
-    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. If acceptance is treated as the headline quality metric, the system optimizes for "things owners click yes on" rather than "things that actually fix the regression." <strong>Mitigation:</strong> Ground the quality metric in <em>outcome</em>, not click-acceptance — Recommendation-Driven Fix Rate (R-06) is the metric the recommender is optimized against in eval; acceptance rate is reported but not the optimization target.</p>
+    <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> Medium. If acceptance is treated as the headline quality metric, the system optimizes for "things owners click yes on" rather than "things that actually fix the regression." <strong>Mitigation:</strong> Ground the quality metric in <em>outcome</em>, not click-acceptance — Recommendation-Driven Fix Rate (R-07) is the metric the recommender is optimized against in eval; acceptance rate is reported but not the optimization target.</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 4: Cross-FC retrieval leaks intervention secrets</div>
@@ -762,12 +769,16 @@
     <div class="risk-title">Risk 6: Recommendations contradict an in-flight override from the Decision Framework</div>
     <p><strong>Likelihood:</strong> Low · <strong>Impact:</strong> Medium. If an FC has filed a documented override accepting a guardrail regression for known reasons, surfacing recommendations to "fix" the regression would undermine the override flow. <strong>Mitigation:</strong> Recommender reads the override state from the Decision Framework; experiments with an accepted override get a banner <em>"This experiment has an accepted override — recommendations are informational only"</em> and the panel collapses by default.</p>
   </div>
+      <div class="risk-card">
+        <div class="risk-title">Risk 7: Recommendations may be illegal, non-compliant, privacy-violating, unethical, or technically impossible</div>
+        <p><strong>Likelihood:</strong> Medium · <strong>Impact:</strong> High. An LLM asked to propose "what to change next" can generate options that are unlawful, that breach the Microsoft Privacy Standard or regional data-protection obligations, that violate Responsible AI principles or accessibility and compliance requirements, or that are simply not buildable given the product architecture. The exposure is amplified by context: recommendations arrive framed as evidence-grounded next steps inside a trusted decision surface, so a bad option carries more apparent authority than it deserves — and an owner under time pressure may act on it. <strong>Mitigation:</strong> Mandatory owner feedback on every recommendation (R-06) is the primary control. The structured reason list includes an explicit <em>non-compliant or unethical</em> category alongside <em>not feasible</em>, the free-text rationale captures <em>why</em>, and that corpus feeds model evaluation and prompt tuning so the same class of recommendation is measurably suppressed over time. Because no recommendation set can be closed without recorded feedback, every generated option is reviewed by a human rather than silently ignored. Reinforced by the standing <em>"AI-generated; verify before acting"</em> disclaimer (R-04) and by the principle that the owner, not the recommender, holds the decision.</p>
+      </div>
 </div>
 
 </div><!-- end .content -->
 
 <div class="footer">
-  Next-Iteration Recommender for Expedite — Mini Spec · IDEAS Experimentation · Last updated June 23, 2026
+  Next-Iteration Recommender for Expedite — Mini Spec · IDEAS Experimentation · Last updated July 30, 2026
 </div>
 
 </body>
