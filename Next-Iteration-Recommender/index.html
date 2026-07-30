@@ -405,8 +405,9 @@
   <div class="meta-bar">
     <div class="meta-item"><strong>PM Owner</strong> David Lydston</div>
     <div class="meta-item"><strong>Team</strong> IDEAS Experimentation</div>
-    <div class="meta-item"><strong>Last Updated</strong> June 23, 2026</div>
+    <div class="meta-item"><strong>Last Updated</strong> July 30, 2026</div>
     <div class="meta-item"><strong>Status</strong> Draft</div>
+    <div class="meta-item"><strong>Version</strong> 1.0</div>
     <div class="meta-item"><strong>Stakeholders</strong> Expedite, IDEAS DS, M365 Copilot Feature Crews, Copilot ML, Privacy Review, Growth Orchestrator</div>
   </div>
 </div>
@@ -436,7 +437,7 @@
   <p>When an M365 Copilot experiment regresses a guardrail or fails to move its primary metric, the Feature Crew's next move today is "look at the scorecard, talk to DS, guess at a follow-up." There is no platform-side proposal for "given what your flag changed and how it landed, here's a starting menu of what V2 should change differently." The result varies wildly across teams: strong FCs run rigorous iteration loops, weaker ones ship V1 and quietly move on when regressions appear. Of regressing experiments, ~41% have no documented follow-up experiment within 60 days, and only ~12% of regressions get a follow-up that specifically targets the guardrail that regressed. The platform has all of the inputs needed to do better — inferred flag description, scorecard results, guardrail verdict, and a rich archive of past similar interventions — but they have never been joined into a recommendation surface.</p>
 
   <h3>Opportunity</h3>
-  <p>With (a) <em>Feature Flag Insights</em> surfacing the <strong>what</strong> (inferred description + intervention tags), (b) the Expedite scorecard supplying the <strong>result</strong>, and (c) the Guardrail Decision Framework specifying the <strong>failure mode</strong>, an LLM-driven recommender can read all three together and propose a ranked list of concrete next-iteration changes. Each recommendation is tied to a written hypothesis, a small set of similar past experiments retrieved from the Copilot portfolio archive, an expected impact direction, and a suggested primary guardrail to watch on the follow-up flight. Owners get a starting menu they can <strong>accept</strong> (registers a follow-up flight shell pre-populated with metadata), <strong>modify</strong>, or <strong>reject with reason</strong> — and the rejection signal feeds back into model evaluation. The portfolio learns from acceptance over time, and FCs get a consistent, evidence-grounded starting point for iteration instead of an empty page.</p>
+  <p>With (a) <em>Feature Flag Insights</em> surfacing the <strong>what</strong> (inferred description + intervention tags), (b) the Expedite scorecard supplying the <strong>result</strong>, and (c) the Guardrail Decision Framework specifying the <strong>regressing metrics</strong>, an LLM-driven recommender can read all three together and propose a ranked list of concrete next-iteration changes. Each recommendation is tied to a written hypothesis, a small set of similar past experiments retrieved from the Copilot portfolio archive, an expected impact direction, and a suggested primary guardrail to watch on the follow-up flight. Owners get a starting menu they can <strong>accept</strong>, <strong>modify</strong>, or <strong>reject with reason</strong> — and the rejection signal feeds back into model evaluation. The portfolio learns from acceptance over time, and FCs get a consistent, evidence-grounded starting point for iteration instead of an empty page.</p>
 
   <h3>Evidence</h3>
   <ul>
