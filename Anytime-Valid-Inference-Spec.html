@@ -349,7 +349,11 @@
     <li><strong>Windows NRT Service Walking Deck (RAM Data &amp; AI Team, Feb 2026):</strong> Internal evidence that NRT data is only valuable when wired to a tight "detect &rarr; page &rarr; rollback" action loop with measurable time-to-detect and time-to-mitigate KPIs. The 4T-events/mo Vortex&rarr;AKS&rarr;Synapse&rarr;Kusto&rarr;Fabric pipeline (~$63K/mo for Windows Update Adoption, &leq;2 min E2E SLA) is the operational template this product will reuse.</li>
     <li><strong>&#9733; Windows Experimentation Platform has already shipped this in production &mdash; <em>wexp_anytime_valid_inference_exp_champs</em> (Patrick Ding, Sarah Shy, Vilasini Subramanian, Ryan Parsell; WSD: Sean Kang, Bhagyashree Kulkarni, July 2026):</strong> This is the single strongest piece of evidence in this spec and it is internal. WExP replaced a Pearson chi-square test of homogeneity with the Lindon &amp; Malek (2022) anytime-valid multinomial test, running against WSD near-real-time reliability and Test-in-Production (TIP) telemetry. It is live in Mission Control today as the <em>Faster Reliability Signals</em> dashboard with alerting. The method, the validation approach, and the failure modes below are taken directly from that work rather than inferred.</li>
     <li><strong>False-positive control validated on real Windows A/A data:</strong> WExP ran A/A tests in Beta-internal and Dev-external populations across <strong>709 TIP measures with recorded failures</strong> at &alpha;&nbsp;=&nbsp;0.05, and found the false-positive rate controlled below 5% <em>for every setting of the prior concentration parameter &kappa; they tested</em>. Individual false positives still occur and are documented. This is the empirical result our own A/A validation plan should replicate rather than re-derive.</li>
-    <li><strong>Achieved end-to-end latency is ~50&ndash;60 minutes, not minutes:</strong> WExP reports roughly 50&ndash;60 minutes from device telemetry to statistics appearing in the Mission Control dashboard or an email alert, against WSD NRT data that itself lands in ~30 minutes. This is materially slower than the &leq;15 min target stated in this spec's goals, and it comes from a team that has already built the pipeline &mdash; see <strong>Risk 7</strong>.</li>
+    <li><strong>Achieved end-to-end latency is ~50&ndash;60 minutes, not minutes:</strong> WExP reports roughly 50&ndash;60 minutes from device telemetry to statistics appearing in the Mission Control dashboard or an email alert, against WSD NRT data that itself lands in ~30 minutes. Read against ASHA's ~3-hour ingestion speed-of-light, this is the reference point that sets our 4-hour V1 budget: the downstream processing cost is roughly an hour in a system that already works, and we are allocating roughly an hour. See <strong>Risk 7</strong>.</li>
+    <li><strong>&#9733; A complete internal implementation design already exists &mdash; <em>wexp_reliability_sequential_testing_implementation</em> (PM Ryan Parsell, Eng Vilasini Subramanian, DS Patrick Ding; WSD: Sean Kang, Bhagyashree Kulkarni; 20 April 2026):</strong> A build-level companion to the deck, covering the Kusto object model, the .NET service changes, the rejected alternatives, and the data-quality traps. It states the design goal in the same terms this spec uses: "we recompute at a scale of minutes, so we don't preserve the type I error &mdash; the proposed feature allows us to preserve the frequent analysis cadence while also having correct statistical inference." <strong>This spec should be read as extending that design to IDEAS rather than originating one.</strong></li>
+    <li><strong>The recursion has a closed static form that suits Kusto:</strong> The posterior-odds update can be unrolled from a per-event recursion into a static expression over the vector of cumulative failure counts per arm. WExP note this "works better with materialized views in a SQL-like system like Kusto" &mdash; meaning the inference is a pure function of cumulative counts and does not require replaying an event stream or holding per-event state. Concretely their chain is <code>CfrError17</code> (raw failures) &rarr; <code>WExpFlightCounts</code> (materialized view exploding the flight-ID string and counting by flight &times; event) &rarr; <code>WExpLogOdds</code> (log-odds and candidate p-value per arriving failure) &rarr; <code>ExperimentOddsSnapshots</code> (p-value history), read by the monitoring service through a Kusto function.</li>
+    <li><strong>Ordering of streaming updates is a real, encountered failure mode:</strong> WExP explicitly record a class of Kusto-side approaches that <em>did not work</em>: "it's tricky to get update policies to work in order &mdash; the updates don't happen in a guaranteed order, so we observe non-monotonic counts of failures." Cumulative counts going backwards corrupts a sequential test whose validity depends on a monotone information filtration. Their landing design instead appends inference results to a history table on a scheduled call. See <strong>Risk 9</strong>.</li>
+    <li><strong>Event timestamp semantics are not interchangeable:</strong> WExP found experiments whose NRT telemetry carried ingest timestamps <em>preceding the experiment start date</em>, and separately observed client-reported timestamps "from the future." Their guidance from WSD is unambiguous &mdash; use ingest time as ground truth, not client time. A related caution: the WSD aggregation helpers return an exact count of events but only an <em>approximate</em> count of distinct devices, since they use Kusto's <code>dcount()</code>. Our method needs event counts, so this is survivable &mdash; but any device-denominator metric built alongside it is not exact.</li>
     <li><strong>Counts are sufficient &mdash; device denominators are not required:</strong> Under the inhomogeneous Poisson framing, testing for a difference in failure <em>rates</em> between arms reduces to a multinomial test on which arm the next failure event came from. Only the count of failure events per arm is needed; total devices per arm is not. This materially lowers the data-plumbing bar for onboarding a new metric family and is why ASHA is a viable first candidate.</li>
     <li><strong>Structural detection floor in ExP today:</strong> Safety-driven flight pauses are gated by the daily Scorecard cadence. A once-daily readout puts a hard floor of roughly half a day on expected time-to-detect by construction, independent of how fast anyone reacts. <em>The actual distribution of regression-onset-to-rollback time has not been measured &mdash; see Q7; the range cited in the goals is derived from the cadence, not observed.</em></li>
   </ul>
@@ -364,7 +368,7 @@
 
   <h3>Goals</h3>
   <ol>
-    <li>Cut median time-to-detect (T2D) on safety-critical guardrail regressions during flighted rollouts from the current daily-Scorecard cadence to minutes rather than hours. <em>Target-setting caveat &mdash; requires validation and verification:</em> the ~12&ndash;24 hour baseline is inferred structurally from a once-daily readout, not measured (see Q7), and the &lt;15 minute target is 3&ndash;4&times; more aggressive than the only shipping Microsoft implementation of this method, which runs ~50&ndash;60 minutes end-to-end (see Risk 7). Both numbers are directional until the Q7 measurement and the R-06 latency budget land.</li>
+    <li>Deliver a statistically valid regression readout <strong>within 4 hours of the underlying event</strong>, recomputed on a <strong>1-hour cadence</strong>, replacing the current daily Scorecard readout. The 4-hour target is set deliberately against the physics of the data: ASHA telemetry has a <strong>~3-hour speed-of-light</strong> from event occurrence to queryable availability, so 4 hours is a conservative budget allowing roughly one hour for inference, alerting and delivery on top of an irreducible ingestion floor. <em>Requires validation and verification:</em> the daily-cadence baseline is inferred structurally rather than measured (see Q7).</li>
     <li>Eliminate the peeking penalty &mdash; deliver provably time-uniform &geq;95% coverage on every published confidence sequence, validated empirically across the top 100 ExP guardrail metric/segment combinations.</li>
     <li>Reduce the sample size required to call a safety verdict (rollback vs. ship) by 40&ndash;50% on average vs. fixed-<em>n</em>, matching the Netflix-published baseline and returning experimentation slots to teams.</li>
     <li>Reach 50 onboarded feature teams within 6 months of GA, with the majority of high-blast-radius Microsoft 1P rings (Canary, OSG-internal, Insider Beta) covered.</li>
@@ -375,7 +379,7 @@
     <div class="metric-card">
       <div class="label">Primary Metric</div>
       <div class="value">Median Time-to-Detect (T2D)</div>
-      <div class="target">Target: &lt;15 min on injected/known regressions &middot; Baseline: daily Scorecard cadence, exact value to be measured pre-launch (Q7) &middot; <em>Both figures require validation and verification &mdash; see Risk 7</em></div>
+      <div class="target">Target: &leq;4 hrs from event to actionable readout, recomputed hourly &middot; Floor: ~3 hrs ASHA ingestion speed-of-light &middot; Baseline: daily Scorecard cadence, exact value to be measured pre-launch (Q7)</div>
     </div>
     <div class="metric-card">
       <div class="label">Secondary Metric</div>
@@ -395,7 +399,7 @@
     <div class="metric-card">
       <div class="label">Guardrail Metric</div>
       <div class="value">Live-Inference E2E Latency (P95)</div>
-      <div class="target">Must remain &leq;15 min event-to-dashboard</div>
+      <div class="target">Must remain &leq;4 hrs event-to-dashboard, with inference recomputed at least hourly</div>
     </div>
     <div class="metric-card">
       <div class="label">Adoption Metric</div>
@@ -462,7 +466,7 @@
   <div class="scenario-card">
     <div class="persona">Edge Case &mdash; "Pipeline Lag / Stale Inference"</div>
     <div class="narrative">
-      <p>Upstream Kusto ingestion lags by 23 minutes. Live Inference detects the staleness, shows a "Live inference delayed &mdash; last update 23 min ago" banner across affected dashboards, and automatically suppresses new alerts until E2E latency returns under SLA &mdash; preventing stale-data pages from waking on-call.</p>
+      <p>Upstream Kusto ingestion falls behind by 2 hours on top of the normal ~3-hour ASHA floor, pushing total event-to-dashboard latency past the 4-hour SLA. Live Inference detects the staleness from the max ingest timestamp, shows a "Live inference delayed &mdash; data current as of [T], 5 hrs behind" banner across affected dashboards, and automatically suppresses new alerts until E2E latency returns under SLA &mdash; preventing stale-data pages from waking on-call. Because the readout is scheduled hourly rather than continuously, a missed window is visible as a gap in the series rather than a silently frozen number.</p>
     </div>
   </div>
 </div>
@@ -516,111 +520,132 @@
       <tr>
         <td><span class="badge badge-p1">P1</span></td>
         <td>R-05</td>
-        <td>Anytime-valid multinomial test for live SRM detection on assignment counts. Fires within 5 minutes of an SRM appearing in the event stream.</td>
+        <td>Anytime-valid multinomial test for live SRM detection on assignment counts. Evaluated on every scheduled recompute, so an SRM surfaces on the first hourly window after it appears in the event stream.</td>
         <td>Detects an injected 0.5pp SRM at &leq;5 min P95 across 1K simulated flights at Microsoft scale</td>
         <td>Co-design with ExP Trustworthiness team that owns existing offline SRM checks</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
         <td>R-06</td>
-        <td>Near-real-time data pipeline reaching &leq;15 min end-to-end SLA from event emission to dashboard. Modeled on the Windows NRT Service pattern: Vortex/Event Forwarders &rarr; Kubernetes (AKS) micro-batch &rarr; Synapse Spark &rarr; Kusto materialized view &rarr; Fabric semantic model &rarr; Power BI / Live dashboard.</td>
-        <td>P95 E2E latency &leq;15 min sustained for 4 weeks across pilot tenants; pipeline auto-scales to top-4 ExP-onboarded products at GA</td>
+        <td>Near-real-time data pipeline reaching a <strong>&leq;4 hour end-to-end SLA</strong> from event emission to dashboard, with inference <strong>recomputed on a fixed 1-hour schedule</strong>. The budget is decomposed as ~3 hours of ASHA ingestion speed-of-light plus ~1 hour for inference, alerting and delivery; the hourly recompute cadence is what the anytime-valid guarantee makes safe, since repeated scheduled peeking is exactly the pattern fixed-<em>n</em> inference cannot support. Modeled on the Windows NRT Service pattern: Vortex/Event Forwarders &rarr; Kubernetes (AKS) micro-batch &rarr; Synapse Spark &rarr; Kusto materialized view &rarr; Fabric semantic model &rarr; Power BI / Live dashboard. WExP schedule their equivalent Kusto append via Azure Logic Apps, which is a viable pattern for our hourly trigger.</td>
+        <td>P95 E2E latency &leq;4 hrs sustained for 4 weeks across pilot tenants; recompute interval &leq;60 min with no missed windows; pipeline auto-scales to top-4 ExP-onboarded products at GA</td>
         <td>Capacity partnership with RAM/NRT team; subscription-level isolation per scenario family</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
         <td>R-07</td>
+        <td><strong>Inference is a pure function of cumulative per-arm counts, computed from a materialized view and appended to an immutable history table.</strong> Follow the WExP landing architecture rather than the approaches they abandoned: a materialized view maintains cumulative failure counts per flight &times; event, the static (unrolled) form of the posterior-odds recursion computes log-odds and a candidate p-value from that count vector, and each scheduled evaluation <em>appends</em> a row to a history table rather than mutating state in place. The published anytime-valid p-value is the running minimum over that history. <strong>Cumulative counts must be monotone non-decreasing</strong> &mdash; WExP found that Kusto update policies do not fire in a guaranteed order, producing counts that go backwards and corrupting a sequential test whose validity depends on a monotone filtration. See <strong>Risk 9</strong>.</td>
+        <td>Monotonicity assertion runs on every evaluation and alerts on violation; replaying the history table reproduces the published p-value series exactly; no code path recomputes a p-value from a mutable "current" row</td>
+        <td>Port from WExP's <code>poisson_rate_pval_append.kql</code> / <code>poisson_rate_tip_pval_append.kql</code> rather than re-deriving</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-08</td>
+        <td><strong>Ingest time is the ground-truth timestamp; client-reported time is never used for sequencing.</strong> WExP found NRT telemetry carrying ingest timestamps earlier than the experiment start date, and client timestamps reporting events "from the future." All windowing, ordering and attribution must key off ingest time. Events whose ingest time precedes flight start are quarantined and counted, not silently dropped, and the quarantine volume is surfaced on the dashboard as a data-quality signal. Any device-count figure displayed alongside the test must be labelled approximate where it derives from Kusto <code>dcount()</code>.</td>
+        <td>Zero events sequenced on client time; pre-flight-start quarantine count visible per experiment; approximate device counts visually distinguished from exact event counts</td>
+        <td>Confirm ASHA's timestamp semantics match this model before onboarding &mdash; do not assume</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-09</td>
+        <td><strong>Multi-arm experiments are handled as pairwise treatment-vs-control comparisons with an explicit multiplicity policy.</strong> Where an experiment has multiple treatment arms, compute a separate anytime-valid p-value per treatment arm against control, surface the <em>minimum</em> across arms as the headline value, and apply a documented multiple-comparison correction so the headline is not silently anti-conservative. Per-arm values remain inspectable &mdash; the headline minimum must never be the only number a user can see, because it hides which arm is responsible.</td>
+        <td>Per-arm p-values retrievable via UI and API; correction method named in the UI next to the headline value; behavior verified on a &geq;3-arm experiment</td>
+        <td>Mirrors the WExP service-side design; correction method is an open decision (Q9)</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td>
+        <td>R-10</td>
         <td>Empirical validation of time-uniform coverage. Run &geq;10,000 A/A simulations across the top 100 ExP guardrail metric/segment combinations and confirm observed false-rollback rate stays &leq;5% under continuous monitoring.</td>
         <td>Public internal validation report; observed FPR &leq;5% with 95% CI; methodology peer-reviewed by ExP Data Science</td>
         <td>Mandatory pre-GA gate</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
-        <td>R-08</td>
+        <td>R-11</td>
         <td>Live dashboard renders a "shrinking confidence band" timeseries per monitored metric &mdash; effect estimate plus confidence-sequence bounds at every observed sample size &mdash; alongside a sequential <em>p</em>-value timeline and the actionable threshold line.</td>
         <td>Renders &leq;3 sec on 30-day historical view at p95; visual matches Figma spec; hover tooltips include n, effect, bounds, p_seq</td>
         <td>Reuses Fabric/Power BI surface where possible</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
-        <td>R-09</td>
+        <td>R-12</td>
         <td>Native ExP Scorecard integration &mdash; any metric onboarded to a Scorecard can be promoted to "Anytime-Valid Monitored" with a single configuration flag, no separate metric onboarding.</td>
         <td>Single-flag promotion verified end-to-end on at least 3 distinct ExP tenants pre-GA</td>
         <td>Spec'd with ExP Onboarding team</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
-        <td>R-10</td>
+        <td>R-13</td>
         <td>Alert integration with existing on-call surfaces (ICM, Geneva). A threshold crossing fires a page that includes the metric, the experiment ID, sample size at crossing, sequential <em>p</em>-value, and a deep link to the Live Inference timeseries view.</td>
         <td>Alert payload schema agreed with Release Engineering; end-to-end page-fire test in pre-prod ring; deep links resolve in &lt;5 sec</td>
         <td>Honors existing on-call routing per team</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
-        <td>R-11</td>
+        <td>R-14</td>
         <td>Subscription-level isolation per scenario family (Windows, Office, Bing, Edge, Xbox, Teams, Copilot). Independent compute pools, independent cost attribution, independent SLA dashboards.</td>
         <td>Per-tenant cost dashboard live at GA; noisy-neighbor isolation verified via injected load tests</td>
         <td>Direct lift from NRT High-Level Flow architecture (Slide 6)</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td>
-        <td>R-12</td>
+        <td>R-15</td>
         <td>"Shadow mode" for the first 90 days per onboarded tenant: anytime-valid alerts are computed and logged but do not page on-call. Owners review the logs and explicitly graduate to paging.</td>
         <td>Shadow-mode toggle per tenant; graduation runbook published; no on-call page fires from a tenant in shadow mode</td>
         <td>Critical mitigation for alert fatigue (Risk 2)</td>
       </tr>
       <tr>
         <td><span class="badge badge-p1">P1</span></td>
-        <td>R-13</td>
+        <td>R-16</td>
         <td>Bernoulli and Poisson counting-process anytime-valid tests for crash, hang, error-rate, sign-in-failure metrics &mdash; closed-form constructions from the same methodological family.</td>
         <td>Reference implementations + unit tests; back-tested on a curated set of 20 historical Microsoft regressions</td>
         <td>Extends R-04 to discrete families</td>
       </tr>
       <tr>
         <td><span class="badge badge-p1">P1</span></td>
-        <td>R-14</td>
+        <td>R-17</td>
         <td>Back-test / replay mode &mdash; analysts can replay any historical experiment through the anytime-valid pipeline and inspect what T2D would have been.</td>
         <td>Replays a 30-day historical experiment in &leq;5 min wall-clock; matches live results when same parameters are used</td>
         <td>Critical for analyst trust + prior-tuning workflows</td>
       </tr>
       <tr>
         <td><span class="badge badge-p1">P1</span></td>
-        <td>R-15</td>
+        <td>R-18</td>
         <td>Mixture-prior configuration per metric &mdash; sensible global default (normal mixture matched to typical Microsoft effect sizes), with per-metric and per-tenant overrides for power users.</td>
-        <td>Default prior published with rationale; override path documented; back-test mode (R-14) lets owners compare priors</td>
+        <td>Default prior published with rationale; override path documented; back-test mode (R-17) lets owners compare priors</td>
         <td>Owned jointly with Data Science</td>
       </tr>
       <tr>
         <td><span class="badge badge-p1">P1</span></td>
-        <td>R-16</td>
+        <td>R-19</td>
         <td>One-click rollback / flight-pause action from a fired alert &mdash; calls the existing ExP Flight Mgmt API with the experiment ID and a structured reason ("anytime-valid threshold crossing on metric X").</td>
         <td>API contract signed with Flight Mgmt; one-click pause verified end-to-end in pre-prod; audit-logged</td>
         <td></td>
       </tr>
       <tr>
         <td><span class="badge badge-p1">P1</span></td>
-        <td>R-17</td>
+        <td>R-20</td>
         <td>Quantile-treatment-effect view for latency p95/p99 metrics, following the Netflix approach.</td>
         <td>Quantile bands render alongside the mean band; methodology peer-reviewed</td>
         <td>Latency is a top safety concern for Bing/Edge/Teams</td>
       </tr>
       <tr>
         <td><span class="badge badge-p2">P2</span></td>
-        <td>R-18</td>
+        <td>R-21</td>
         <td>Per-team "Anytime-Valid Health" weekly digest &mdash; metrics monitored, alerts fired, rollbacks executed, false-rollback estimates.</td>
         <td>Digest sent Monday 8 AM local; user can unsubscribe; rendered in &lt;30 sec</td>
         <td>V1.1 candidate</td>
       </tr>
       <tr>
         <td><span class="badge badge-p2">P2</span></td>
-        <td>R-19</td>
+        <td>R-22</td>
         <td>Public internal API surface so partner systems (Mission Control, Shiproom, FlightOps, Branch Health) can subscribe to anytime-valid signals.</td>
         <td>OpenAPI spec published; at least 2 partner integrations live within 90 days of GA</td>
         <td>Mirrors NRT scenarios (Slide 2)</td>
       </tr>
       <tr>
         <td><span class="badge badge-p2">P2</span></td>
-        <td>R-20</td>
+        <td>R-23</td>
         <td>Education and documentation surface embedded in the dashboard &mdash; short explainers of confidence sequences, sequential <em>p</em>-values, and the mixture prior, plus links to the source papers.</td>
         <td>In-product tooltips + "Learn more" panel; office-hours schedule published; analyst certification optional but available</td>
         <td>Critical for trust + correct interpretation</td>
@@ -638,7 +663,7 @@
 
   <h3>UX Flow</h3>
   <div class="ux-flow">
-    Experiment Created in ExP &rarr; Owner enables "Anytime-Valid Monitor" toggle, selects guardrail metrics &rarr; Treatment ramps begin &rarr; Events stream through NRT pipeline (Vortex &rarr; AKS &rarr; Synapse &rarr; Kusto &rarr; Fabric, &leq;15 min E2E) &rarr; Confidence sequences refresh every micro-batch &rarr; Live dashboard updates &rarr; On threshold crossing (plus hold-time): ICM page fires &rarr; On-call opens dashboard, reviews evidence, clicks "Pause Flight" &rarr; Post-incident: replay timeline shows exact crossing moment + transcript<br><br>
+    Experiment Created in ExP &rarr; Owner enables "Anytime-Valid Monitor" toggle, selects guardrail metrics &rarr; Treatment ramps begin &rarr; Events stream through NRT pipeline (Vortex &rarr; AKS &rarr; Synapse &rarr; Kusto &rarr; Fabric, &leq;4 hr E2E) &rarr; Cumulative per-arm counts refresh in the materialized view &rarr; Inference recomputes on the hourly schedule and appends to the p-value history &rarr; Live dashboard updates &rarr; On threshold crossing (plus hold-time): ICM page fires &rarr; On-call opens dashboard, reviews evidence, clicks "Pause Flight" &rarr; Post-incident: replay timeline shows exact crossing moment + transcript<br><br>
     <small>Figma link placeholder: <a href="#">figma.com/file/anytime-valid-exp-v1</a> &middot; Architecture diagram placeholder &middot; Mock pack to be linked here pre-design review</small>
   </div>
 
@@ -656,7 +681,7 @@
   <h3>Edge Cases &amp; Empty States</h3>
   <ul>
     <li><strong>Insufficient power:</strong> render bands with a watermark "Power building &mdash; confidence sequence width still 4&times; actionable threshold. Projected to tighten in ~6 hours at current event rate." Alerts suppressed automatically.</li>
-    <li><strong>Pipeline lag / stale inference:</strong> if measured E2E latency exceeds the 15-min SLA, show a banner "Live inference delayed &mdash; last update [N] min ago" and suppress new alerts until the lag clears, to prevent stale-data pages.</li>
+    <li><strong>Pipeline lag / stale inference:</strong> if measured E2E latency exceeds the 4-hour SLA, show a banner "Live inference delayed &mdash; data current as of [T], [N] hrs behind" and suppress new alerts until the lag clears, to prevent stale-data pages. Every readout carries an explicit "data as of" timestamp rather than a relative "live" label, so users are never misled about telemetry freshness.</li>
     <li><strong>Metric not eligible:</strong> not every metric maps to a known anytime-valid family. Show "This metric is not yet enabled for anytime-valid monitoring &mdash; [Request enablement]" with a link to ExP Onboarding.</li>
     <li><strong>A/A regime:</strong> if the experiment is a sanity A/A, show "Monitoring A/A &mdash; expect time-uniform coverage; alerts disabled by default" and surface a coverage-tracking widget useful for self-validation.</li>
     <li><strong>Tenant in shadow mode:</strong> dashboard renders fully, alerts are computed and logged, but the "page on-call" channel is muted. A persistent yellow banner reads "Shadow mode &mdash; no pages will fire from this tenant. Graduate when ready."</li>
@@ -681,7 +706,7 @@
   <h3>Open Questions</h3>
   <div class="question-card">
     <div class="q-title">Q1: Mixture-prior default &mdash; uniform vs. matched-to-historical effect distribution?</div>
-    <p>The mixture prior on the alternative effect distribution directly controls power and T2D. A uniform prior is the safest theoretical default; a prior matched to the historical Microsoft effect-size distribution recovers the Netflix-style ~50% sample-size savings. For the count-data construction we now have a concrete internal anchor: WExP parameterize the prior as &alpha;&#8320;&nbsp;=&nbsp;&kappa;&theta;&#8320; pseudo-counts and operate around <strong>&kappa;&nbsp;&asymp;&nbsp;50</strong>, which down-weights early sparse observations and shortens stopping time under small departures from the null. Their A/A work also showed false-positive control held across the full &kappa; range they tested, so &kappa; is a power/latency tuning knob rather than a correctness one. <strong>Owner:</strong> dalyds + ExP Data Science. <strong>Current leaning:</strong> start from the WExP &kappa; rather than a fresh sweep, validate on ASHA A/A traffic, expose per-metric overrides in V1.1.</p>
+    <p>The mixture prior on the alternative effect distribution directly controls power and T2D. A uniform prior is the safest theoretical default; a prior matched to the historical Microsoft effect-size distribution recovers the Netflix-style ~50% sample-size savings. For the count-data construction we now have concrete internal anchors &mdash; but they disagree, and that disagreement is the actual question. WExP parameterize the prior as &alpha;&#8320;&nbsp;=&nbsp;&kappa;&theta;&#8320; pseudo-counts; their Exp Champs deck operates around <strong>&kappa;&nbsp;&asymp;&nbsp;50</strong>, while their implementation design document offers <strong>"e.g. can use the value 2"</strong> and separately illustrates the tradeoff with values of 1 and 100. The intuition is stated plainly in the design doc: at a pseudo-count of 100, ten failures in one arm compares 110 against 100 &mdash; barely a signal; at a pseudo-count of 1, the same data compares 11 against 1. Larger &kappa; buys robustness against early sparse noise at the cost of detection speed. Critically, their A/A work showed false-positive control held across the whole range tested, so <strong>&kappa; is a power/latency tuning knob rather than a correctness one</strong> &mdash; which means we can tune it against ASHA's own event volume instead of inheriting a number. <strong>Owner:</strong> dalyds + ExP Data Science. <strong>Current leaning:</strong> resolve the 2-vs-50 discrepancy with WExP directly, then calibrate on ASHA A/A traffic rather than adopting either value blind; expose per-metric overrides in V1.1.</p>
   </div>
   <div class="question-card">
     <div class="q-title">Q2: When should anytime-valid be the default vs. opt-in?</div>
@@ -697,13 +722,14 @@
   </div>
   <div class="question-card">
     <div class="q-title">Q5: Analyst education &mdash; what is the minimum training/documentation we must ship?</div>
-    <p>Anytime-valid <em>p</em>-values and confidence sequences behave differently from fixed-<em>n</em> &mdash; e.g., naively applying a Bonferroni correction on top of a sequential <em>p</em>-value over-corrects and destroys power. Without explicit guidance, sophisticated users will misinterpret outputs in subtle ways. <strong>Owner:</strong> dalyds + ExP DX. <strong>Strawman:</strong> ship an in-product explainer (R-20), an internal whitepaper, and host bi-weekly office hours for the first 6 months post-GA.</p>
+    <p>Anytime-valid <em>p</em>-values and confidence sequences behave differently from fixed-<em>n</em> &mdash; e.g., naively applying a Bonferroni correction on top of a sequential <em>p</em>-value over-corrects and destroys power. Without explicit guidance, sophisticated users will misinterpret outputs in subtle ways. <strong>Owner:</strong> dalyds + ExP DX. <strong>Strawman:</strong> ship an in-product explainer (R-23), an internal whitepaper, and host bi-weekly office hours for the first 6 months post-GA.</p>
   </div>
   <div class="question-card">
     <div class="q-title">Q6: SRM detection &mdash; supplement or replace today's offline SRM checks?</div>
     <p>ExP already runs offline SRM checks on closed experiments. The anytime-valid multinomial test (R-05) catches SRMs live during ramp. Open question: do we deprecate the offline check, run both for a transition period, or treat them as complementary indefinitely? <strong>Owner:</strong> ExP Trustworthiness + dalyds.</p>
   </div>
-  <div class="question-card">
+
+  <div class="question-card">
     <div class="q-title">Q7: What is the actual regression-onset-to-rollback baseline today?</div>
     <p>The goals cite a ~12&ndash;24 hour detection window, derived from the daily Scorecard cadence rather than measured. A once-daily readout implies roughly half a day of expected detection latency by construction, but the real distribution &mdash; including how long owners take to act once they see the signal &mdash; has not been established. Without it, the headline "~98% reduction" is arithmetic on an assumed baseline. <strong>Owner:</strong> IDEAS DS. <strong>Current leaning:</strong> Measure onset-to-rollback on a sample of historical safety rollbacks before review; if human reaction time dominates pipeline latency, then faster detection alone will not deliver the promised improvement and the spec needs an action-loop requirement, not just an inference one.</p>
   </div>
@@ -711,19 +737,23 @@
     <div class="q-title">Q8: How do we define and measure the false-alert rate without ground truth?</div>
     <p>WExP defines a false alert as a p-value dropping below threshold at some point and then returning above it and staying there through the end of the analysis period &mdash; and openly question whether that definition is too strict, whether it is confounded by genuine time effects, and note plainly that <em>they do not know the ground truth</em>. A recovered signal may be a false positive, or a real transient regression that self-resolved, and the data cannot distinguish them. We inherit this problem exactly. <strong>Owner:</strong> IDEAS DS with WExP. <strong>Current leaning:</strong> Adopt the WExP definition for comparability rather than inventing our own, report it alongside the A/A false-positive rate (R-03) which <em>does</em> have ground truth, and be explicit in the dashboard that the two numbers measure different things.</p>
   </div>
+  <div class="question-card">
+    <div class="q-title">Q9: What multiplicity correction applies across treatment arms, and does it compose with a sequential p-value?</div>
+    <p>R-09 takes the minimum p-value across pairwise treatment-vs-control comparisons as the headline. Taking a minimum over K comparisons is anti-conservative and needs correction &mdash; but the standard corrections were designed for fixed-<em>n</em> p-values, and it is not automatic that they compose correctly with an anytime-valid p-value that is itself a running minimum over time. We would be taking a minimum over arms of a quantity that is already a minimum over time. WExP's design doc notes the need for a correction without settling the method. <strong>Owner:</strong> ExP Data Science with WExP. <strong>Current leaning:</strong> a closed testing or e-value merging approach is more likely to be correct here than Bonferroni-on-top, since e-processes combine multiplicatively in ways p-values do not &mdash; but this needs a statistician's ruling, not a PM's. Until it is resolved, restrict V1 alerting to two-arm experiments and surface multi-arm results as read-only. See also Risk 5.</p>
+  </div>
 
   <h3>Risks</h3>
   <div class="risk-card">
     <div class="risk-title">Risk 1 &mdash; Mis-tuned prior under-detects real regressions (slow T2D)</div>
-    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> Medium. If the chosen mixture prior puts too much mass on small effects, genuinely large regressions take longer than expected to detect &mdash; partially negating the headline T2D win. <strong>Mitigation:</strong> (1) Empirically benchmark the chosen prior against a curated set of historical Windows/Office/Bing/Edge safety incidents and publish per-domain power curves; (2) Ship back-test mode (R-14) so owners can validate priors on their own incident history; (3) Ship per-metric override path (R-15) from V1 so tenants are never stuck with a bad default.</p>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> Medium. If the chosen mixture prior puts too much mass on small effects, genuinely large regressions take longer than expected to detect &mdash; partially negating the headline T2D win. <strong>Mitigation:</strong> (1) Empirically benchmark the chosen prior against a curated set of historical Windows/Office/Bing/Edge safety incidents and publish per-domain power curves; (2) Ship back-test mode (R-17) so owners can validate priors on their own incident history; (3) Ship per-metric override path (R-18) from V1 so tenants are never stuck with a bad default.</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 2 &mdash; Alert fatigue on Release Engineering</div>
-    <p><strong>Likelihood:</strong> High &middot; <strong>Impact:</strong> High. Putting anytime-valid alerts on every guardrail across hundreds of concurrent ExP flights risks paging Release Engineering dozens of times per day, eroding trust in the system. <strong>Mitigation:</strong> (1) Mandatory 90-day shadow mode per tenant (R-12) &mdash; alerts logged but no pages until owners explicitly graduate; (2) Minimum-effect-size filters per metric so trivially-small "true" effects don't page; (3) Configurable hold-time so the band must stay crossed for N minutes before paging; (4) Per-team digest (R-18) gives owners visibility into alert volume before they go live.</p>
+    <p><strong>Likelihood:</strong> High &middot; <strong>Impact:</strong> High. Putting anytime-valid alerts on every guardrail across hundreds of concurrent ExP flights risks paging Release Engineering dozens of times per day, eroding trust in the system. <strong>Mitigation:</strong> (1) Mandatory 90-day shadow mode per tenant (R-15) &mdash; alerts logged but no pages until owners explicitly graduate; (2) Minimum-effect-size filters per metric so trivially-small "true" effects don't page; (3) Configurable hold-time so the band must stay crossed for N minutes before paging; (4) Per-team digest (R-21) gives owners visibility into alert volume before they go live.</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 3 &mdash; NRT pipeline reliability is a single point of failure</div>
-    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> High. The RAM/NRT pipeline capacity is finite, and an outage in the NRT path silently breaks live inference. <strong>Mitigation:</strong> (1) Hard SLA + active monitoring on E2E latency (R-06); (2) Stale-data banner + automatic alert suppression on lag (Section 5 edge cases); (3) Graceful fallback to "last known Scorecard" view so the dashboard never goes blank; (4) Joint capacity planning agreement with RAM team and explicit cost attribution per ExP tenant (R-11).</p>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> High. The RAM/NRT pipeline capacity is finite, and an outage in the NRT path silently breaks live inference. <strong>Mitigation:</strong> (1) Hard SLA + active monitoring on E2E latency (R-06); (2) Stale-data banner + automatic alert suppression on lag (Section 5 edge cases); (3) Graceful fallback to "last known Scorecard" view so the dashboard never goes blank; (4) Joint capacity planning agreement with RAM team and explicit cost attribution per ExP tenant (R-14).</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 4 &mdash; Methodological resistance from senior analysts and data scientists</div>
@@ -731,18 +761,22 @@
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 5 &mdash; Privacy &amp; sovereign-tenant compliance review</div>
-    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> High. Moving event-level telemetry into a lower-latency pipeline may surface new data-residency or compliance questions, particularly for EU sovereign and government tenants. <strong>Mitigation:</strong> (1) Inherit ExP's existing data classification and residency model unchanged in V1 &mdash; introduce no new data classes; (2) Engage Privacy + EU sovereign compliance early in design; (3) Ship per-region / per-tenant pipeline isolation as part of R-11 so sovereign tenants can be carved out cleanly; (4) Make "no live inference" a supported configuration so a tenant can opt out entirely if compliance can't clear.</p>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> High. Moving event-level telemetry into a lower-latency pipeline may surface new data-residency or compliance questions, particularly for EU sovereign and government tenants. <strong>Mitigation:</strong> (1) Inherit ExP's existing data classification and residency model unchanged in V1 &mdash; introduce no new data classes; (2) Engage Privacy + EU sovereign compliance early in design; (3) Ship per-region / per-tenant pipeline isolation as part of R-14 so sovereign tenants can be carved out cleanly; (4) Make "no live inference" a supported configuration so a tenant can opt out entirely if compliance can't clear.</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 6 &mdash; Over-fitting to safety/canary; experiment-call use case left underserved</div>
     <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> Medium. V1 is explicitly scoped to safety/canary detection. PMs and DSes asking "can I call my experiment early?" will want similar tooling soon after &mdash; without a clear V1.5+ roadmap the platform risks looking incomplete. <strong>Mitigation:</strong> (1) Architect the inference engine and dashboard so experiment-call workflows reuse 90%+ of V1; (2) Document a public V1.5 roadmap entry for "Anytime-Valid Experiment Call" alongside V1 launch; (3) Run early experiment-call pilots on willing teams during V1 GA window to de-risk the V1.5 design.</p>
   </div>
   <div class="risk-card">
-    <div class="risk-title">Risk 7 &mdash; The &leq;15 min latency goal is faster than the only working Microsoft implementation</div>    <p><strong>Likelihood:</strong> High &middot; <strong>Impact:</strong> High. This spec targets a &leq;15 min end-to-end SLA (R-06) and a &lt;15 min T2D. WExP &mdash; who have actually built this &mdash; report <strong>~50&ndash;60 minutes</strong> from device telemetry to a statistic surfacing in Mission Control, against source data that already lands in ~30 minutes. The inference math is not the bottleneck; data arrival and pipeline hops are. Committing publicly to a target 3&ndash;4&times; better than the working reference implementation, without having built the pipeline, is how a spec loses credibility in review. <strong>Mitigation:</strong> (1) Treat &leq;15 min as an <em>aspiration contingent on source-data latency</em>, not a commitment, until an IDEAS-side latency budget is measured end to end; (2) Ask WExP directly where their 50&ndash;60 minutes is spent before designing ours &mdash; that breakdown is the single highest-value input available; (3) Set the V1 SLA from the measured ASHA telemetry arrival time plus a defensible processing budget; (4) Recognize that even 60 minutes is a large improvement over a daily cadence &mdash; the value case does not depend on hitting 15.</p>
+    <div class="risk-title">Risk 7 &mdash; The latency floor is set by data arrival, not by inference, and ASHA's floor may move</div>    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> High. The V1 target is a &leq;4 hour end-to-end readout recomputed hourly (R-06), built on an assumed <strong>~3 hour ASHA speed-of-light</strong>. That leaves roughly one hour of headroom for every hop after ingestion &mdash; materialized-view refresh, inference, alert evaluation, and delivery. WExP's shipping implementation spends ~50&ndash;60 minutes on those same downstream hops against source data arriving in ~30 minutes, which means our entire non-ingestion budget is approximately equal to what the reference implementation actually consumes, with no margin. If the ASHA floor is worse than 3 hours in the tail, or if our pipeline is any slower than WExP's, the 4-hour SLA breaches on arrival. Note also that the inference math is not the bottleneck in either system and never will be. <strong>Mitigation:</strong> (1) Measure the ASHA arrival-time distribution &mdash; P50, P95 and P99, not a headline number &mdash; before committing the SLA, since a 3-hour median with a 9-hour tail is a very different product; (2) Ask WExP for the breakdown of their 50&ndash;60 minutes, which is the single highest-value input available and tells us directly whether a 1-hour downstream budget is realistic; (3) State the SLA against P95 rather than median so the tail is governed rather than hidden; (4) Preserve the value case if the budget slips &mdash; even a 6-hour readout recomputed hourly is a large improvement over a once-daily Scorecard, so the case does not depend on hitting 4.</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 8 &mdash; Anytime-valid results will disagree with the Scorecard, and that erodes trust</div>
     <p><strong>Likelihood:</strong> High &middot; <strong>Impact:</strong> High. WExP is living this today. Their documented sources of disagreement: data-pipeline timing and code differences; <strong>a multinomial test against the Scorecard's Welch t-test</strong>; comparing <em>counts</em> versus comparing proportions or means; differing null-handling and aggregation rules; and nonstationarity / time effects. Their own framing of the open question is "two views on reality? Or is one method more correct?" &mdash; which is exactly the conversation a Feature Crew will start the first time the two surfaces disagree during a ramp. <strong>Mitigation:</strong> (1) Publish the disagreement taxonomy <em>before</em> launch so it reads as understood rather than discovered; (2) Prefer test constructions that match Scorecard aggregation where possible &mdash; Johari et al. (2015) gives an anytime-valid test for a difference in Bernoulli probabilities that operates on means and would reduce structural disagreement, at the cost of relying on asymptotics and needing adequate sample size; (3) Resolve the system-of-record policy (Q3) before any alert can pause a flight; (4) Instrument disagreement rate as a first-class metric rather than treating each instance as an incident.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 9 &mdash; Out-of-order streaming updates silently corrupt the sequential test</div>
+    <p><strong>Likelihood:</strong> Medium &middot; <strong>Impact:</strong> High. This is not a hypothetical &mdash; it is a documented failure WExP already hit. Their design doc records a family of Kusto approaches that had to be abandoned: <em>"it's tricky to get update policies to work in order. The updates don't happen in a guaranteed order, so we observe non-monotonic counts of failures."</em> This matters more for a sequential test than for a batch one. An anytime-valid p-value is the running minimum of an e-process over a filtration that is assumed to grow monotonically; if cumulative counts move backwards, the process is no longer an e-process on the observed sequence and the Type-I guarantee &mdash; the entire reason for adopting the method &mdash; quietly stops holding. Worse, it fails <em>silently</em>: the dashboard still renders a p-value, and it still looks reasonable. <strong>Mitigation:</strong> (1) Adopt WExP's landing pattern (R-07) rather than re-attempting the ordering-dependent designs they abandoned, and treat their negative result as a finding we do not need to reproduce; (2) Assert monotonicity of cumulative counts on every evaluation and alert on violation rather than trusting it; (3) Because the p-value is a running minimum, a corrupted low value is <em>sticky</em> &mdash; define and test the repair path for retracting a published minimum, since "recompute and move on" is not available; (4) Confirm ASHA's ingestion path has the same ordering characteristics before onboarding, since a different pipeline may fail differently.</p>
   </div>
 </div><!-- end section -->
 </div><!-- end .content -->
