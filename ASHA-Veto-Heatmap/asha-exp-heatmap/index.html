@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASHA Exp Heatmap — Experiments | Assistant Workspace | AskIDEAS</title>
+<style>
+  :root{
+    --header:#292929; --page:#f1f5f9; --card:#fff; --line:#e2e8f0; --line2:#cbd5e1;
+    --ink:#1e293b; --muted:#64748b; --blue:#2563eb; --blue-soft:#eff6ff;
+    --red:#d13438; --red-2:#e86c70; --red-soft:#fef2f2;
+    --green:#107c10; --green-2:#5cb85c; --green-soft:#f0fdf4;
+    --amber:#f7a428; --amber-soft:#fffbeb;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--page);color:var(--ink);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+
+  /* chrome */
+  .topbar{background:var(--header);color:#fff;height:48px;display:flex;align-items:center;
+    gap:16px;padding:0 16px;position:sticky;top:0;z-index:60;}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;}
+  .brand .logo{width:22px;height:22px;border-radius:5px;
+    background:linear-gradient(135deg,#f2c94c,#eb5757,#2f80ed);}
+  .search{flex:0 1 560px;margin:0 auto;background:#fff;border-radius:20px;height:30px;
+    display:flex;align-items:center;padding:0 14px;color:#94a3b8;font-size:12.5px;}
+  .topright{display:flex;align-items:center;gap:10px;font-size:12px;}
+  .copilot-btn{background:#3b3b3b;border:1px solid #4b4b4b;border-radius:16px;padding:5px 12px;
+    display:flex;align-items:center;gap:6px;font-weight:600;}
+  .avatar{width:26px;height:26px;border-radius:50%;background:#6b7280;display:flex;
+    align-items:center;justify-content:center;font-size:11px;font-weight:600;}
+
+  .shell{display:flex;}
+  .rail{width:50px;background:#fff;border-right:1px solid var(--line);min-height:calc(100vh - 48px);
+    display:flex;flex-direction:column;align-items:center;padding-top:14px;gap:20px;
+    position:sticky;top:48px;height:calc(100vh - 48px);}
+  .rail i{width:20px;height:20px;border-radius:4px;background:#cbd5e1;display:block;}
+  .rail i.on{background:var(--blue);}
+  .content{flex:1;min-width:0;padding:16px 20px 60px;}
+
+  h1{font-size:20px;font-weight:600;margin:4px 0 14px;}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:8px;}
+
+  /* filter bar */
+  .filters{display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:10px 14px;
+    margin-bottom:12px;justify-content:flex-end;font-size:12px;}
+  .fg{display:flex;align-items:center;gap:6px;}
+  .fg label{text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:600;font-size:11px;}
+  .fg select,.fg input[type=date]{border:1px solid var(--line2);border-radius:5px;padding:4px 7px;
+    font-size:12px;background:#fff;color:var(--ink);}
+  .seg{display:flex;border:1px solid var(--line2);border-radius:16px;overflow:hidden;}
+  .seg button{border:0;background:#fff;padding:4px 12px;font-size:12px;cursor:pointer;color:var(--ink);}
+  .seg button.on{background:var(--blue);color:#fff;}
+
+  /* tabs */
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;padding:12px 14px;margin-bottom:12px;}
+  .tab{border:1px solid var(--line2);background:#fff;border-radius:999px;padding:4px 12px;
+    font:500 12.5px/15px inherit;color:var(--ink);cursor:pointer;white-space:nowrap;}
+  .tab:hover{background:var(--blue-soft);border-color:var(--blue);}
+  .tab.on{background:var(--blue);border-color:var(--blue);color:#fff;}
+  .tab.new{border-style:dashed;border-color:var(--blue);color:var(--blue);font-weight:600;}
+  .tab.new.on{border-style:solid;color:#fff;}
+
+  /* prototype banner */
+  .proto{background:#fff8c5;border:1px solid #d4a72c;border-radius:8px;padding:10px 14px;
+    margin-bottom:12px;font-size:12.5px;display:flex;gap:10px;align-items:flex-start;}
+  .proto b{display:block;margin-bottom:2px;}
+
+  /* KPI */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;}
+  .kpi .lab{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;}
+  .kpi .val{font-size:22px;font-weight:700;margin:3px 0 5px;}
+  .chip{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;}
+  .chip.bad{background:var(--red-soft);color:var(--red);}
+  .chip.good{background:var(--green-soft);color:var(--green);}
+  .chip.warn{background:var(--amber-soft);color:#b45309;}
+  .chip.flat{background:#f1f5f9;color:var(--muted);}
+
+  /* section */
+  .sec{padding:14px;margin-bottom:12px;}
+  .sec h3{font-size:15px;font-weight:700;margin:0 0 3px;}
+  .sec .sub{font-size:12px;color:var(--muted);margin-bottom:12px;}
+
+  .ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px;font-size:12px;}
+  .ctl input[type=search]{border:1px solid var(--line2);border-radius:5px;padding:5px 9px;
+    font-size:12px;min-width:210px;}
+  .ctl select{border:1px solid var(--line2);border-radius:5px;padding:5px 7px;font-size:12px;background:#fff;}
+  .ctl label.cb{display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--ink);}
+
+  /* heatmap */
+  .hm-wrap{overflow:auto;border:1px solid var(--line);border-radius:8px;max-height:640px;}
+  table.hm{border-collapse:separate;border-spacing:0;font-size:12px;width:100%;}
+  table.hm th,table.hm td{padding:0;}
+  .hm .exp-h,.hm .exp{position:sticky;left:0;z-index:5;background:#fff;
+    border-right:2px solid var(--line2);}
+  .hm thead th{position:sticky;top:0;z-index:6;background:#f8fafc;
+    border-bottom:1px solid var(--line2);}
+  .hm thead th.exp-h{z-index:8;background:#f8fafc;}
+  .hm thead tr.pill-row th{border-bottom:1px solid var(--line);font-size:11px;
+    text-transform:uppercase;letter-spacing:.6px;font-weight:700;padding:7px 6px;text-align:center;}
+  .pil-boot{color:#7c3aed;background:#f5f3ff !important;}
+  .pil-chat{color:#0369a1;background:#f0f9ff !important;}
+  .pil-intr{color:#b45309;background:#fffbeb !important;}
+  .hm thead tr.met-row th{height:132px;vertical-align:bottom;padding:0 0 7px;}
+  .hm thead tr.met-row th .lbl{writing-mode:vertical-rl;transform:rotate(180deg);
+    font-weight:600;font-size:11px;color:var(--ink);white-space:nowrap;margin:0 auto;
+    max-height:120px;overflow:hidden;}
+  .hm td.cell{min-width:42px;height:42px;text-align:center;vertical-align:middle;
+    border-bottom:1px solid #f1f5f9;border-right:1px solid #f8fafc;}
+  .hm tbody tr:hover td{background:#fafcff;}
+  .hm tbody tr:hover td.exp{background:#f1f6ff;}
+  .sq{display:inline-block;border-radius:3px;cursor:pointer;transition:transform .08s,outline .08s;
+    outline:0 solid transparent;vertical-align:middle;}
+  .sq:hover{transform:scale(1.18);outline:2px solid var(--ink);}
+  .sq.sel{outline:2.5px solid var(--blue);transform:scale(1.15);}
+  .sq.none{width:5px;height:5px;border-radius:50%;background:#e2e8f0;cursor:default;}
+  .sq.none:hover{transform:none;outline:0;}
+  .exp{padding:6px 10px !important;min-width:280px;max-width:340px;}
+  .exp .nm{font-weight:600;font-size:12px;line-height:1.3;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap;}
+  .exp .meta{font-size:10.5px;color:var(--muted);margin-top:2px;display:flex;gap:6px;align-items:center;}
+  .exp-h{padding:8px 10px !important;text-align:left !important;font-size:11px;
+    text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;}
+  tr.tot td{border-top:2px solid var(--line2);background:#f8fafc !important;font-weight:600;}
+  tr.tot td.exp{background:#f8fafc !important;}
+
+  /* legend */
+  .legend{display:flex;flex-wrap:wrap;gap:26px;margin-top:14px;padding-top:13px;
+    border-top:1px solid var(--line);font-size:11.5px;}
+  .legend .grp b{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--muted);margin-bottom:7px;}
+  .legend .row{display:flex;align-items:center;gap:9px;}
+  .legend .row span{display:flex;align-items:center;gap:5px;}
+  .sw{width:14px;height:14px;border-radius:3px;display:inline-block;}
+
+  /* drawer */
+  .drawer{position:fixed;top:0;right:0;width:390px;height:100vh;background:#fff;
+    border-left:1px solid var(--line2);box-shadow:-6px 0 22px rgba(15,23,42,.14);
+    transform:translateX(100%);transition:transform .22s;z-index:80;overflow-y:auto;padding:18px;}
+  .drawer.open{transform:translateX(0);}
+  .drawer h4{margin:0 0 3px;font-size:15px;}
+  .drawer .close{position:absolute;top:12px;right:14px;border:0;background:#f1f5f9;
+    border-radius:5px;width:26px;height:26px;cursor:pointer;font-size:15px;color:var(--muted);}
+  .dl{margin:14px 0 0;font-size:12.5px;}
+  .dl div{display:flex;justify-content:space-between;gap:12px;padding:7px 0;
+    border-bottom:1px solid #f1f5f9;}
+  .dl dt{color:var(--muted);}
+  .dl dd{margin:0;font-weight:600;text-align:right;}
+  .drawer .note{background:#fff8c5;border:1px solid #d4a72c;border-radius:6px;
+    padding:9px 11px;font-size:11.5px;margin-top:14px;}
+  .mini{height:44px;display:flex;align-items:flex-end;gap:3px;margin-top:8px;}
+  .mini i{flex:1;background:#cbd5e1;border-radius:2px 2px 0 0;display:block;}
+
+  /* rank lists */
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:1100px){.two{grid-template-columns:1fr;}}
+  table.rank{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.rank th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line);}
+  table.rank td{padding:7px 8px;border-bottom:1px solid #f1f5f9;vertical-align:top;}
+  table.rank td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  table.rank tr:hover td{background:#fafcff;cursor:pointer;}
+  .bar{height:5px;border-radius:3px;margin-top:4px;}
+  .tag{font-size:10px;color:var(--muted);}
+  .hidden{display:none !important;}
+
+  /* experiment filter bar */
+  .fbar{display:flex;align-items:center;flex-wrap:wrap;gap:11px;background:#eff6ff;
+    border:1px solid #bfdbfe;border-left:4px solid var(--blue);border-radius:8px;
+    padding:11px 15px;margin-bottom:12px;font-size:12.5px;}
+  .fbar .fl-lab{color:var(--muted);text-transform:uppercase;font-size:10.5px;
+    letter-spacing:.6px;font-weight:700;}
+  .fbar .fl-name{font-weight:700;font-size:13.5px;}
+  .fbar .fl-meta{color:var(--muted);}
+  .fbar .fl-x{margin-left:auto;border:1px solid var(--line2);background:#fff;
+    border-radius:5px;padding:4px 11px;font-size:12px;cursor:pointer;color:var(--ink);}
+  .fbar .fl-x:hover{background:var(--blue);border-color:var(--blue);color:#fff;}
+  .hm td.exp{cursor:pointer;}
+  .hm tr.rowsel td{background:#eff6ff !important;}
+  .hm tr.rowsel td.exp{background:#dbeafe !important;box-shadow:inset 3px 0 0 var(--blue);}
+  footer{color:var(--muted);font-size:11.5px;text-align:center;margin-top:26px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="logo"></span> AskIDEAS</div>
+  <div class="search">🔍&nbsp; Try searching for 'Copilot Usage'</div>
+  <div class="topright">
+    <span class="copilot-btn">✨ IDEAS Copilot</span>
+    <span>🔔</span><span>❓</span>
+    <span class="avatar">DU</span>
+  </div>
+</div>
+
+<div class="shell">
+  <div class="rail">
+    <i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i>
+  </div>
+
+  <div class="content">
+    <h1>Assistant Workspace</h1>
+
+    <!-- filter bar (mirrors existing report chrome) -->
+    <div class="panel filters">
+      <div class="fg"><label>Date:</label><select><option>Aug 10, 2026</option><option>Aug 9, 2026</option></select></div>
+      <div class="fg"><label>View:</label>
+        <div class="seg"><button>Daily</button><button class="on">Weekly</button><button>Monthly</button></div>
+      </div>
+      <div class="fg"><label>App:</label><select><option>Unified App (all surfaces)</option><option>All</option></select></div>
+      <div class="fg"><label>Platform:</label><select><option>All</option><option>Web</option><option>Win32</option><option>Mac</option><option>iOS</option><option>Android</option></select></div>
+      <div class="fg"><label>MSFT Tenant:</label><select><option>External</option><option>Internal (MSFT)</option><option>All</option></select></div>
+      <div class="fg"><label>Region:</label><select><option>All Geos</option></select></div>
+    </div>
+
+    <!-- tab strip: new Experiments tab -->
+    <div class="panel tabs">
+      <button class="tab">📊 Summary</button>
+      <button class="tab">📈 Trends</button>
+      <button class="tab">👥 Engagement</button>
+      <button class="tab">✅ Tasks</button>
+      <button class="tab">📋 Turns</button>
+      <button class="tab">📊 Tokens</button>
+      <button class="tab">🔧 Tools</button>
+      <button class="tab">💬 Sentiment</button>
+      <button class="tab">❤️ Health</button>
+      <button class="tab new on">🧪 Experiments</button>
+      <button class="tab">🌍 Geography</button>
+      <button class="tab">🔄 Retention</button>
+      <button class="tab">🤖 Agent Comparison</button>
+      <button class="tab">🏢 Tenants</button>
+      <button class="tab">🚀 Growth Analysis</button>
+      <button class="tab">📖 Glossary</button>
+    </div>
+
+    <div class="proto">
+      <span style="font-size:16px">⚠️</span>
+      <div>
+        <b>Prototype — all impact values on this page are synthetic placeholders.</b>
+        This is a public design demo. The experiment names, products and organisations shown are fictional. Every delta, p-value, user count and ship signal below is
+        <strong>randomly generated mock data for layout review only</strong> and must not be read as
+        a real quality signal. The veto structure is representative of an ASHA-style guardrail model, not a production metric set.
+      </div>
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="panel sec">
+      <h3>ASHA veto impact by experiment</h3>
+      <div class="sub">
+        Which experiments moved each ASHA quality veto. Square <strong>size</strong> = magnitude of net
+        user impact; <strong>colour</strong> = direction. Vetoes are <em>desirable-down</em>, so
+        <span style="color:var(--red);font-weight:600">red = more vetoes (worse)</span> and
+        <span style="color:var(--green);font-weight:600">green = fewer vetoes (better)</span>.
+        Click any square or experiment name to filter the tables below to that experiment.
+      </div>
+
+      <div class="ctl">
+        <input type="search" id="q" placeholder="Filter experiments…">
+        <select id="pillar">
+          <option value="">All pillars</option>
+          <option value="App Boot">App Boot</option>
+          <option value="Chat Tried">Chat Tried</option>
+          <option value="Interruptions">Interruptions</option>
+        </select>
+        <select id="sort">
+          <option value="worst">Sort: worst net impact first</option>
+          <option value="best">Sort: best net impact first</option>
+          <option value="most">Sort: most metrics moved</option>
+          <option value="name">Sort: experiment name</option>
+        </select>
+        <select id="size">
+          <option value="users">Size by: net users impacted</option>
+          <option value="delta">Size by: absolute Δ (pp)</option>
+        </select>
+        <label class="cb"><input type="checkbox" id="sigonly"> Statistically significant only</label>
+        <span id="shown" style="color:var(--muted)"></span>
+      </div>
+
+      <div class="hm-wrap"><table class="hm" id="hm"></table></div>
+
+      <div class="legend">
+        <div class="grp">
+          <b>Colour — direction</b>
+          <div class="row">
+            <span><i class="sw" style="background:var(--red)"></i> More vetoes (sig)</span>
+            <span><i class="sw" style="background:var(--red-2)"></i> More (not sig)</span>
+            <span><i class="sw" style="background:var(--amber)"></i> Inconclusive</span>
+            <span><i class="sw" style="background:var(--green-2)"></i> Fewer (not sig)</span>
+            <span><i class="sw" style="background:var(--green)"></i> Fewer vetoes (sig)</span>
+            <span><i class="sw" style="background:#e2e8f0;border-radius:50%;width:7px;height:7px"></i> No movement</span>
+          </div>
+        </div>
+        <div class="grp">
+          <b>Size — net users impacted</b>
+          <div class="row" id="sizelegend"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="expFilterBar" class="fbar hidden"></div>
+
+    <div class="two">
+      <div class="panel sec">
+        <h3 id="badTitle">Top regressions</h3>
+        <div class="sub" id="badSub">Experiment × veto pairs adding the most vetoed users.</div>
+        <table class="rank"><thead><tr><th id="badH1">Experiment</th><th id="badH2">Veto metric</th><th class="n">Δ pp</th><th class="n">Net users</th></tr></thead>
+        <tbody id="topbad"></tbody></table>
+      </div>
+      <div class="panel sec">
+        <h3 id="goodTitle">Top improvements</h3>
+        <div class="sub" id="goodSub">Experiment × veto pairs removing the most vetoed users.</div>
+        <table class="rank"><thead><tr><th id="goodH1">Experiment</th><th id="goodH2">Veto metric</th><th class="n">Δ pp</th><th class="n">Net users</th></tr></thead>
+        <tbody id="topgood"></tbody></table>
+      </div>
+    </div>
+
+    <footer>Prototype · AskIDEAS “Experiments” tab concept · ASHA vetoes on Unified App · synthetic data</footer>
+  </div>
+</div>
+
+<div class="drawer" id="drawer">
+  <button class="close" onclick="closeDrawer()">×</button>
+  <div id="dbody"></div>
+</div>
+
+<script>
+/* Quality veto model: 18 vetoes across 3 pillars. Illustrative structure -- all
+   labels below are generic app-quality concepts, not a production metric set. */
+const METRICS = [
+  {p:'App Boot',      s:'Auth Failed',      n:'% Veto Users - App Boot - Authentication Failed',                 id:'QualityVeto_App_Boot_Authentication_Failed'},
+  {p:'App Boot',      s:'Boot Failed',      n:'% Veto Users - App Boot - Boot Failed',                           id:'QualityVeto_App_Boot_Boot_Failed'},
+  {p:'App Boot',      s:'Boot Too Slow',    n:'% Veto Users - App Boot - Boot Too Slow',                         id:'QualityVeto_App_Boot_Boot_Too_Slow'},
+  {p:'Chat Tried',    s:'Access / Licensing', n:'% Veto Users - Chat Tried - Access or Licensing Issue',         id:'QualityVeto_Chat_Tried_Access_or_Licensing_Issue'},
+  {p:'Chat Tried',    s:'Blank Screen',     n:'% Veto Users - Chat Tried - Blank Screen',                        id:'QualityVeto_Chat_Tried_Blank_Screen'},
+  {p:'Chat Tried',    s:'Response Slow',    n:'% Veto Users - Chat Tried - Chat Response Slow',                  id:'QualityVeto_Chat_Tried_Chat_Response_Slow'},
+  {p:'Chat Tried',    s:'ClientQueryError', n:'% Veto Users - Chat Tried - ClientQueryError',                    id:'QualityVeto_Chat_Tried_ClientQueryError'},
+  {p:'Chat Tried',    s:'Something Went Wrong', n:'% Veto Users - Chat Tried - Something Went Wrong (SWW)',      id:'QualityVeto_Chat_Tried_Something_Went_Wrong_SWW'},
+  {p:'Chat Tried',    s:'User Throttled',   n:'% Veto Users - Chat Tried - User Throttled',                      id:'QualityVeto_Chat_Tried_User_Throttled'},
+  {p:'Chat Tried',    s:'No Cloud Content', n:'% Veto Users - Chat Tried - User unable to add cloud content',    id:'QualityVeto_Chat_Tried_User_unable_to_add_cloud_content'},
+  {p:'Chat Tried',    s:'No Local Content', n:'% Veto Users - Chat Tried - User unable to add local content',    id:'QualityVeto_Chat_Tried_User_unable_to_add_local_content'},
+  {p:'Interruptions', s:'App Not Responding', n:'% Veto Users - Interruptions - App Not Responding (ANR)',       id:'QualityVeto_Interruptions_App_Not_Responding_ANR'},
+  {p:'Interruptions', s:'App Unusable',     n:'% Veto Users - Interruptions - App Unusable',                     id:'QualityVeto_Interruptions_App_Unusable'},
+  {p:'Interruptions', s:'Auth Failed',      n:'% Veto Users - Interruptions - Authentication Failed',            id:'QualityVeto_Interruptions_Authentication_Failed'},
+  {p:'Interruptions', s:'Crash',            n:'% Veto Users - Interruptions - Crash Encountered',                id:'QualityVeto_Interruptions_Crash_Encountered'},
+  {p:'Interruptions', s:'Critical Failure', n:'% Veto Users - Interruptions - Critical Failure',                 id:'QualityVeto_Interruptions_Critical_Failure'},
+  {p:'Interruptions', s:'Feature Error',    n:'% Veto Users - Interruptions - Feature Error',                    id:'QualityVeto_Interruptions_Feature_Error'},
+  {p:'Interruptions', s:'Visual / Behaviour Flaw', n:'% Veto Users - Interruptions - Visual or Behavior Flaw',   id:'QualityVeto_Interruptions_Visual_or_Behavior_Flaw'}
+];
+
+/* Fictional experiment names invented for this demo. All impact numbers are synthetic. */
+const EXPERIMENTS = [
+  {n:'HostRuntimeHangRecovery (Desktop)',                        o:'webapp~home'},
+  {n:'auth UseSharedTokenBroker',                                o:'webapp~home'},
+  {n:'AppDefinition Microservices Rollout',                 o:'webapp~home'},
+  {n:'[EdgeCache] Bundle Unification Rollout',                  o:'webapp~homeclient'},
+  {n:'enableHeapSizeTelemetry',                             o:'chatapp~client'},
+  {n:'immersive-chat-token-cache-policy',                     o:'chatapp~client'},
+  {n:'enableScrollToLastMessage',                        o:'chatapp~client'},
+  {n:'Mainline Shell Refresh (enableShellCreditsMeter)',o:'chatapp~client'},
+  {n:'enableSuggestionPlaceholders',                      o:'chatapp~client'},
+  {n:'Home Suggestion Chips Experiment 3',                       o:'chatapp~client'},
+  {n:'Calendar Entity Chips',                                    o:'chatapp~client'},
+  {n:'enableDocAgentSideBySideViewer',                           o:'chatapp~client'},
+  {n:'Chat Image Generation Grounding',                      o:'chatapp~client'},
+  {n:'Zero-Query Suggestions',                       o:'webapp~home'},
+  {n:'Search - Calendar Vertical Rename',     o:'webapp~home'},
+  {n:'disableSlideAgentFullScreenChat',                    o:'chatapp~client'}
+];
+
+/* ---------- SYNTHETIC data generation (deterministic seed) ---------- */
+function rng(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+const rand = rng(20260811);
+
+const DATA = []; // {e,m,delta,pct,users,p,sig,flight,ctrl,trt}
+EXPERIMENTS.forEach((e,ei)=>{
+  const flight = Math.round(40000 + rand()*900000);
+  e.flight = flight;
+  // give each experiment a "personality": some are quality wins, some regressions
+  const bias = (rand()*2-1)*0.9;
+  METRICS.forEach((m,mi)=>{
+    const r = rand();
+    if(r < 0.34){ DATA.push({ei,mi,none:true}); return; }        // no movement
+    const base = 0.02 + rand()*1.5;                               // control rate pp
+    let delta = (rand()*2-1)*0.42 + bias*0.30;                    // pp change
+    if(Math.abs(delta) < 0.015) delta = 0;
+    const p = Math.max(0.0001, Math.pow(rand(), 2.1));
+    const sig = p < 0.05 && Math.abs(delta) > 0.03;
+    const users = Math.round(delta/100 * flight);
+    DATA.push({ei,mi,delta,p,sig,base,users,none:(delta===0)});
+  });
+});
+const key=(ei,mi)=>ei+'|'+mi;
+const MAP={}; DATA.forEach(d=>MAP[key(d.ei,d.mi)]=d);
+
+/* ---------- encoding helpers ---------- */
+function colorOf(d){
+  if(d.none||d.delta===0) return null;
+  if(d.delta>0) return d.sig ? 'var(--red)'   : 'var(--red-2)';
+  return          d.sig ? 'var(--green)' : 'var(--green-2)';
+}
+// "inconclusive" = movement present, wide p, tiny effect
+function isAmber(d){ return !d.none && d.delta!==0 && !d.sig && d.p>0.4 && Math.abs(d.delta)<0.12; }
+
+const SIZES=[10,15,20,26,32];
+function magnitude(d,mode){ return mode==='users' ? Math.abs(d.users) : Math.abs(d.delta); }
+function sizeOf(d,mode,max){
+  const v=magnitude(d,mode); if(!max) return SIZES[0];
+  const t=Math.sqrt(v/max);                       // area-proportional
+  return SIZES[Math.min(SIZES.length-1, Math.max(0, Math.round(t*(SIZES.length-1))))];
+}
+const fmt=n=>Math.abs(n)>=1000?(n/1000).toFixed(1).replace(/\.0$/,'')+'K':String(n);
+const signed=n=>(n>0?'+':'')+n.toFixed(3)+' pp';
+const signedU=n=>(n>0?'+':'')+fmt(n);
+
+/* ---------- state ---------- */
+const S={q:'',pillar:'',sort:'worst',size:'users',sigonly:false,sel:null,expFilter:null};
+
+function visibleMetrics(){ return METRICS.map((m,i)=>({m,i})).filter(x=>!S.pillar||x.m.p===S.pillar); }
+function rowScore(ei){
+  let net=0,moved=0;
+  visibleMetrics().forEach(({i})=>{const d=MAP[key(ei,i)];
+    if(!d||d.none) return; if(S.sigonly&&!d.sig) return; net+=d.users; moved++;});
+  return {net,moved};
+}
+function visibleExperiments(){
+  let list=EXPERIMENTS.map((e,i)=>({e,i,...rowScore(i)}));
+  if(S.q){const q=S.q.toLowerCase();list=list.filter(x=>x.e.n.toLowerCase().includes(q)||x.e.o.toLowerCase().includes(q));}
+  const by={worst:(a,b)=>b.net-a.net,best:(a,b)=>a.net-b.net,
+            most:(a,b)=>b.moved-a.moved,name:(a,b)=>a.e.n.localeCompare(b.e.n)};
+  return list.sort(by[S.sort]);
+}
+
+/* ---------- render heatmap ---------- */
+function render(){
+  const mets=visibleMetrics(), exps=visibleExperiments();
+  let max=0;
+  exps.forEach(({i:ei})=>mets.forEach(({i:mi})=>{const d=MAP[key(ei,mi)];
+    if(!d||d.none) return; if(S.sigonly&&!d.sig) return;
+    max=Math.max(max,magnitude(d,S.size));}));
+
+  const groups=[];
+  mets.forEach(({m})=>{const g=groups[groups.length-1];
+    if(g&&g.p===m.p) g.c++; else groups.push({p:m.p,c:1});});
+  const cls={'App Boot':'pil-boot','Chat Tried':'pil-chat','Interruptions':'pil-intr'};
+
+  let h='<thead><tr class="pill-row"><th class="exp-h">Experiment</th>';
+  groups.forEach(g=>h+=`<th colspan="${g.c}" class="${cls[g.p]}">${g.p}</th>`);
+  h+='</tr><tr class="met-row"><th class="exp-h">'+exps.length+' shown</th>';
+  mets.forEach(({m})=>h+=`<th title="${m.n}\n${m.id}"><div class="lbl">${m.s}</div></th>`);
+  h+='</tr></thead><tbody>';
+
+  exps.forEach(({e,i:ei,net,moved})=>{
+    const chip = net>0?'bad':net<0?'good':'flat';
+    const rsel = S.expFilter===ei?' rowsel':'';
+    h+=`<tr class="exprow${rsel}"><td class="exp" onclick="pickExp(${ei})">
+        <div class="nm" title="${e.n}">${e.n}</div>
+        <div class="meta"><span class="chip ${chip}">${signedU(net)} users</span>
+        <span>${moved} moved</span><span>· ${fmt(e.flight)} in flight</span></div></td>`;
+    mets.forEach(({i:mi})=>{
+      const d=MAP[key(ei,mi)];
+      const skip = !d||d.none||(S.sigonly&&!d.sig);
+      if(skip){h+='<td class="cell"><span class="sq none"></span></td>';return;}
+      const col = isAmber(d)?'var(--amber)':colorOf(d);
+      const s=sizeOf(d,S.size,max);
+      const sel=S.expFilter===ei?' sel':'';
+      const tip=`${e.n}\n${METRICS[mi].s}\nΔ ${signed(d.delta)} · ${signedU(d.users)} users\np=${d.p.toFixed(4)}${d.sig?' (significant)':' (not significant)'}`;
+      h+=`<td class="cell"><span class="sq${sel}" style="width:${s}px;height:${s}px;background:${col}"
+           title="${tip}" onclick="pickExp(${ei})"></span></td>`;
+    });
+    h+='</tr>';
+  });
+
+  // column totals
+  h+='<tr class="tot"><td class="exp"><div class="nm">Net across experiments</div>'+
+     '<div class="meta">sum of net users per veto</div></td>';
+  mets.forEach(({i:mi})=>{
+    let t=0; exps.forEach(({i:ei})=>{const d=MAP[key(ei,mi)];
+      if(!d||d.none) return; if(S.sigonly&&!d.sig) return; t+=d.users;});
+    const c=t>0?'var(--red)':t<0?'var(--green)':'var(--muted)';
+    h+=`<td class="cell" style="font-size:10px;color:${c};font-weight:700">${t===0?'–':signedU(t)}</td>`;
+  });
+  h+='</tr></tbody>';
+  document.getElementById('hm').innerHTML=h;
+  document.getElementById('shown').textContent=`${exps.length} experiments × ${mets.length} vetoes`;
+
+  // size legend
+  let sl='';
+  SIZES.forEach((px,idx)=>{
+    // upper edge of each size bucket, inverting the sqrt(area) scale used by sizeOf()
+    const edge=Math.pow(Math.min(1,(idx+0.5)/(SIZES.length-1)),2)*max;
+    const lab=S.size==='users'?fmt(Math.round(edge)):edge.toFixed(2)+' pp';
+    sl+=`<span><i class="sw" style="width:${px}px;height:${px}px;background:#94a3b8"></i> ${idx===SIZES.length-1?'≥':'<'} ${lab}</span>`;
+  });
+  document.getElementById('sizelegend').innerHTML=sl;
+
+  renderKpis(exps,mets);
+  renderRanks();
+}
+
+function renderKpis(exps,mets){
+  let bad=0,good=0,sigbad=0,worst=null,best=null,expWithSigReg=new Set();
+  exps.forEach(({i:ei})=>mets.forEach(({i:mi})=>{
+    const d=MAP[key(ei,mi)]; if(!d||d.none) return;
+    if(d.delta>0){bad++; if(d.sig){sigbad++;expWithSigReg.add(ei);}}
+    if(d.delta<0) good++;
+    if(!worst||d.users>worst.users) worst=d;
+    if(!best||d.users<best.users) best=d;
+  }));
+  const cards=[
+    {l:'Experiments analysed',v:exps.length,c:'flat',s:'in current filter'},
+    {l:'Veto regressions',v:bad,c:'bad',s:sigbad+' statistically significant'},
+    {l:'Veto improvements',v:good,c:'good',s:'cells trending down'},
+    {l:'Experiments w/ sig. regression',v:expWithSigReg.size,c:'bad',s:'need review'},
+    {l:'Worst single cell',v:worst?signedU(worst.users):'–',c:'bad',
+      s:worst?EXPERIMENTS[worst.ei].n.slice(0,30):''},
+    {l:'Best single cell',v:best?signedU(best.users):'–',c:'good',
+      s:best?EXPERIMENTS[best.ei].n.slice(0,30):''}
+  ];
+  document.getElementById('kpis').innerHTML=cards.map(c=>
+    `<div class="kpi"><div class="lab">${c.l}</div><div class="val">${c.v}</div>
+     <span class="chip ${c.c}">${c.s}</span></div>`).join('');
+}
+
+function renderRanks(){
+  let rows=DATA.filter(d=>!d.none&&d.delta!==0&&(!S.sigonly||d.sig));
+  if(S.expFilter!==null) rows=rows.filter(d=>d.ei===S.expFilter);
+  const mk=(arr,dir)=>arr.map(d=>{
+    const w=Math.min(100,Math.abs(d.users)/Math.max(1,Math.abs(arr[0].users))*100);
+    const col=dir==='bad'?'var(--red)':'var(--green)';
+    // filtered view drops the repeated experiment name and leads with the veto
+    const c1=S.expFilter!==null
+      ? `<td>${METRICS[d.mi].s}<div class="bar" style="width:${w}%;background:${col}"></div></td>
+         <td>${METRICS[d.mi].p}</td>`
+      : `<td>${EXPERIMENTS[d.ei].n}<div class="bar" style="width:${w}%;background:${col}"></div></td>
+         <td>${METRICS[d.mi].s}<div class="tag">${METRICS[d.mi].p}</div></td>`;
+    return `<tr onclick="openCell(${d.ei},${d.mi})">${c1}
+      <td class="n" style="color:${col}">${signed(d.delta)}</td>
+      <td class="n">${signedU(d.users)}</td></tr>`;}).join('');
+  const none=`<tr><td colspan="4" class="tag">None${S.expFilter!==null?' for this experiment':''}</td></tr>`;
+  const bad=rows.filter(d=>d.users>0).sort((a,b)=>b.users-a.users);
+  const good=rows.filter(d=>d.users<0).sort((a,b)=>a.users-b.users);
+  // when filtered to one experiment, show all its vetoes rather than a top-8 cut
+  const cut=S.expFilter!==null?99:8;
+  document.getElementById('topbad').innerHTML  = mk(bad.slice(0,cut),'bad')  || none;
+  document.getElementById('topgood').innerHTML = mk(good.slice(0,cut),'good')|| none;
+  const scope=S.expFilter!==null?EXPERIMENTS[S.expFilter].n:null;
+  const h1=scope?'Veto metric':'Experiment', h2=scope?'Pillar':'Veto metric';
+  badH1.textContent=goodH1.textContent=h1;
+  badH2.textContent=goodH2.textContent=h2;
+  document.getElementById('badTitle').textContent  = scope?'Regressions':'Top regressions';
+  document.getElementById('goodTitle').textContent = scope?'Improvements':'Top improvements';
+  document.getElementById('badSub').textContent = scope
+    ? `${bad.length} veto${bad.length===1?'':'es'} worsened by ${scope}`
+    : 'Experiment × veto pairs adding the most vetoed users.';
+  document.getElementById('goodSub').textContent = scope
+    ? `${good.length} veto${good.length===1?'':'es'} improved by ${scope}`
+    : 'Experiment × veto pairs removing the most vetoed users.';
+  renderFilterBar();
+}
+
+function renderFilterBar(){
+  const el=document.getElementById('expFilterBar');
+  if(S.expFilter===null){el.innerHTML='';el.classList.add('hidden');return;}
+  const e=EXPERIMENTS[S.expFilter];
+  const {net,moved}=rowScore(S.expFilter);
+  const cls=net>0?'bad':net<0?'good':'flat';
+  el.classList.remove('hidden');
+  el.innerHTML=`<span class="fl-lab">Filtered to</span>
+    <span class="fl-name">${e.n}</span>
+    <span class="chip ${cls}">${signedU(net)} net users</span>
+    <span class="fl-meta">${moved} vetoes moved · ${fmt(e.flight)} users in flight</span>
+    <button class="fl-x" onclick="clearExp()">Clear ✕</button>`;
+}
+
+/* clicking a heatmap square or experiment name filters the tables below */
+function pickExp(ei){ S.expFilter = S.expFilter===ei ? null : ei; render(); }
+function clearExp(){ S.expFilter=null; render(); }
+
+/* ---------- drawer ---------- */
+function openCell(ei,mi){
+  const d=MAP[key(ei,mi)],e=EXPERIMENTS[ei],m=METRICS[mi];
+  S.sel={ei,mi};
+  const dir = d.delta>0?'More vetoes — worse':'Fewer vetoes — better';
+  const col = d.delta>0?'var(--red)':'var(--green)';
+  const ctrl=d.base, trt=d.base+d.delta;
+  let spark=''; for(let i=0;i<14;i++){const v=30+Math.random()*70;spark+=`<i style="height:${v}%"></i>`;}
+  document.getElementById('dbody').innerHTML=`
+    <h4>${m.s}</h4>
+    <div class="tag" style="margin-bottom:2px">${m.p} pillar</div>
+    <div style="font-size:11.5px;color:var(--muted);word-break:break-all">${m.id}</div>
+    <div style="margin-top:14px;padding:11px;border-radius:7px;background:${d.delta>0?'var(--red-soft)':'var(--green-soft)'}">
+      <div style="font-size:23px;font-weight:700;color:${col}">${signed(d.delta)}</div>
+      <div style="font-size:12px;color:${col};font-weight:600">${dir}</div>
+      <div style="font-size:12px;margin-top:3px">${signedU(d.users)} net users affected</div>
+    </div>
+    <dl class="dl">
+      <div><dt>Experiment</dt><dd style="max-width:210px">${e.n}</dd></div>
+      <div><dt>Org</dt><dd>${e.o}</dd></div>
+      <div><dt>Control rate</dt><dd>${ctrl.toFixed(3)}%</dd></div>
+      <div><dt>Treatment rate</dt><dd>${trt.toFixed(3)}%</dd></div>
+      <div><dt>Relative change</dt><dd style="color:${col}">${(d.delta/ctrl*100).toFixed(1)}%</dd></div>
+      <div><dt>p-value</dt><dd>${d.p.toFixed(4)}</dd></div>
+      <div><dt>Significant</dt><dd style="color:${d.sig?col:'var(--muted)'}">${d.sig?'Yes':'No'}</dd></div>
+      <div><dt>Users in flight</dt><dd>${fmt(e.flight)}</dd></div>
+      <div><dt>Desirable direction</dt><dd>Down</dd></div>
+    </dl>
+    <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:16px">Daily trend (mock)</div>
+    <div class="mini">${spark}</div>
+    <div class="note"><b>Synthetic values.</b> Metric identity and pillar are real; every number
+      in this panel is generated for prototype layout only.</div>
+    <div style="margin-top:12px;font-size:12px;color:var(--blue)">↗ Open ExP scorecard (not wired)</div>`;
+  document.getElementById('drawer').classList.add('open');
+  render();
+}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');S.sel=null;render();}
+
+/* ---------- wire controls ---------- */
+document.getElementById('q').oninput      = e=>{S.q=e.target.value;render();};
+document.getElementById('pillar').onchange= e=>{S.pillar=e.target.value;render();};
+document.getElementById('sort').onchange  = e=>{S.sort=e.target.value;render();};
+document.getElementById('size').onchange  = e=>{S.size=e.target.value;render();};
+document.getElementById('sigonly').onchange=e=>{S.sigonly=e.target.checked;render();};
+document.querySelectorAll('.tabs .tab').forEach(t=>t.onclick=()=>{
+  if(!t.classList.contains('new')) alert('Prototype: only the Experiments tab is implemented.');
+});
+render();
+</script>
+</body>
+</html>
+
