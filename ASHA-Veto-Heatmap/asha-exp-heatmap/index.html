@@ -103,10 +103,17 @@
   .pil-boot{color:#7c3aed;background:#f5f3ff !important;}
   .pil-chat{color:#0369a1;background:#f0f9ff !important;}
   .pil-intr{color:#b45309;background:#fffbeb !important;}
-  .hm thead tr.met-row th{height:132px;vertical-align:bottom;padding:0 0 7px;}
+  .hm thead tr.met-row th{height:132px;vertical-align:bottom;padding:0 0 7px;
+    cursor:pointer;user-select:none;}
+  .hm thead tr.met-row th:hover{background:#eef2ff;}
+  .hm thead tr.met-row th.sortcol{background:#eef2ff;box-shadow:inset 0 -2.5px 0 var(--blue);}
+  .hm thead tr.met-row th .si{height:11px;line-height:11px;font-size:9px;
+    color:var(--blue);font-weight:700;text-align:center;}
   .hm thead tr.met-row th .lbl{writing-mode:vertical-rl;transform:rotate(180deg);
     font-weight:600;font-size:11px;color:var(--ink);white-space:nowrap;margin:0 auto;
-    max-height:120px;overflow:hidden;}
+    max-height:112px;overflow:hidden;}
+  .hm td.cell.colsel{background:#f5f8ff;}
+  .hm tbody tr:hover td.cell.colsel{background:#eaf1ff;}
   .hm td.cell{min-width:42px;height:42px;text-align:center;vertical-align:middle;
     border-bottom:1px solid #f1f5f9;border-right:1px solid #f8fafc;}
   .hm tbody tr:hover td{background:#fafcff;}
@@ -237,7 +244,8 @@
         user impact; <strong>colour</strong> = direction. Vetoes are <em>desirable-down</em>, so
         <span style="color:var(--red);font-weight:600">red = more vetoes (worse)</span> and
         <span style="color:var(--green);font-weight:600">green = fewer vetoes (better)</span>.
-        Click any square or experiment name to filter the tables below to that experiment.
+        Click any square or experiment name to filter the tables below to that experiment;
+        click a veto column header to sort experiments by their impact on that veto.
       </div>
 
       <div class="ctl">
@@ -268,11 +276,8 @@
         <div class="grp">
           <b>Colour — direction</b>
           <div class="row">
-            <span><i class="sw" style="background:var(--red)"></i> More vetoes (sig)</span>
-            <span><i class="sw" style="background:var(--red-2)"></i> More (not sig)</span>
-            <span><i class="sw" style="background:var(--amber)"></i> Inconclusive</span>
-            <span><i class="sw" style="background:var(--green-2)"></i> Fewer (not sig)</span>
-            <span><i class="sw" style="background:var(--green)"></i> Fewer vetoes (sig)</span>
+            <span><i class="sw" style="background:var(--red)"></i> More vetoes (p ≤ .05)</span>
+            <span><i class="sw" style="background:var(--green)"></i> Fewer vetoes (p ≤ .05)</span>
             <span><i class="sw" style="background:#e2e8f0;border-radius:50%;width:7px;height:7px"></i> No movement</span>
           </div>
         </div>
@@ -360,21 +365,36 @@ EXPERIMENTS.forEach((e,ei)=>{
   e.flight = flight;
   // give each experiment a "personality": some are quality wins, some regressions
   const bias = (rand()*2-1)*0.9;
+  // ASHA vetoes rarely move: ~10% of cells are a significant regression, ~10% a
+  // significant improvement, the other ~80% show no movement. The counts are
+  // stratified per experiment so that mix holds at any grid size; bias only tilts
+  // which of the two directions an experiment leans, not how often it moves.
+  const target = 0.10*METRICS.length, tilt = bias*0.45;
+  const nUp   = Math.floor(target*(1+tilt) + rand());
+  const nDown = Math.floor(target*(1-tilt) + rand());
+  const order = METRICS.map((_,i)=>i);
+  for(let i=order.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+  const dirOf={};
+  order.slice(0,nUp).forEach(i=>dirOf[i]=1);
+  order.slice(nUp,nUp+nDown).forEach(i=>dirOf[i]=-1);
   METRICS.forEach((m,mi)=>{
-    const r = rand();
-    if(r < 0.34){ DATA.push({ei,mi,none:true}); return; }        // no movement
+    const dir  = dirOf[mi]||0;
+    const base = m.b;                                             // illustrative baseline rate, %
+    if(dir === 0){
+      DATA.push({ei,mi,base,delta:0,rel:0,users:0,p:0.2+rand()*0.75,
+                 pmove:Math.pow(rand(),2)*0.35,sig:false,none:true});
+      return;
+    }
     // relative change (Delta %) is the comparable quantity across vetoes,
     // because baseline rates vary widely between vetoes
-    let rel = (rand()*2-1)*9 + bias*4;
-    if(rand() < 0.06) rel *= 3.2;                                 // occasional large mover
-    if(Math.abs(rel) < 0.25) rel = 0;
-    const base  = m.b;                                            // illustrative baseline rate, %
+    let relMag = 1.5 + Math.pow(rand(),2)*13;
+    if(rand() < 0.10) relMag *= 2.2;                              // occasional large mover
+    const rel   = dir * relMag;
     const delta = base * rel/100;                                 // percentage points
-    const p     = Math.max(0.00001, Math.pow(rand(), 2.1));
-    const sig   = p < 0.05 && Math.abs(rel) > 1.2;
-    const pmove = sig ? 0.55 + rand()*0.45 : Math.pow(rand(),2)*0.5;
+    const p     = Math.max(0.000005, Math.pow(rand(),2.2)*0.049); // movers are all p ≤ .05
+    const pmove = 0.55 + rand()*0.45;
     const users = Math.round(delta/100 * flight);
-    DATA.push({ei,mi,base,delta,rel,p,pmove,sig,users,none:(rel===0)});
+    DATA.push({ei,mi,base,delta,rel,p,pmove,sig:true,users,none:false});
   });
 });
 const key=(ei,mi)=>ei+'|'+mi;
@@ -402,7 +422,15 @@ const signedRel=n=>(n>0?'+':'')+n.toFixed(2)+'%';
 const signedU=n=>(n>0?'+':'')+fmt(n);
 
 /* ---------- state ---------- */
-const S={q:'',pillar:'',sort:'worst',size:'users',sigonly:false,expFilter:null};
+const S={q:'',pillar:'',sort:'worst',size:'users',sigonly:false,expFilter:null,
+         colSort:null,colDir:-1};
+
+function cellUsers(ei,mi){
+  const d=MAP[key(ei,mi)];
+  if(!d||d.none) return 0;
+  if(S.sigonly&&!d.sig) return 0;
+  return d.users;
+}
 
 function visibleMetrics(){ return METRICS.map((m,i)=>({m,i})).filter(x=>!S.pillar||x.m.p===S.pillar); }
 function rowScore(ei){
@@ -414,6 +442,14 @@ function rowScore(ei){
 function visibleExperiments(){
   let list=EXPERIMENTS.map((e,i)=>({e,i,...rowScore(i)}));
   if(S.q){const q=S.q.toLowerCase();list=list.filter(x=>x.e.n.toLowerCase().includes(q)||x.e.o.toLowerCase().includes(q));}
+  // a veto column header takes over row order: net impact on that one veto
+  if(S.colSort!==null){
+    const mi=S.colSort;
+    return list.sort((a,b)=>{
+      const diff=cellUsers(b.i,mi)-cellUsers(a.i,mi);
+      return (S.colDir===-1?diff:-diff) || a.e.n.localeCompare(b.e.n);
+    });
+  }
   const by={worst:(a,b)=>b.net-a.net,best:(a,b)=>a.net-b.net,
             most:(a,b)=>b.moved-a.moved,name:(a,b)=>a.e.n.localeCompare(b.e.n)};
   return list.sort(by[S.sort]);
@@ -435,7 +471,12 @@ function render(){
   let h='<thead><tr class="pill-row"><th class="exp-h">Experiment</th>';
   groups.forEach(g=>h+=`<th colspan="${g.c}" class="${cls[g.p]}">${g.p}</th>`);
   h+='</tr><tr class="met-row"><th class="exp-h">'+exps.length+' shown</th>';
-  mets.forEach(({m})=>h+=`<th title="${m.n}\n${m.id}"><div class="lbl">${m.s}</div></th>`);
+  mets.forEach(({m,i:mi})=>{
+    const on=S.colSort===mi, ind=on?(S.colDir===-1?'▼':'▲'):'';
+    h+=`<th class="${on?'sortcol':''}" onclick="sortByCol(${mi})"
+        title="${m.n}\n${m.id}\n\nClick to sort experiments by net impact on this veto"
+        ><div class="lbl">${m.s}</div><div class="si">${ind}</div></th>`;
+  });
   h+='</tr></thead><tbody>';
 
   exps.forEach(({e,i:ei,net,moved})=>{
@@ -447,13 +488,14 @@ function render(){
         <span>${moved} moved</span><span>· ${fmt(e.flight)} in flight</span></div></td>`;
     mets.forEach(({i:mi})=>{
       const d=MAP[key(ei,mi)];
+      const cc='cell'+(mi===S.colSort?' colsel':'');
       const skip = !d||d.none||(S.sigonly&&!d.sig);
-      if(skip){h+='<td class="cell"><span class="sq none"></span></td>';return;}
+      if(skip){h+=`<td class="${cc}"><span class="sq none"></span></td>`;return;}
       const col = isAmber(d)?'var(--amber)':colorOf(d);
       const s=sizeOf(d,S.size,max);
       const sel=S.expFilter===ei?' sel':'';
       const tip=`${e.n}\n${METRICS[mi].n}\nControl ${d.base.toFixed(4)}%  →  Treatment ${(d.base+d.delta).toFixed(4)}%\nΔ ${signed(d.delta)}  (${signedRel(d.rel)})\n${signedU(d.users)} net users · p=${d.p.toFixed(4)}${d.sig?' (significant)':' (not significant)'}`;
-      h+=`<td class="cell"><span class="sq${sel}" style="width:${s}px;height:${s}px;background:${col}"
+      h+=`<td class="${cc}"><span class="sq${sel}" style="width:${s}px;height:${s}px;background:${col}"
            title="${tip}" onclick="pickExp(${ei})"></span></td>`;
     });
     h+='</tr>';
@@ -470,7 +512,11 @@ function render(){
   });
   h+='</tr></tbody>';
   document.getElementById('hm').innerHTML=h;
-  document.getElementById('shown').textContent=`${exps.length} experiments × ${mets.length} vetoes`;
+  document.getElementById('shown').textContent=
+    `${exps.length} experiments × ${mets.length} vetoes`+
+    (S.colSort!==null
+      ? ` · sorted by ${METRICS[S.colSort].s} (${S.colDir===-1?'most vetoes added first':'most vetoes removed first'})`
+      : '');
 
   // size legend
   let sl='';
@@ -567,10 +613,24 @@ function clearExp(){ S.expFilter=null; render(); }
 
 /* clicking a ranked-list row focuses that experiment (no overlay) */
 function focusExp(ei){ S.expFilter=ei; render(); }
+
+/* clicking a veto column header sorts experiments by net impact on that veto:
+   descending → ascending → back to the sort dropdown */
+function sortByCol(mi){
+  if(S.colSort===mi){
+    if(S.colDir===-1) S.colDir=1;
+    else { S.colSort=null; S.colDir=-1; }
+  } else { S.colSort=mi; S.colDir=-1; }
+  render();
+}
 /* ---------- wire controls ---------- */
 document.getElementById('q').oninput      = e=>{S.q=e.target.value;render();};
-document.getElementById('pillar').onchange= e=>{S.pillar=e.target.value;render();};
-document.getElementById('sort').onchange  = e=>{S.sort=e.target.value;render();};
+document.getElementById('pillar').onchange= e=>{
+  S.pillar=e.target.value;
+  // a column sort can't survive its column being filtered out
+  if(S.colSort!==null&&S.pillar&&METRICS[S.colSort].p!==S.pillar) S.colSort=null;
+  render();};
+document.getElementById('sort').onchange  = e=>{S.sort=e.target.value;S.colSort=null;render();};
 document.getElementById('size').onchange  = e=>{S.size=e.target.value;render();};
 document.getElementById('sigonly').onchange=e=>{S.sigonly=e.target.checked;render();};
 document.querySelectorAll('.tabs .tab').forEach(t=>t.onclick=()=>{

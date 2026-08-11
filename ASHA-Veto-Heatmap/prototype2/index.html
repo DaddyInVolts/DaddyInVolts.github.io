@@ -180,8 +180,6 @@
   table.dt th:hover{color:var(--brand);}
   table.dt td{padding:12px;border-bottom:1px solid var(--line);vertical-align:top;}
   table.dt tr:hover td{background:var(--brand-soft);}
-  .rec{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;}
-  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
   .nm2{font-weight:600;display:flex;gap:7px;}
   .nm2 .sub2{font-weight:400;color:var(--muted);font-size:11.5px;margin-top:3px;display:block;}
   .badge{display:inline-block;font-size:11px;padding:2px 9px;border-radius:4px;
@@ -229,8 +227,8 @@
     <div class="proto">
       <span style="font-size:15px">⚠️</span>
       <div><b>Prototype — every experiment-level impact value below is a synthetic placeholder.</b>
-        This is a public design demo. The three pillars (App Boot, Chat Tried, Interruptions) are representative of an ASHA-style guardrail model; the experiment names, products, organisations and baseline rates are fictional. All deltas, Δ %, p-values, user counts, statuses and
-        recommendations are randomly generated for layout review only. Nothing here is a production metric set.</div>
+        This is a public design demo. The three pillars (App Boot, Chat Tried, Interruptions) are representative of an ASHA-style guardrail model; the experiment names, products, organisations and baseline rates are fictional. All deltas, Δ %, p-values, user counts and statuses
+        are randomly generated for layout review only. Nothing here is a production metric set.</div>
     </div>
 
     <div class="selrow">
@@ -305,9 +303,6 @@
         <div><b>Colour — direction</b>
           <div class="row">
             <span><i class="sw" style="background:var(--red)"></i> More vetoes (p ≤ .05)</span>
-            <span><i class="sw" style="background:var(--red-2)"></i> More (n.s.)</span>
-            <span><i class="sw" style="background:var(--amber)"></i> Inconclusive</span>
-            <span><i class="sw" style="background:var(--green-2)"></i> Fewer (n.s.)</span>
             <span><i class="sw" style="background:var(--green)"></i> Fewer vetoes (p ≤ .05)</span>
             <span><i class="sw" style="width:7px;height:7px;border-radius:50%;background:var(--line-2)"></i> No movement</span>
           </div>
@@ -391,25 +386,36 @@ EXPERIMENTS.forEach((e,ei)=>{
   e.status=STATUS[Math.floor(rand()*3)];
   e.started=new Date(2026,1+Math.floor(rand()*6),1+Math.floor(rand()*28));
   const bias=(rand()*2-1)*0.9;
+  // ~10% significant regressions, ~10% significant improvements, ~80% no movement.
+  // Counts are stratified per experiment so the mix holds at any grid size; bias
+  // only tilts which direction an experiment leans.
+  const target=0.10*METRICS.length, tilt=bias*0.45;
+  const nUp=Math.floor(target*(1+tilt)+rand()), nDown=Math.floor(target*(1-tilt)+rand());
+  const order=METRICS.map((_,i)=>i);
+  for(let i=order.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+  const dirOf={};
+  order.slice(0,nUp).forEach(i=>dirOf[i]=1);
+  order.slice(nUp,nUp+nDown).forEach(i=>dirOf[i]=-1);
   METRICS.forEach((m,mi)=>{
-    if(rand()<0.34){const d={ei,mi,none:true,delta:0,rel:0,users:0};DATA.push(d);MAP[key(ei,mi)]=d;return;}
+    const dir=dirOf[mi]||0;
+    const base=m.b;                       // illustrative baseline rate, %
+    if(dir===0){
+      const d={ei,mi,base,delta:0,rel:0,users:0,p:0.2+rand()*0.75,
+               pmove:Math.pow(rand(),2)*0.35,sig:false,none:true};
+      DATA.push(d);MAP[key(ei,mi)]=d;return;
+    }
     // relative change (Delta %) is what compares across vetoes, since control
     // rates vary widely between vetoes
-    let rel=(rand()*2-1)*9+bias*4;
-    if(rand()<0.06) rel*=3.2;
-    if(Math.abs(rel)<0.25) rel=0;
-    const base=m.b;                       // illustrative baseline rate, %
+    let relMag=1.5+Math.pow(rand(),2)*13;
+    if(rand()<0.10) relMag*=2.2;
+    const rel=dir*relMag;
     const delta=base*rel/100;             // percentage points
-    const p=Math.max(0.00001,Math.pow(rand(),2.1));
-    const sig=p<0.05&&Math.abs(rel)>1.2;
-    const pmove=sig?0.55+rand()*0.45:Math.pow(rand(),2)*0.5;
-    const d={ei,mi,delta,rel,p,pmove,sig,base,users:Math.round(delta/100*e.flight),none:rel===0};
+    const p=Math.max(0.000005,Math.pow(rand(),2.2)*0.049);
+    const pmove=0.55+rand()*0.45;
+    const d={ei,mi,delta,rel,p,pmove,sig:true,base,users:Math.round(delta/100*e.flight),none:false};
     DATA.push(d);MAP[key(ei,mi)]=d;
   });
-  // recommendation derives from net synthetic veto movement
-  const net=METRICS.reduce((a,_,mi)=>a+(MAP[key(ei,mi)].users||0),0);
-  e.net=net;
-  e.rec = net>4000?'Do Not Ship' : net>800?'Awaiting Clarity' : 'Ship';
+  e.net=METRICS.reduce((a,_,mi)=>a+(MAP[key(ei,mi)].users||0),0);
 });
 
 /* ================= helpers ================= */
@@ -543,12 +549,10 @@ function renderTable(){
              name:(a,b)=>a.e.n.localeCompare(b.e.n),
              status:(a,b)=>a.e.status.localeCompare(b.e.status),
              product:(a,b)=>a.e.pr.localeCompare(b.e.pr),
-             started:(a,b)=>a.e.started-b.e.started,
-             rec:(a,b)=>a.e.rec.localeCompare(b.e.rec)};
+             started:(a,b)=>a.e.started-b.e.started};
   rows.sort((a,b)=>cmp[S.tsort](a,b)*S.tdir);
   const arrow=k=>S.tsort===k?(S.tdir>0?' ↓':' ↑'):' ⇅';
   let h=`<thead><tr>
-    <th onclick="tsort('rec')">IDEAS Recommendation${arrow('rec')}</th>
     <th onclick="tsort('name')">Name${arrow('name')}</th>
     <th onclick="tsort('status')">Status${arrow('status')}</th>
     <th onclick="tsort('product')">Product${arrow('product')}</th>
@@ -558,10 +562,9 @@ function renderTable(){
     <th onclick="tsort('metric')" style="text-align:right">${m.s} (100%)${arrow('metric')}</th>
     </tr></thead><tbody>`;
   rows.forEach(({e,ei,d})=>{
-    const rc=e.rec==='Ship'?'var(--green)':e.rec==='Do Not Ship'?'var(--red)':'var(--amber)';
     const cls=d.none||d.delta===0?'flat':d.users>0?'up':'down';
     const val=d.none||d.delta===0?'—':`${sU(d.users)}<div style="font-size:11px;font-weight:400">${sRel(d.rel)}</div>`;
-    h+=`<tr><td><span class="rec"><i class="dot" style="background:${rc}"></i>${e.rec}</span></td>
+    h+=`<tr>
       <td><div class="nm2">📄 <span>${e.n}<span class="sub2">${e.o} · ${d.sig?'p = '+d.p.toFixed(4):'not significant'}</span></span></div></td>
       <td><span class="badge ${e.status.toLowerCase()}">${e.status}</span></td>
       <td>${e.pr}</td><td>${e.pf}</td>
