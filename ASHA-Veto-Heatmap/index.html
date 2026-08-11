@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASHA Veto Heatmap — Prototypes</title>
+<meta name="description" content="Two interactive prototypes exploring how to show which experiments help or hurt each ASHA quality veto.">
+<style>
+  :root{--ink:#1e293b;--muted:#64748b;--line:#e2e8f0;--blue:#2563eb;
+        --red:#d13438;--green:#107c10;--amber:#f7a428;}
+  *{box-sizing:border-box}
+  body{margin:0;background:#f1f5f9;color:var(--ink);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+  .wrap{max-width:980px;margin:0 auto;padding:52px 24px 70px;}
+  .back{display:inline-block;color:var(--blue);text-decoration:none;font-size:13.5px;margin-bottom:26px;}
+  .back:hover{text-decoration:underline;}
+  h1{font-size:33px;margin:0 0 8px;letter-spacing:-.4px;}
+  .sub{color:var(--muted);font-size:17px;margin-bottom:26px;}
+  .demo{background:#fff8c5;border:1px solid #d4a72c;border-radius:8px;padding:13px 17px;
+    font-size:13.5px;margin-bottom:30px;}
+  .demo b{display:block;margin-bottom:3px;}
+  .body{background:#fff;border:1px solid var(--line);border-radius:10px;padding:26px 28px;margin-bottom:26px;}
+  .body h2{font-size:19px;margin:0 0 10px;}
+  .body h2:not(:first-child){margin-top:26px;}
+  .body p{margin:0 0 13px;font-size:14.5px;}
+  ul{margin:0 0 13px;padding-left:20px;font-size:14.5px;}
+  li{margin-bottom:6px;}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media(max-width:760px){.cards{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;
+    display:flex;flex-direction:column;transition:box-shadow .15s,transform .15s;}
+  .card:hover{box-shadow:0 8px 22px rgba(15,23,42,.11);transform:translateY(-2px);}
+  .banner{padding:20px 22px;color:#fff;}
+  .b1{background:linear-gradient(135deg,#2563eb,#1e40af);}
+  .b2{background:linear-gradient(135deg,#0f6cbd,#0b4d87);}
+  .banner .tag{font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;opacity:.85;
+    font-weight:700;display:block;margin-bottom:7px;}
+  .banner h3{margin:0;font-size:19px;}
+  .cb{padding:19px 22px;flex:1;display:flex;flex-direction:column;}
+  .cb p{font-size:13.5px;color:var(--ink);margin:0 0 14px;flex:1;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+  .chip{background:#f1f5f9;border:1px solid var(--line);border-radius:999px;
+    padding:2px 10px;font-size:11px;color:var(--muted);}
+  .btn{display:inline-block;background:var(--blue);color:#fff;text-decoration:none;
+    border-radius:6px;padding:9px 16px;font-size:13.5px;font-weight:600;text-align:center;}
+  .btn:hover{background:#1d4ed8;}
+  .key{display:flex;flex-wrap:wrap;gap:20px;margin:16px 0 4px;font-size:13px;}
+  .key span{display:flex;align-items:center;gap:7px;}
+  .sw{width:15px;height:15px;border-radius:3px;display:inline-block;}
+  footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:34px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="https://daddyinvolts.github.io/">← Back to portfolio</a>
+
+  <h1>ASHA Veto Heatmap</h1>
+  <div class="sub">Showing which experiments help or hurt each quality veto — at a glance</div>
+
+  <div class="demo">
+    <b>Public design demo — fictional data.</b>
+    Both prototypes run on randomly generated numbers, and the experiment names, products and
+    organisations shown are invented for this demo. They exist to test the <em>interaction design</em>,
+    not to report any result. The veto structure is representative of an ASHA-style guardrail model.
+  </div>
+
+  <div class="body">
+    <h2>The problem</h2>
+    <p>Quality guardrails — the "vetoes" that fire when a user hits a failed boot, a crash, a blank
+      screen, a throttle — are measured across a dozen-plus separate metrics grouped into three
+      pillars. Existing metric-impact views answer <em>"which experiments moved this one metric?"</em>,
+      one metric at a time. Answering the real question — <em>"across our whole veto set, where are we
+      winning and where are we bleeding?"</em> — means paging through 18 separate views and holding the
+      comparison in your head.</p>
+
+    <h2>The idea</h2>
+    <p>A single heatmap: experiments down the side, all 18 vetoes across the top, grouped by pillar.
+      Every cell is a square where</p>
+    <ul>
+      <li><strong>size</strong> encodes the magnitude of net user impact, and</li>
+      <li><strong>colour</strong> encodes direction.</li>
+    </ul>
+    <p>Vetoes are desirable-down, so more vetoes is worse:</p>
+    <div class="key">
+      <span><i class="sw" style="background:var(--red)"></i> More vetoes — regression</span>
+      <span><i class="sw" style="background:var(--amber)"></i> Inconclusive</span>
+      <span><i class="sw" style="background:var(--green)"></i> Fewer vetoes — improvement</span>
+      <span><i class="sw" style="background:#e2e8f0;border-radius:50%;width:8px;height:8px"></i> No movement</span>
+    </div>
+    <p style="margin-top:14px">One glance shows both the experiments that are broadly damaging quality
+      and the vetoes that are being hit from many directions at once. Clicking any cell opens the
+      underlying detail.</p>
+
+    <h2>Two takes</h2>
+    <p>The same concept is shown twice, in two different host surfaces, to test which framing lands
+      better with reviewers. Feedback especially welcome on: whether size-plus-colour is readable at
+      18 columns, whether the pillar grouping is the right cut, and whether the heatmap should lead
+      the page or support the ranked lists.</p>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="banner b1">
+        <span class="tag">Prototype 1</span>
+        <h3>Report-page tab</h3>
+      </div>
+      <div class="cb">
+        <p>The heatmap as a new <strong>Experiments</strong> tab dropped into an existing product
+          analytics dashboard, alongside Summary, Engagement, Health and the rest. KPI strip up top,
+          heatmap in the middle, ranked "top regressions / top improvements" lists below.</p>
+        <div class="chips">
+          <span class="chip">Dashboard tab</span><span class="chip">KPI strip</span>
+          <span class="chip">Ranked lists</span><span class="chip">Detail drawer</span>
+        </div>
+        <a class="btn" href="prototype1/">Open prototype 1 →</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="banner b2">
+        <span class="tag">Prototype 2</span>
+        <h3>Experimentation portal page</h3>
+      </div>
+      <div class="cb">
+        <p>The heatmap inside an experimentation portal, built on the existing metric-impact pattern:
+          pick a veto, see ranked <strong>Improved</strong> and <strong>Degraded</strong> panels, and a
+          full experiment table. The heatmap becomes the entry point — click a column to drive
+          everything below it.</p>
+        <div class="chips">
+          <span class="chip">Metric selector</span><span class="chip">Improved / Degraded</span>
+          <span class="chip">Experiment table</span><span class="chip">Dark mode</span>
+        </div>
+        <a class="btn" href="prototype2/">Open prototype 2 →</a>
+      </div>
+    </div>
+  </div>
+
+  <footer>Interaction prototypes · fictional demo data · built with GitHub Copilot CLI</footer>
+</div>
+</body>
+</html>

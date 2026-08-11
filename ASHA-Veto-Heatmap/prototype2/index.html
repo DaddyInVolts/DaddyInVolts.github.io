@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASHA Veto Impact | IDEAS Experimentation</title>
+<style>
+  :root{
+    --brand:#0f6cbd; --brand-2:#115ea3; --brand-soft:#ebf3fc; --brand-line:#b4d6fa;
+    --ink:#242424; --ink-2:#424242; --muted:#616161;
+    --page:#faf9f8; --card:#fff; --line:#e0e0e0; --line-2:#d1d1d1; --th:#f5f5f5;
+    --green:#0e700e; --green-2:#5fb85f; --green-soft:#f1faf1;
+    --red:#c50f1f; --red-2:#e8767c; --red-soft:#fdf3f4;
+    --amber:#f7a428; --amber-soft:#fff9f0;
+    --shadow:0 1px 2px rgba(0,0,0,.09),0 0 2px rgba(0,0,0,.06);
+  }
+  body.dark{
+    --brand-soft:#0d2438; --brand-line:#1e4b73;
+    --ink:#f0f0f0; --ink-2:#d6d6d6; --muted:#a0a0a0;
+    --page:#141414; --card:#1f1f1f; --line:#333; --line-2:#3d3d3d; --th:#2a2a2a;
+    --green-soft:#0d2010; --red-soft:#2a1113; --amber-soft:#2a2114;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--page);color:var(--ink);
+    font:14px/1.45 "Segoe UI Variable","Segoe UI",system-ui,-apple-system,sans-serif;}
+
+  /* ---- chrome ---- */
+  .appbar{background:var(--brand);color:#fff;height:48px;display:flex;align-items:center;
+    padding:0 16px;gap:12px;position:sticky;top:0;z-index:70;}
+  .appbar .logo{width:26px;height:26px;border-radius:6px;
+    background:linear-gradient(135deg,#e8618c,#f2a03d,#3fa9f5);flex:none;}
+  .appbar .title{font-size:15px;font-weight:600;}
+  .appbar .sp{flex:1;}
+  .appbar button{background:transparent;border:0;color:#fff;cursor:pointer;font-size:16px;
+    width:32px;height:32px;border-radius:4px;}
+  .appbar button:hover{background:rgba(255,255,255,.14);}
+  .who{display:flex;align-items:center;gap:9px;font-size:13px;}
+  .who .av{width:30px;height:30px;border-radius:50%;background:#f2d16b;color:#3d3000;
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;}
+
+  .shell{display:flex;align-items:flex-start;}
+  .side{width:246px;flex:none;background:var(--card);border-right:1px solid var(--line);
+    min-height:calc(100vh - 48px);padding:10px 0;position:sticky;top:48px;}
+  .side .ham{border:0;background:transparent;color:var(--ink-2);font-size:17px;
+    padding:6px 20px;cursor:pointer;margin-bottom:6px;}
+  .side a{display:flex;align-items:center;gap:12px;padding:9px 20px;color:var(--ink);
+    text-decoration:none;font-size:13.5px;border-left:3px solid transparent;}
+  .side a:hover{background:var(--brand-soft);}
+  .side a.on{border-left-color:var(--brand);color:var(--brand);font-weight:600;
+    background:var(--brand-soft);}
+  .side a .ic{width:18px;text-align:center;opacity:.85;}
+  .side hr{border:0;border-top:1px solid var(--line);margin:10px 20px;}
+
+  .main{flex:1;min-width:0;padding:22px 26px 60px;max-width:1720px;}
+  h1{font-size:26px;font-weight:600;margin:0 0 5px;letter-spacing:-.2px;}
+  .lede{color:var(--muted);font-size:13.5px;margin-bottom:18px;}
+
+  /* ---- selector row ---- */
+  .selrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px;}
+  .selbox{display:flex;align-items:center;gap:8px;background:var(--card);
+    border:1px solid var(--line-2);border-radius:5px;padding:7px 12px;box-shadow:var(--shadow);}
+  .selbox span{color:var(--muted);font-size:13px;}
+  .selbox select{border:0;background:transparent;font:600 14px inherit;color:var(--ink);
+    cursor:pointer;outline:none;max-width:430px;}
+  .pnote{margin-left:auto;color:var(--muted);font-size:12.5px;}
+
+  /* ---- twin panels ---- */
+  .twin{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+  @media(max-width:1180px){.twin{grid-template-columns:1fr;}}
+  .pan{background:var(--card);border:1px solid var(--line);border-radius:6px;
+    box-shadow:var(--shadow);overflow:hidden;}
+  .pan.good{border-left:4px solid var(--green);}
+  .pan.bad{border-left:4px solid var(--red);}
+  .pan .ph{display:flex;justify-content:space-between;align-items:center;
+    padding:14px 18px;border-bottom:1px solid var(--line);}
+  .pan .ph h3{margin:0;font-size:16px;font-weight:600;}
+  .pan .ph .ct{font-size:26px;font-weight:600;}
+  .pan.good .ct{color:var(--green);} .pan.bad .ct{color:var(--red);}
+  .pan .pb{padding:6px 18px 14px;}
+  .brow{padding:9px 0 5px;cursor:pointer;border-bottom:1px solid transparent;}
+  .brow:hover{background:var(--brand-soft);margin:0 -18px;padding-left:18px;padding-right:18px;}
+  .brow .bn{font-size:13px;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap;display:flex;justify-content:space-between;gap:14px;}
+  .brow .bn b{font-weight:600;font-variant-numeric:tabular-nums;flex:none;}
+  .brow .track{height:9px;background:var(--th);border-radius:3px;overflow:hidden;}
+  .brow .fill{height:100%;border-radius:3px;}
+  .empty{color:var(--muted);font-size:12.5px;padding:22px 0;text-align:center;}
+
+  /* ---- filter pills ---- */
+  .pills{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:16px;}
+  .pill{background:var(--brand-soft);border:1px solid var(--brand-line);border-radius:999px;
+    padding:4px 12px;font-size:12px;color:var(--ink);display:flex;align-items:center;gap:5px;}
+  .pill select{border:0;background:transparent;font:inherit;color:var(--ink);cursor:pointer;outline:none;}
+  .pill b{font-weight:600;}
+
+  /* ---- card section ---- */
+  .sec{background:var(--card);border:1px solid var(--line);border-radius:6px;
+    box-shadow:var(--shadow);margin-bottom:16px;}
+  .sh{display:flex;justify-content:space-between;align-items:center;gap:14px;
+    padding:15px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  .sh h2{margin:0;font-size:17px;font-weight:600;}
+  .sh .sub{color:var(--muted);font-size:12.5px;margin-top:3px;}
+  .btn{background:var(--card);border:1px solid var(--line-2);border-radius:4px;
+    padding:6px 12px;font-size:12.5px;color:var(--ink);cursor:pointer;display:inline-flex;
+    align-items:center;gap:6px;}
+  .btn:hover{background:var(--brand-soft);border-color:var(--brand-line);}
+  .sb{padding:18px;}
+
+  /* ---- new-in-this-report flag ---- */
+  .newflag{display:inline-flex;align-items:center;gap:5px;background:#e8f5e9;color:#0e700e;
+    border:1px solid #a7d7a7;border-radius:999px;padding:2px 9px;font-size:10.5px;
+    font-weight:700;text-transform:uppercase;letter-spacing:.5px;vertical-align:middle;}
+  body.dark .newflag{background:#0d2010;border-color:#2c5c2c;color:#6bc46b;}
+
+  .proto{background:#fff4ce;border:1px solid #e0c56b;color:#3d3000;border-radius:5px;
+    padding:11px 15px;margin-bottom:16px;font-size:12.5px;display:flex;gap:10px;}
+  body.dark .proto{background:#2e2408;border-color:#6b5a1e;color:#f0e2b0;}
+  .proto b{display:block;}
+
+  /* ---- heatmap ---- */
+  .hmctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:0 18px 14px;font-size:12.5px;}
+  .hmctl input[type=search],.hmctl select{border:1px solid var(--line-2);border-radius:4px;
+    padding:5px 9px;font-size:12.5px;background:var(--card);color:var(--ink);}
+  .hmctl input[type=search]{min-width:210px;}
+  .hmctl label{display:flex;align-items:center;gap:5px;cursor:pointer;}
+  .hm-wrap{overflow:auto;max-height:600px;border-top:1px solid var(--line);}
+  table.hm{border-collapse:separate;border-spacing:0;width:100%;font-size:12px;}
+  .hm th,.hm td{padding:0;}
+  .hm thead th{position:sticky;top:0;z-index:6;background:var(--th);}
+  .hm .exp-h,.hm .exp{position:sticky;left:0;z-index:5;background:var(--card);
+    border-right:2px solid var(--line-2);}
+  .hm thead th.exp-h{z-index:8;background:var(--th);}
+  .hm tr.grp th{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;font-weight:700;
+    padding:8px 6px;text-align:center;border-bottom:1px solid var(--line);}
+  .g-boot{color:#7719aa;background:#f7f0fb !important;}
+  .g-chat{color:#0f6cbd;background:#eff6fc !important;}
+  .g-intr{color:#8a5300;background:#fff8ec !important;}
+  body.dark .g-boot{background:#241030 !important;color:#c99ae0;}
+  body.dark .g-chat{background:#0d2438 !important;color:#7cb8e8;}
+  body.dark .g-intr{background:#2b2008 !important;color:#e0b063;}
+  .hm tr.met th{height:136px;vertical-align:bottom;padding:0 0 8px;
+    border-bottom:1px solid var(--line-2);cursor:pointer;}
+  .hm tr.met th .lbl{writing-mode:vertical-rl;transform:rotate(180deg);font-weight:600;
+    font-size:11px;color:var(--ink-2);white-space:nowrap;margin:0 auto;max-height:124px;overflow:hidden;}
+  .hm tr.met th:hover .lbl{color:var(--brand);}
+  .hm tr.met th.act{background:var(--brand-soft) !important;}
+  .hm tr.met th.act .lbl{color:var(--brand);font-weight:700;}
+  .hm td.cell{min-width:42px;height:42px;text-align:center;vertical-align:middle;
+    border-bottom:1px solid var(--line);}
+  .hm td.cell.dim{opacity:.22;}
+  .hm td.cell.act{background:var(--brand-soft);}
+  .hm tbody tr:hover td{background:var(--brand-soft);}
+  .sq{display:inline-block;border-radius:2px;cursor:pointer;vertical-align:middle;
+    transition:transform .08s,outline .08s;outline:0 solid transparent;}
+  .sq:hover{transform:scale(1.2);outline:2px solid var(--ink);}
+  .sq.sel{outline:2.5px solid var(--brand);transform:scale(1.15);}
+  .sq.none{width:5px;height:5px;border-radius:50%;background:var(--line-2);cursor:default;}
+  .sq.none:hover{transform:none;outline:0;}
+  .exp{padding:7px 12px !important;min-width:300px;max-width:360px;}
+  .exp .nm{font-weight:600;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .exp .meta{font-size:10.5px;color:var(--muted);margin-top:3px;display:flex;gap:7px;align-items:center;}
+  .exp-h{padding:9px 12px !important;text-align:left !important;font-size:12px;
+    color:var(--ink-2);font-weight:600;border-bottom:1px solid var(--line-2);}
+  tr.tot td{border-top:2px solid var(--line-2);background:var(--th) !important;
+    font-weight:600;font-size:10px;}
+  .legend{display:flex;flex-wrap:wrap;gap:28px;padding:14px 18px;border-top:1px solid var(--line);
+    font-size:11.5px;}
+  .legend b{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--muted);margin-bottom:8px;font-weight:600;}
+  .legend .row{display:flex;flex-wrap:wrap;align-items:center;gap:14px;}
+  .legend .row span{display:flex;align-items:center;gap:6px;}
+  .sw{border-radius:2px;display:inline-block;width:14px;height:14px;}
+
+  /* ---- data table ---- */
+  .dt-wrap{overflow-x:auto;}
+  table.dt{width:100%;border-collapse:collapse;font-size:13px;}
+  table.dt th{background:var(--th);color:var(--ink-2);font-size:12px;font-weight:600;
+    padding:12px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--line);
+    cursor:pointer;user-select:none;}
+  table.dt th:hover{color:var(--brand);}
+  table.dt td{padding:12px;border-bottom:1px solid var(--line);vertical-align:top;}
+  table.dt tr:hover td{background:var(--brand-soft);}
+  .rec{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .nm2{font-weight:600;display:flex;gap:7px;}
+  .nm2 .sub2{font-weight:400;color:var(--muted);font-size:11.5px;margin-top:3px;display:block;}
+  .badge{display:inline-block;font-size:11px;padding:2px 9px;border-radius:4px;
+    background:var(--th);color:var(--ink-2);border:1px solid var(--line);}
+  .badge.shipped{background:var(--green-soft);color:var(--green);border-color:#a7d7a7;}
+  .badge.active{background:var(--brand-soft);color:var(--brand);border-color:var(--brand-line);}
+  .badge.stopped{background:var(--red-soft);color:var(--red);border-color:#e8b3b7;}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;}
+  .up{color:var(--red);} .down{color:var(--green);} .flat{color:var(--muted);font-weight:400;}
+
+  /* ---- drawer ---- */
+  .drawer{position:fixed;top:0;right:0;width:400px;height:100vh;background:var(--card);
+    border-left:1px solid var(--line-2);box-shadow:-8px 0 26px rgba(0,0,0,.16);
+    transform:translateX(102%);transition:transform .2s;z-index:90;overflow-y:auto;padding:20px;}
+  .drawer.open{transform:none;}
+  .drawer .x{position:absolute;top:13px;right:15px;border:0;background:var(--th);
+    width:28px;height:28px;border-radius:4px;cursor:pointer;color:var(--muted);font-size:15px;}
+  .drawer h4{margin:0 0 3px;font-size:16px;}
+  .dl div{display:flex;justify-content:space-between;gap:14px;padding:8px 0;
+    border-bottom:1px solid var(--line);font-size:12.5px;}
+  .dl dt{color:var(--muted);} .dl dd{margin:0;font-weight:600;text-align:right;}
+  .mini{height:46px;display:flex;align-items:flex-end;gap:3px;margin-top:8px;}
+  .mini i{flex:1;background:var(--line-2);border-radius:2px 2px 0 0;}
+  .note{background:#fff4ce;border:1px solid #e0c56b;color:#3d3000;border-radius:5px;
+    padding:10px 12px;font-size:11.5px;margin-top:16px;}
+  body.dark .note{background:#2e2408;border-color:#6b5a1e;color:#f0e2b0;}
+  footer{color:var(--muted);font-size:11.5px;text-align:center;padding:14px 0 0;}
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <span class="logo"></span>
+  <span class="title">IDEAS Experimentation</span>
+  <span class="sp"></span>
+  <button id="moon" title="Toggle theme">🌙</button>
+  <span class="who"><span class="av">DU</span> Demo User</span>
+</div>
+
+<div class="shell">
+  <nav class="side">
+    <button class="ham">☰</button>
+    <a href="#"><span class="ic">⌂</span> Home</a>
+    <a href="#"><span class="ic">◑</span> Copilot Experiment Impact</a>
+    <a href="#"><span class="ic">📊</span> Copilot Metric Impact</a>
+    <a href="#" class="on"><span class="ic">🛡</span> ASHA Veto Impact</a>
+    <a href="#"><span class="ic">🔍</span> Rollout Search</a>
+    <hr>
+    <a href="#"><span class="ic">?</span> Wiki</a>
+    <a href="#"><span class="ic">📅</span> Office Hours</a>
+    <a href="#"><span class="ic">💬</span> Give Feedback</a>
+  </nav>
+
+  <div class="main">
+    <h1>ASHA Veto Impact</h1>
+    <div class="lede">Unified view of experiment impact across all ASHA quality vetoes on the Unified App</div>
+
+    <div class="proto">
+      <span style="font-size:15px">⚠️</span>
+      <div><b>Prototype — every impact value below is a synthetic placeholder.</b>
+        This is a public design demo. The three pillars (App Boot, Chat Tried, Interruptions) are representative of an ASHA-style guardrail model; the experiment names, products and organisations are fictional. All deltas, p-values, user counts,
+        statuses and recommendations are randomly generated for layout review only. Nothing here is a production metric set.</div>
+    </div>
+
+    <div class="selrow">
+      <div class="selbox">
+        <span>Impacted Veto:</span>
+        <select id="metricSel"></select>
+      </div>
+      <div class="selbox">
+        <span>Pillar:</span>
+        <select id="pillarSel">
+          <option value="">All pillars</option>
+          <option>App Boot</option><option>Chat Tried</option><option>Interruptions</option>
+        </select>
+      </div>
+      <div class="pnote">Showing experiments with p ≤ 0.05 for the selected veto</div>
+    </div>
+
+    <!-- twin panels, matching the Copilot Metric Impact layout -->
+    <div class="twin">
+      <div class="pan good">
+        <div class="ph"><h3>Improved <span style="color:var(--muted);font-weight:400;font-size:12.5px">(fewer vetoes)</span></h3><div class="ct" id="ctGood">0</div></div>
+        <div class="pb" id="listGood"></div>
+      </div>
+      <div class="pan bad">
+        <div class="ph"><h3>Degraded <span style="color:var(--muted);font-weight:400;font-size:12.5px">(more vetoes)</span></h3><div class="ct" id="ctBad">0</div></div>
+        <div class="pb" id="listBad"></div>
+      </div>
+    </div>
+
+    <div class="pills">
+      <span class="pill">Start: <b>Feb 11, 2026</b></span>
+      <span class="pill">End: <b>Aug 11, 2026</b></span>
+      <span class="pill">Status: <select id="fStatus"><option value="">All</option><option>Shipped</option><option>Active</option><option>Stopped</option></select></span>
+      <span class="pill">Ring: <b>production</b></span>
+      <span class="pill">Audience: <b>Commercial</b></span>
+      <span class="pill">Product: <select id="fProduct"><option value="">All</option><option>Desktop Suite</option><option>Web App</option><option>Chat App</option></select></span>
+      <span class="pill">Platform: <select id="fPlatform"><option value="">All</option><option>Web</option><option>Win32</option><option>Mac</option><option>Mobile</option></select></span>
+    </div>
+
+    <!-- NEW: the heatmap this report adds over Copilot Metric Impact -->
+    <div class="sec">
+      <div class="sh">
+        <div>
+          <h2>Veto Heatmap <span class="newflag">New</span></h2>
+          <div class="sub">All experiments × all 18 vetoes at once. Square <b>size</b> = net users impacted,
+            <b>colour</b> = direction. Vetoes are desirable-down, so red = more vetoes (worse).
+            Click a column header to drive the panels above.</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="btnCols">▦ Columns</button>
+          <button class="btn" id="btnLink">🔗 Copy Link</button>
+          <button class="btn" id="btnXl">⬇ Export to Excel</button>
+        </div>
+      </div>
+      <div class="hmctl">
+        <input type="search" id="q" placeholder="Filter experiments…">
+        <select id="sort">
+          <option value="worst">Sort: worst net impact first</option>
+          <option value="best">Sort: best net impact first</option>
+          <option value="most">Sort: most vetoes moved</option>
+          <option value="name">Sort: experiment name</option>
+        </select>
+        <select id="sizeBy">
+          <option value="users">Size by: net users impacted</option>
+          <option value="delta">Size by: absolute Δ (pp)</option>
+        </select>
+        <label><input type="checkbox" id="sigonly"> p ≤ 0.05 only</label>
+        <span id="shown" style="color:var(--muted)"></span>
+      </div>
+      <div class="hm-wrap"><table class="hm" id="hm"></table></div>
+      <div class="legend">
+        <div><b>Colour — direction</b>
+          <div class="row">
+            <span><i class="sw" style="background:var(--red)"></i> More vetoes (p ≤ .05)</span>
+            <span><i class="sw" style="background:var(--red-2)"></i> More (n.s.)</span>
+            <span><i class="sw" style="background:var(--amber)"></i> Inconclusive</span>
+            <span><i class="sw" style="background:var(--green-2)"></i> Fewer (n.s.)</span>
+            <span><i class="sw" style="background:var(--green)"></i> Fewer vetoes (p ≤ .05)</span>
+            <span><i class="sw" style="width:7px;height:7px;border-radius:50%;background:var(--line-2)"></i> No movement</span>
+          </div>
+        </div>
+        <div><b>Size — magnitude</b><div class="row" id="sizeLegend"></div></div>
+      </div>
+    </div>
+
+    <!-- Expedite-style experiment table -->
+    <div class="sec">
+      <div class="sh">
+        <div><h2>Copilot Experiments</h2>
+          <div class="sub" id="tblSub"></div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn">▦ Columns</button>
+          <button class="btn" id="btnLink2">🔗 Copy Link</button>
+          <button class="btn">⬇ Export to Excel</button>
+        </div>
+      </div>
+      <div class="dt-wrap"><table class="dt" id="dt"></table></div>
+    </div>
+
+    <footer>Prototype · ASHA Veto Impact on Unified App · built in the Copilot Metric Impact visual language · synthetic data</footer>
+  </div>
+</div>
+
+<div class="drawer" id="drawer"><button class="x" onclick="closeDrawer()">×</button><div id="dbody"></div></div>
+
+<script>
+/* Quality veto model: 18 vetoes across 3 pillars, all desirable-down
+   (more vetoes is worse). Illustrative structure for design review. */
+const METRICS=[
+ {p:'App Boot',s:'Auth Failed',n:'% Veto Users - App Boot - Authentication Failed',id:'QualityVeto_App_Boot_Authentication_Failed'},
+ {p:'App Boot',s:'Boot Failed',n:'% Veto Users - App Boot - Boot Failed',id:'QualityVeto_App_Boot_Boot_Failed'},
+ {p:'App Boot',s:'Boot Too Slow',n:'% Veto Users - App Boot - Boot Too Slow',id:'QualityVeto_App_Boot_Boot_Too_Slow'},
+ {p:'Chat Tried',s:'Access / Licensing',n:'% Veto Users - Chat Tried - Access or Licensing Issue',id:'QualityVeto_Chat_Tried_Access_or_Licensing_Issue'},
+ {p:'Chat Tried',s:'Blank Screen',n:'% Veto Users - Chat Tried - Blank Screen',id:'QualityVeto_Chat_Tried_Blank_Screen'},
+ {p:'Chat Tried',s:'Response Slow',n:'% Veto Users - Chat Tried - Chat Response Slow',id:'QualityVeto_Chat_Tried_Chat_Response_Slow'},
+ {p:'Chat Tried',s:'ClientQueryError',n:'% Veto Users - Chat Tried - ClientQueryError',id:'QualityVeto_Chat_Tried_ClientQueryError'},
+ {p:'Chat Tried',s:'Something Went Wrong',n:'% Veto Users - Chat Tried - Something Went Wrong (SWW)',id:'QualityVeto_Chat_Tried_Something_Went_Wrong_SWW'},
+ {p:'Chat Tried',s:'User Throttled',n:'% Veto Users - Chat Tried - User Throttled',id:'QualityVeto_Chat_Tried_User_Throttled'},
+ {p:'Chat Tried',s:'No Cloud Content',n:'% Veto Users - Chat Tried - User unable to add cloud content',id:'QualityVeto_Chat_Tried_User_unable_to_add_cloud_content'},
+ {p:'Chat Tried',s:'No Local Content',n:'% Veto Users - Chat Tried - User unable to add local content',id:'QualityVeto_Chat_Tried_User_unable_to_add_local_content'},
+ {p:'Interruptions',s:'App Not Responding',n:'% Veto Users - Interruptions - App Not Responding (ANR)',id:'QualityVeto_Interruptions_App_Not_Responding_ANR'},
+ {p:'Interruptions',s:'App Unusable',n:'% Veto Users - Interruptions - App Unusable',id:'QualityVeto_Interruptions_App_Unusable'},
+ {p:'Interruptions',s:'Auth Failed',n:'% Veto Users - Interruptions - Authentication Failed',id:'QualityVeto_Interruptions_Authentication_Failed'},
+ {p:'Interruptions',s:'Crash',n:'% Veto Users - Interruptions - Crash Encountered',id:'QualityVeto_Interruptions_Crash_Encountered'},
+ {p:'Interruptions',s:'Critical Failure',n:'% Veto Users - Interruptions - Critical Failure',id:'QualityVeto_Interruptions_Critical_Failure'},
+ {p:'Interruptions',s:'Feature Error',n:'% Veto Users - Interruptions - Feature Error',id:'QualityVeto_Interruptions_Feature_Error'},
+ {p:'Interruptions',s:'Visual / Behaviour Flaw',n:'% Veto Users - Interruptions - Visual or Behavior Flaw',id:'QualityVeto_Interruptions_Visual_or_Behavior_Flaw'}
+];
+
+/* Fictional experiment names invented for this demo. Numbers are synthetic. */
+const EXPERIMENTS=[
+ {n:'HostRuntimeHangRecovery (Desktop)',o:'webapp~home',pr:'Desktop Suite',pf:'Win32'},
+ {n:'auth UseSharedTokenBroker',o:'webapp~home',pr:'Web App',pf:'Web'},
+ {n:'AppDefinition Microservices Rollout',o:'webapp~home',pr:'Web App',pf:'Web'},
+ {n:'[EdgeCache] Bundle Unification Rollout',o:'webapp~homeclient',pr:'Web App',pf:'Web'},
+ {n:'enableHeapSizeTelemetry',o:'chatapp~client',pr:'Chat App',pf:'Web'},
+ {n:'immersive-chat-token-cache-policy',o:'chatapp~client',pr:'Chat App',pf:'Web'},
+ {n:'enableScrollToLastMessage',o:'chatapp~client',pr:'Chat App',pf:'Web'},
+ {n:'Mainline Shell Refresh (enableShellCreditsMeter)',o:'chatapp~client',pr:'Chat App',pf:'Web'},
+ {n:'enableSuggestionPlaceholders',o:'chatapp~client',pr:'Chat App',pf:'Web'},
+ {n:'Home Suggestion Chips Experiment 3',o:'chatapp~client',pr:'Chat App',pf:'Web'},
+ {n:'Calendar Entity Chips',o:'chatapp~client',pr:'Chat App',pf:'Mobile'},
+ {n:'enableDocAgentSideBySideViewer',o:'chatapp~client',pr:'Desktop Suite',pf:'Win32'},
+ {n:'Chat Image Generation Grounding',o:'chatapp~client',pr:'Chat App',pf:'Web'},
+ {n:'Zero-Query Suggestions',o:'webapp~home',pr:'Web App',pf:'Web'},
+ {n:'Search - Calendar Vertical Rename',o:'webapp~home',pr:'Web App',pf:'Web'},
+ {n:'disableSlideAgentFullScreenChat',o:'chatapp~client',pr:'Desktop Suite',pf:'Win32'},
+ {n:'Unauth - Mobile Device Fingerprinting',o:'webapp~home',pr:'Web App',pf:'Mobile'},
+ {n:'Nav Panel Expand/Collapse (Web)',o:'webapp~home',pr:'Desktop Suite',pf:'Web'}
+];
+
+/* ================= SYNTHETIC generation (seeded) ================= */
+function rng(s){let x=s>>>0;return()=>{x=(x*1664525+1013904223)>>>0;return x/4294967296;};}
+const rand=rng(20260811);
+const STATUS=['Shipped','Active','Stopped'];
+const DATA=[],MAP={};
+const key=(a,b)=>a+'|'+b;
+EXPERIMENTS.forEach((e,ei)=>{
+  e.flight=Math.round(40000+rand()*900000);
+  e.status=STATUS[Math.floor(rand()*3)];
+  e.started=new Date(2026,1+Math.floor(rand()*6),1+Math.floor(rand()*28));
+  const bias=(rand()*2-1)*0.9;
+  METRICS.forEach((m,mi)=>{
+    if(rand()<0.34){const d={ei,mi,none:true,delta:0,users:0};DATA.push(d);MAP[key(ei,mi)]=d;return;}
+    const base=0.02+rand()*1.5;
+    let delta=(rand()*2-1)*0.42+bias*0.30;
+    if(Math.abs(delta)<0.015) delta=0;
+    const p=Math.max(0.0001,Math.pow(rand(),2.1));
+    const sig=p<0.05&&Math.abs(delta)>0.03;
+    const d={ei,mi,delta,p,sig,base,users:Math.round(delta/100*e.flight),none:delta===0};
+    DATA.push(d);MAP[key(ei,mi)]=d;
+  });
+  // recommendation derives from net synthetic veto movement
+  const net=METRICS.reduce((a,_,mi)=>a+(MAP[key(ei,mi)].users||0),0);
+  e.net=net;
+  e.rec = net>4000?'Do Not Ship' : net>800?'Awaiting Clarity' : 'Ship';
+});
+
+/* ================= helpers ================= */
+const SIZES=[10,15,20,26,32];
+const fmt=n=>Math.abs(n)>=1000?(n/1000).toFixed(1).replace(/\.0$/,'')+'K':String(Math.round(n));
+const sU=n=>(n>0?'+':'')+fmt(n);
+const sPP=n=>(n>0?'+':'')+n.toFixed(3)+' pp';
+const mag=(d,m)=>m==='users'?Math.abs(d.users):Math.abs(d.delta);
+function sizeOf(d,mode,max){if(!max)return SIZES[0];
+  const t=Math.sqrt(mag(d,mode)/max);
+  return SIZES[Math.min(4,Math.max(0,Math.round(t*4)))];}
+function isAmber(d){return !d.none&&d.delta!==0&&!d.sig&&d.p>0.4&&Math.abs(d.delta)<0.12;}
+function colorOf(d){if(d.none||d.delta===0)return null;
+  if(isAmber(d))return'var(--amber)';
+  return d.delta>0?(d.sig?'var(--red)':'var(--red-2)'):(d.sig?'var(--green)':'var(--green-2)');}
+
+const S={metric:0,pillar:'',q:'',sort:'worst',size:'users',sigonly:false,
+         status:'',product:'',platform:'',sel:null,tsort:'metric',tdir:1};
+
+/* populate metric selector, grouped by pillar */
+(function(){
+  const sel=document.getElementById('metricSel');
+  let cur='',h='';
+  METRICS.forEach((m,i)=>{
+    if(m.p!==cur){if(cur)h+='</optgroup>';h+=`<optgroup label="${m.p}">`;cur=m.p;}
+    h+=`<option value="${i}">${m.n.replace('% Veto Users - ','')}</option>`;
+  });
+  sel.innerHTML=h+'</optgroup>';
+})();
+
+function expPass(e){
+  if(S.q){const q=S.q.toLowerCase(); if(!e.n.toLowerCase().includes(q)&&!e.o.toLowerCase().includes(q))return false;}
+  if(S.status&&e.status!==S.status)return false;
+  if(S.product&&e.pr!==S.product)return false;
+  if(S.platform&&e.pf!==S.platform)return false;
+  return true;
+}
+const visMetrics=()=>METRICS.map((m,i)=>({m,i})).filter(x=>!S.pillar||x.m.p===S.pillar);
+function rowScore(ei){let net=0,moved=0;
+  visMetrics().forEach(({i})=>{const d=MAP[key(ei,i)];
+    if(!d||d.none)return; if(S.sigonly&&!d.sig)return; net+=d.users;moved++;});
+  return{net,moved};}
+function visExps(){
+  let l=EXPERIMENTS.map((e,i)=>({e,i,...rowScore(i)})).filter(x=>expPass(x.e));
+  const by={worst:(a,b)=>b.net-a.net,best:(a,b)=>a.net-b.net,
+            most:(a,b)=>b.moved-a.moved,name:(a,b)=>a.e.n.localeCompare(b.e.n)};
+  return l.sort(by[S.sort]);
+}
+
+/* ================= twin panels (driven by selected veto) ================= */
+function renderPanels(){
+  const mi=S.metric;
+  const rows=EXPERIMENTS.map((e,ei)=>({e,ei,d:MAP[key(ei,mi)]}))
+    .filter(x=>expPass(x.e)&&!x.d.none&&x.d.delta!==0&&x.d.sig);
+  const good=rows.filter(x=>x.d.users<0).sort((a,b)=>a.d.users-b.d.users);
+  const bad =rows.filter(x=>x.d.users>0).sort((a,b)=>b.d.users-a.d.users);
+  document.getElementById('ctGood').textContent=good.length;
+  document.getElementById('ctBad').textContent=bad.length;
+  const mk=(arr,cls)=>{
+    if(!arr.length)return '<div class="empty">No experiments with p ≤ 0.05 for this veto</div>';
+    const top=Math.abs(arr[0].d.users)||1;
+    return arr.slice(0,7).map(x=>`<div class="brow" onclick="openCell(${x.ei},${mi})">
+      <div class="bn"><span>${x.e.n}</span><b style="color:var(--${cls})">${sU(x.d.users)}</b></div>
+      <div class="track"><div class="fill" style="width:${Math.max(3,Math.abs(x.d.users)/top*100)}%;
+        background:var(--${cls})"></div></div></div>`).join('');
+  };
+  document.getElementById('listGood').innerHTML=mk(good,'green');
+  document.getElementById('listBad').innerHTML=mk(bad,'red');
+}
+
+/* ================= heatmap ================= */
+function renderHeatmap(){
+  const mets=visMetrics(),exps=visExps();
+  let max=0;
+  exps.forEach(({i:ei})=>mets.forEach(({i:mi})=>{const d=MAP[key(ei,mi)];
+    if(!d||d.none)return; if(S.sigonly&&!d.sig)return; max=Math.max(max,mag(d,S.size));}));
+  const groups=[];
+  mets.forEach(({m})=>{const g=groups[groups.length-1];
+    if(g&&g.p===m.p)g.c++;else groups.push({p:m.p,c:1});});
+  const gc={'App Boot':'g-boot','Chat Tried':'g-chat','Interruptions':'g-intr'};
+
+  let h='<thead><tr class="grp"><th class="exp-h" style="border-bottom:1px solid var(--line)">Experiment</th>';
+  groups.forEach(g=>h+=`<th colspan="${g.c}" class="${gc[g.p]}">${g.p}</th>`);
+  h+=`</tr><tr class="met"><th class="exp-h">${exps.length} experiments</th>`;
+  mets.forEach(({m,i})=>h+=`<th class="${i===S.metric?'act':''}" title="${m.n}\n${m.id}"
+      onclick="pickMetric(${i})"><div class="lbl">${m.s}</div></th>`);
+  h+='</tr></thead><tbody>';
+
+  exps.forEach(({e,i:ei,net,moved})=>{
+    const col=net>0?'var(--red)':net<0?'var(--green)':'var(--muted)';
+    h+=`<tr><td class="exp"><div class="nm" title="${e.n}">${e.n}</div><div class="meta">
+      <span style="color:${col};font-weight:600">${sU(net)} users</span>
+      <span>· ${moved} moved</span><span>· ${e.pr}</span></div></td>`;
+    mets.forEach(({i:mi})=>{
+      const d=MAP[key(ei,mi)],act=mi===S.metric;
+      const cls='cell'+(act?' act':'');
+      if(!d||d.none||(S.sigonly&&!d.sig)){h+=`<td class="${cls}"><span class="sq none"></span></td>`;return;}
+      const px=sizeOf(d,S.size,max);
+      const sel=(S.sel&&S.sel.ei===ei&&S.sel.mi===mi)?' sel':'';
+      const tip=`${METRICS[mi].s}\nΔ ${sPP(d.delta)} · ${sU(d.users)} users\np=${d.p.toFixed(4)}${d.sig?' (p ≤ .05)':' (n.s.)'}`;
+      h+=`<td class="${cls}"><span class="sq${sel}" title="${tip}" onclick="openCell(${ei},${mi})"
+          style="width:${px}px;height:${px}px;background:${colorOf(d)}"></span></td>`;
+    });
+    h+='</tr>';
+  });
+  h+='<tr class="tot"><td class="exp"><div class="nm">Net across experiments</div>'+
+     '<div class="meta">sum of net users per veto</div></td>';
+  mets.forEach(({i:mi})=>{let t=0;
+    exps.forEach(({i:ei})=>{const d=MAP[key(ei,mi)];
+      if(!d||d.none)return; if(S.sigonly&&!d.sig)return; t+=d.users;});
+    const c=t>0?'var(--red)':t<0?'var(--green)':'var(--muted)';
+    h+=`<td class="cell${mi===S.metric?' act':''}" style="color:${c}">${t===0?'–':sU(t)}</td>`;});
+  h+='</tr></tbody>';
+  document.getElementById('hm').innerHTML=h;
+  document.getElementById('shown').textContent=`${exps.length} experiments × ${mets.length} vetoes`;
+
+  let sl='';
+  SIZES.forEach((px,i)=>{
+    const edge=Math.pow(Math.min(1,(i+0.5)/4),2)*max;
+    sl+=`<span><i class="sw" style="width:${px}px;height:${px}px;background:#8a8886"></i> ${
+      i===4?'≥':'<'} ${S.size==='users'?fmt(edge):edge.toFixed(2)+' pp'}</span>`;});
+  document.getElementById('sizeLegend').innerHTML=sl;
+}
+
+/* ================= experiment table ================= */
+function renderTable(){
+  const mi=S.metric,m=METRICS[mi];
+  let rows=EXPERIMENTS.map((e,ei)=>({e,ei,d:MAP[key(ei,mi)]})).filter(x=>expPass(x.e));
+  if(S.sigonly) rows=rows.filter(x=>x.d.sig);
+  const cmp={metric:(a,b)=>(b.d.users-a.d.users),
+             name:(a,b)=>a.e.n.localeCompare(b.e.n),
+             status:(a,b)=>a.e.status.localeCompare(b.e.status),
+             product:(a,b)=>a.e.pr.localeCompare(b.e.pr),
+             started:(a,b)=>a.e.started-b.e.started,
+             rec:(a,b)=>a.e.rec.localeCompare(b.e.rec)};
+  rows.sort((a,b)=>cmp[S.tsort](a,b)*S.tdir);
+  const arrow=k=>S.tsort===k?(S.tdir>0?' ↓':' ↑'):' ⇅';
+  let h=`<thead><tr>
+    <th onclick="tsort('rec')">IDEAS Recommendation${arrow('rec')}</th>
+    <th onclick="tsort('name')">Name${arrow('name')}</th>
+    <th onclick="tsort('status')">Status${arrow('status')}</th>
+    <th onclick="tsort('product')">Product${arrow('product')}</th>
+    <th>Platform</th>
+    <th onclick="tsort('started')">Started${arrow('started')}</th>
+    <th>Ring</th><th>Audience</th>
+    <th onclick="tsort('metric')" style="text-align:right">${m.s} (100%)${arrow('metric')}</th>
+    <th></th></tr></thead><tbody>`;
+  rows.forEach(({e,ei,d})=>{
+    const rc=e.rec==='Ship'?'var(--green)':e.rec==='Do Not Ship'?'var(--red)':'var(--amber)';
+    const cls=d.none||d.delta===0?'flat':d.users>0?'up':'down';
+    const val=d.none||d.delta===0?'—':`${sU(d.users)}<div style="font-size:11px;font-weight:400">${sPP(d.delta)}</div>`;
+    h+=`<tr><td><span class="rec"><i class="dot" style="background:${rc}"></i>${e.rec}</span></td>
+      <td><div class="nm2">📄 <span>${e.n}<span class="sub2">${e.o} · ${d.sig?'p = '+d.p.toFixed(4):'not significant'}</span></span></div></td>
+      <td><span class="badge ${e.status.toLowerCase()}">${e.status}</span></td>
+      <td>${e.pr}</td><td>${e.pf}</td>
+      <td>${e.started.toLocaleDateString('en-US')}</td>
+      <td>production</td><td>Commercial</td>
+      <td class="num ${cls}">${val}</td>
+      <td><button class="btn" onclick="openCell(${ei},${mi})">📄 Details</button></td></tr>`;
+  });
+  document.getElementById('dt').innerHTML=h+'</tbody>';
+  document.getElementById('tblSub').textContent=
+    `${rows.length} experiments · impact shown for ${m.n}`;
+}
+function tsort(k){if(S.tsort===k)S.tdir*=-1;else{S.tsort=k;S.tdir=1;}renderTable();}
+
+/* ================= drawer ================= */
+function openCell(ei,mi){
+  const d=MAP[key(ei,mi)],e=EXPERIMENTS[ei],m=METRICS[mi];
+  S.sel={ei,mi};
+  if(d.none||d.delta===0){
+    document.getElementById('dbody').innerHTML=
+      `<h4>${m.s}</h4><div style="color:var(--muted);font-size:12px">${m.id}</div>
+       <p style="margin-top:18px;font-size:13px">No measurable movement for
+       <b>${e.n}</b> on this veto.</p>
+       <div class="note"><b>Synthetic values.</b> Prototype layout only.</div>`;
+  } else {
+    const col=d.delta>0?'var(--red)':'var(--green)';
+    let sp='';for(let i=0;i<14;i++)sp+=`<i style="height:${30+Math.random()*70}%"></i>`;
+    document.getElementById('dbody').innerHTML=`
+      <h4>${m.s}</h4>
+      <div style="color:var(--muted);font-size:11.5px;margin-bottom:2px">${m.p} pillar</div>
+      <div style="color:var(--muted);font-size:11.5px;word-break:break-all">${m.id}</div>
+      <div style="margin-top:16px;padding:12px;border-radius:5px;
+        background:${d.delta>0?'var(--red-soft)':'var(--green-soft)'}">
+        <div style="font-size:24px;font-weight:600;color:${col}">${sPP(d.delta)}</div>
+        <div style="font-size:12.5px;color:${col};font-weight:600">
+          ${d.delta>0?'More vetoes — degraded':'Fewer vetoes — improved'}</div>
+        <div style="font-size:12.5px;margin-top:4px">${sU(d.users)} net users affected</div>
+      </div>
+      <dl class="dl" style="margin:16px 0 0">
+        <div><dt>Experiment</dt><dd style="max-width:215px">${e.n}</dd></div>
+        <div><dt>IDEAS Recommendation</dt><dd>${e.rec}</dd></div>
+        <div><dt>Status</dt><dd>${e.status}</dd></div>
+        <div><dt>Product / Platform</dt><dd>${e.pr} · ${e.pf}</dd></div>
+        <div><dt>Org</dt><dd>${e.o}</dd></div>
+        <div><dt>Control rate</dt><dd>${d.base.toFixed(3)}%</dd></div>
+        <div><dt>Treatment rate</dt><dd>${(d.base+d.delta).toFixed(3)}%</dd></div>
+        <div><dt>Relative change</dt><dd style="color:${col}">${(d.delta/d.base*100).toFixed(1)}%</dd></div>
+        <div><dt>p-value</dt><dd>${d.p.toFixed(4)}</dd></div>
+        <div><dt>Significant</dt><dd style="color:${d.sig?col:'var(--muted)'}">${d.sig?'Yes':'No'}</dd></div>
+        <div><dt>Users in flight</dt><dd>${fmt(e.flight)}</dd></div>
+        <div><dt>Desirable direction</dt><dd>Down</dd></div>
+      </dl>
+      <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;
+        color:var(--muted);margin-top:18px">Daily trend (mock)</div>
+      <div class="mini">${sp}</div>
+      <div class="note"><b>Synthetic values.</b> Every value here is fictional, generated for prototype layout only.</div>
+      <div style="margin-top:14px;font-size:12.5px;color:var(--brand);cursor:pointer">
+        ↗ Open ExP scorecard (not wired)</div>`;
+  }
+  document.getElementById('drawer').classList.add('open');
+  renderHeatmap();
+}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');S.sel=null;renderHeatmap();}
+function pickMetric(i){S.metric=i;document.getElementById('metricSel').value=i;renderAll();}
+
+/* ================= wire up ================= */
+function renderAll(){renderPanels();renderHeatmap();renderTable();}
+document.getElementById('metricSel').onchange=e=>{S.metric=+e.target.value;renderAll();};
+document.getElementById('pillarSel').onchange=e=>{
+  S.pillar=e.target.value;
+  if(S.pillar&&METRICS[S.metric].p!==S.pillar){
+    S.metric=METRICS.findIndex(m=>m.p===S.pillar);
+    document.getElementById('metricSel').value=S.metric;}
+  renderAll();};
+document.getElementById('q').oninput=e=>{S.q=e.target.value;renderAll();};
+document.getElementById('sort').onchange=e=>{S.sort=e.target.value;renderHeatmap();};
+document.getElementById('sizeBy').onchange=e=>{S.size=e.target.value;renderHeatmap();};
+document.getElementById('sigonly').onchange=e=>{S.sigonly=e.target.checked;renderAll();};
+['fStatus','fProduct','fPlatform'].forEach((id,k)=>{
+  document.getElementById(id).onchange=e=>{
+    S[['status','product','platform'][k]]=e.target.value;renderAll();};});
+document.getElementById('moon').onclick=()=>{
+  document.body.classList.toggle('dark');
+  document.getElementById('moon').textContent=document.body.classList.contains('dark')?'☀️':'🌙';};
+[['btnLink','Link copied (prototype)'],['btnLink2','Link copied (prototype)'],
+ ['btnXl','Export not wired in prototype'],['btnCols','Column picker not wired in prototype']]
+ .forEach(([id,msg])=>{const b=document.getElementById(id); if(b) b.onclick=()=>alert(msg);});
+
+/* default to the veto with the most significant movement so the panels open populated */
+S.metric = METRICS.map((_,mi)=>({mi,c:EXPERIMENTS.filter((_,ei)=>MAP[key(ei,mi)].sig).length}))
+                  .sort((a,b)=>b.c-a.c)[0].mi;
+document.getElementById('metricSel').value=S.metric;
+
+renderAll();
+</script>
+</body>
+</html>
+
