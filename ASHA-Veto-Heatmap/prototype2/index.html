@@ -78,8 +78,8 @@
   .pan .ph .ct{font-size:26px;font-weight:600;}
   .pan.good .ct{color:var(--green);} .pan.bad .ct{color:var(--red);}
   .pan .pb{padding:6px 18px 14px;}
-  .brow{padding:9px 0 5px;cursor:pointer;border-bottom:1px solid transparent;}
-  .brow:hover{background:var(--brand-soft);margin:0 -18px;padding-left:18px;padding-right:18px;}
+  .brow{padding:9px 0 5px;border-bottom:1px solid transparent;}
+  .brow:hover{margin:0 -18px;padding-left:18px;padding-right:18px;}
   .brow .bn{font-size:13px;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;
     white-space:nowrap;display:flex;justify-content:space-between;gap:14px;}
   .brow .bn b{font-weight:600;font-variant-numeric:tabular-nums;flex:none;}
@@ -154,7 +154,6 @@
   .sq{display:inline-block;border-radius:2px;cursor:pointer;vertical-align:middle;
     transition:transform .08s,outline .08s;outline:0 solid transparent;}
   .sq:hover{transform:scale(1.2);outline:2px solid var(--ink);}
-  .sq.sel{outline:2.5px solid var(--brand);transform:scale(1.15);}
   .sq.none{width:5px;height:5px;border-radius:50%;background:var(--line-2);cursor:default;}
   .sq.none:hover{transform:none;outline:0;}
   .exp{padding:7px 12px !important;min-width:300px;max-width:360px;}
@@ -193,19 +192,6 @@
   td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;}
   .up{color:var(--red);} .down{color:var(--green);} .flat{color:var(--muted);font-weight:400;}
 
-  /* ---- drawer ---- */
-  .drawer{position:fixed;top:0;right:0;width:400px;height:100vh;background:var(--card);
-    border-left:1px solid var(--line-2);box-shadow:-8px 0 26px rgba(0,0,0,.16);
-    transform:translateX(102%);transition:transform .2s;z-index:90;overflow-y:auto;padding:20px;}
-  .drawer.open{transform:none;}
-  .drawer .x{position:absolute;top:13px;right:15px;border:0;background:var(--th);
-    width:28px;height:28px;border-radius:4px;cursor:pointer;color:var(--muted);font-size:15px;}
-  .drawer h4{margin:0 0 3px;font-size:16px;}
-  .dl div{display:flex;justify-content:space-between;gap:14px;padding:8px 0;
-    border-bottom:1px solid var(--line);font-size:12.5px;}
-  .dl dt{color:var(--muted);} .dl dd{margin:0;font-weight:600;text-align:right;}
-  .mini{height:46px;display:flex;align-items:flex-end;gap:3px;margin-top:8px;}
-  .mini i{flex:1;background:var(--line-2);border-radius:2px 2px 0 0;}
   .note{background:#fff4ce;border:1px solid #e0c56b;color:#3d3000;border-radius:5px;
     padding:10px 12px;font-size:11.5px;margin-top:16px;}
   body.dark .note{background:#2e2408;border-color:#6b5a1e;color:#f0e2b0;}
@@ -291,7 +277,7 @@
           <h2>Veto Heatmap <span class="newflag">New</span></h2>
           <div class="sub">All experiments × all 18 vetoes at once. Square <b>size</b> = net users impacted,
             <b>colour</b> = direction. Vetoes are desirable-down, so red = more vetoes (worse).
-            Click a column header to drive the panels above.</div>
+            Click a column header or any square to drive the panels above.</div>
         </div>
         <div style="display:flex;gap:8px">
           <button class="btn" id="btnCols">▦ Columns</button>
@@ -347,8 +333,6 @@
     <footer>Prototype · ASHA Veto Impact on Unified App · built in the Copilot Metric Impact visual language · synthetic data</footer>
   </div>
 </div>
-
-<div class="drawer" id="drawer"><button class="x" onclick="closeDrawer()">×</button><div id="dbody"></div></div>
 
 <script>
 /* Quality veto model: 18 vetoes across 3 pillars, all desirable-down
@@ -444,7 +428,7 @@ function colorOf(d){if(d.none||d.delta===0)return null;
   return d.delta>0?(d.sig?'var(--red)':'var(--red-2)'):(d.sig?'var(--green)':'var(--green-2)');}
 
 const S={metric:0,pillar:'',q:'',sort:'worst',size:'users',sigonly:false,
-         status:'',product:'',platform:'',sel:null,tsort:'metric',tdir:1};
+         status:'',product:'',platform:'',tsort:'metric',tdir:1};
 
 /* populate metric selector, grouped by pillar */
 (function(){
@@ -488,7 +472,7 @@ function renderPanels(){
   const mk=(arr,cls)=>{
     if(!arr.length)return '<div class="empty">No experiments with p ≤ 0.05 for this veto</div>';
     const top=Math.abs(arr[0].d.users)||1;
-    return arr.slice(0,7).map(x=>`<div class="brow" onclick="openCell(${x.ei},${mi})">
+    return arr.slice(0,7).map(x=>`<div class="brow">
       <div class="bn"><span>${x.e.n}</span><b style="color:var(--${cls})">${sU(x.d.users)}</b></div>
       <div class="track"><div class="fill" style="width:${Math.max(3,Math.abs(x.d.users)/top*100)}%;
         background:var(--${cls})"></div></div></div>`).join('');
@@ -525,9 +509,8 @@ function renderHeatmap(){
       const cls='cell'+(act?' act':'');
       if(!d||d.none||(S.sigonly&&!d.sig)){h+=`<td class="${cls}"><span class="sq none"></span></td>`;return;}
       const px=sizeOf(d,S.size,max);
-      const sel=(S.sel&&S.sel.ei===ei&&S.sel.mi===mi)?' sel':'';
       const tip=`${METRICS[mi].n}\nControl ${d.base.toFixed(4)}%  →  Treatment ${(d.base+d.delta).toFixed(4)}%\nΔ ${sPP(d.delta)}  (${sRel(d.rel)})\n${sU(d.users)} net users · p=${d.p.toFixed(4)}${d.sig?' (p ≤ .05)':' (n.s.)'}`;
-      h+=`<td class="${cls}"><span class="sq${sel}" title="${tip}" onclick="openCell(${ei},${mi})"
+      h+=`<td class="${cls}"><span class="sq" title="${tip}" onclick="pickMetric(${mi})"
           style="width:${px}px;height:${px}px;background:${colorOf(d)}"></span></td>`;
     });
     h+='</tr>';
@@ -573,7 +556,7 @@ function renderTable(){
     <th onclick="tsort('started')">Started${arrow('started')}</th>
     <th>Ring</th><th>Audience</th>
     <th onclick="tsort('metric')" style="text-align:right">${m.s} (100%)${arrow('metric')}</th>
-    <th></th></tr></thead><tbody>`;
+    </tr></thead><tbody>`;
   rows.forEach(({e,ei,d})=>{
     const rc=e.rec==='Ship'?'var(--green)':e.rec==='Do Not Ship'?'var(--red)':'var(--amber)';
     const cls=d.none||d.delta===0?'flat':d.users>0?'up':'down';
@@ -584,8 +567,7 @@ function renderTable(){
       <td>${e.pr}</td><td>${e.pf}</td>
       <td>${e.started.toLocaleDateString('en-US')}</td>
       <td>production</td><td>Commercial</td>
-      <td class="num ${cls}">${val}</td>
-      <td><button class="btn" onclick="openCell(${ei},${mi})">📄 Details</button></td></tr>`;
+      <td class="num ${cls}">${val}</td></tr>`;
   });
   document.getElementById('dt').innerHTML=h+'</tbody>';
   document.getElementById('tblSub').textContent=
@@ -593,57 +575,6 @@ function renderTable(){
 }
 function tsort(k){if(S.tsort===k)S.tdir*=-1;else{S.tsort=k;S.tdir=1;}renderTable();}
 
-/* ================= drawer ================= */
-function openCell(ei,mi){
-  const d=MAP[key(ei,mi)],e=EXPERIMENTS[ei],m=METRICS[mi];
-  S.sel={ei,mi};
-  if(d.none||d.delta===0){
-    document.getElementById('dbody').innerHTML=
-      `<h4>${m.s}</h4><div style="color:var(--muted);font-size:12px">${m.id}</div>
-       <p style="margin-top:18px;font-size:13px">No measurable movement for
-       <b>${e.n}</b> on this veto.</p>
-       <div class="note"><b>Synthetic values.</b> Prototype layout only.</div>`;
-  } else {
-    const col=d.delta>0?'var(--red)':'var(--green)';
-    let sp='';for(let i=0;i<14;i++)sp+=`<i style="height:${30+Math.random()*70}%"></i>`;
-    document.getElementById('dbody').innerHTML=`
-      <h4>${m.s}</h4>
-      <div style="color:var(--muted);font-size:11.5px;margin-bottom:2px">${m.p} pillar</div>
-      <div style="color:var(--muted);font-size:11.5px;word-break:break-all">${m.id}</div>
-      <div style="margin-top:16px;padding:12px;border-radius:5px;
-        background:${d.delta>0?'var(--red-soft)':'var(--green-soft)'}">
-        <div style="font-size:24px;font-weight:600;color:${col}">${sRel(d.rel)}</div>
-        <div style="font-size:12.5px;color:${col};font-weight:600">
-          ${d.delta>0?'More vetoes — degraded':'Fewer vetoes — improved'}</div>
-        <div style="font-size:12.5px;margin-top:4px">${sPP(d.delta)} · ${sU(d.users)} net users affected</div>
-      </div>
-      <dl class="dl" style="margin:16px 0 0">
-        <div><dt>Experiment</dt><dd style="max-width:215px">${e.n}</dd></div>
-        <div><dt>IDEAS Recommendation</dt><dd>${e.rec}</dd></div>
-        <div><dt>Status</dt><dd>${e.status}</dd></div>
-        <div><dt>Product / Platform</dt><dd>${e.pr} · ${e.pf}</dd></div>
-        <div><dt>Org</dt><dd>${e.o}</dd></div>
-        <div><dt>Treatment</dt><dd>${(d.base+d.delta).toFixed(4)}</dd></div>
-        <div><dt>Control</dt><dd>${d.base.toFixed(4)}</dd></div>
-        <div><dt>Delta</dt><dd style="color:${col}">${d.delta.toFixed(4)}</dd></div>
-        <div><dt>Delta %</dt><dd style="color:${col}">${sRel(d.rel)}</dd></div>
-        <div><dt>P-Value</dt><dd>${d.p<0.0001?d.p.toExponential(0):d.p.toFixed(4)}</dd></div>
-        <div><dt>P-Move</dt><dd>${(d.pmove*100).toFixed(1)}%</dd></div>
-        <div><dt>Significant</dt><dd style="color:${d.sig?col:'var(--muted)'}">${d.sig?'Yes':'No'}</dd></div>
-        <div><dt>Users in flight</dt><dd>${fmt(e.flight)}</dd></div>
-        <div><dt>Desirable direction</dt><dd>Down</dd></div>
-      </dl>
-      <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;
-        color:var(--muted);margin-top:18px">Daily trend (mock)</div>
-      <div class="mini">${sp}</div>
-      <div class="note"><b>Synthetic values.</b> Every value here is fictional, generated for prototype layout only.</div>
-      <div style="margin-top:14px;font-size:12.5px;color:var(--brand);cursor:pointer">
-        ↗ Open ExP scorecard (not wired)</div>`;
-  }
-  document.getElementById('drawer').classList.add('open');
-  renderHeatmap();
-}
-function closeDrawer(){document.getElementById('drawer').classList.remove('open');S.sel=null;renderHeatmap();}
 function pickMetric(i){S.metric=i;document.getElementById('metricSel').value=i;renderAll();}
 
 /* ================= wire up ================= */
