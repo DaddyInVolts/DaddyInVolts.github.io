@@ -238,8 +238,9 @@
     <div class="proto">
       <span style="font-size:16px">⚠️</span>
       <div>
-        <b>Prototype — all impact values on this page are synthetic placeholders.</b>
-        This is a public design demo. The experiment names, products and organisations shown are fictional. Every delta, p-value, user count and ship signal below is
+        <b>Prototype — every experiment-level impact value on this page is a synthetic placeholder.</b>
+        This is a public design demo. The experiment names, products, organisations and baseline rates shown are fictional. Every
+        delta, Δ %, p-value, user count and ship signal below is
         <strong>randomly generated mock data for layout review only</strong> and must not be read as
         a real quality signal. The veto structure is representative of an ASHA-style guardrail model, not a production metric set.
       </div>
@@ -273,7 +274,7 @@
         </select>
         <select id="size">
           <option value="users">Size by: net users impacted</option>
-          <option value="delta">Size by: absolute Δ (pp)</option>
+          <option value="rel">Size by: relative change (Δ %)</option>
         </select>
         <label class="cb"><input type="checkbox" id="sigonly"> Statistically significant only</label>
         <span id="shown" style="color:var(--muted)"></span>
@@ -306,13 +307,13 @@
       <div class="panel sec">
         <h3 id="badTitle">Top regressions</h3>
         <div class="sub" id="badSub">Experiment × veto pairs adding the most vetoed users.</div>
-        <table class="rank"><thead><tr><th id="badH1">Experiment</th><th id="badH2">Veto metric</th><th class="n">Δ pp</th><th class="n">Net users</th></tr></thead>
+        <table class="rank"><thead><tr><th id="badH1">Experiment</th><th id="badH2">Veto metric</th><th class="n">Δ %</th><th class="n">Net users</th></tr></thead>
         <tbody id="topbad"></tbody></table>
       </div>
       <div class="panel sec">
         <h3 id="goodTitle">Top improvements</h3>
         <div class="sub" id="goodSub">Experiment × veto pairs removing the most vetoed users.</div>
-        <table class="rank"><thead><tr><th id="goodH1">Experiment</th><th id="goodH2">Veto metric</th><th class="n">Δ pp</th><th class="n">Net users</th></tr></thead>
+        <table class="rank"><thead><tr><th id="goodH1">Experiment</th><th id="goodH2">Veto metric</th><th class="n">Δ %</th><th class="n">Net users</th></tr></thead>
         <tbody id="topgood"></tbody></table>
       </div>
     </div>
@@ -329,25 +330,27 @@
 <script>
 /* Quality veto model: 18 vetoes across 3 pillars. Illustrative structure -- all
    labels below are generic app-quality concepts, not a production metric set. */
+/* Quality veto model: 18 vetoes across 3 pillars, all desirable-down.
+   b = illustrative baseline rate for that veto, in %. Every number is fictional. */
 const METRICS = [
-  {p:'App Boot',      s:'Auth Failed',      n:'% Veto Users - App Boot - Authentication Failed',                 id:'QualityVeto_App_Boot_Authentication_Failed'},
-  {p:'App Boot',      s:'Boot Failed',      n:'% Veto Users - App Boot - Boot Failed',                           id:'QualityVeto_App_Boot_Boot_Failed'},
-  {p:'App Boot',      s:'Boot Too Slow',    n:'% Veto Users - App Boot - Boot Too Slow',                         id:'QualityVeto_App_Boot_Boot_Too_Slow'},
-  {p:'Chat Tried',    s:'Access / Licensing', n:'% Veto Users - Chat Tried - Access or Licensing Issue',         id:'QualityVeto_Chat_Tried_Access_or_Licensing_Issue'},
-  {p:'Chat Tried',    s:'Blank Screen',     n:'% Veto Users - Chat Tried - Blank Screen',                        id:'QualityVeto_Chat_Tried_Blank_Screen'},
-  {p:'Chat Tried',    s:'Response Slow',    n:'% Veto Users - Chat Tried - Chat Response Slow',                  id:'QualityVeto_Chat_Tried_Chat_Response_Slow'},
-  {p:'Chat Tried',    s:'ClientQueryError', n:'% Veto Users - Chat Tried - ClientQueryError',                    id:'QualityVeto_Chat_Tried_ClientQueryError'},
-  {p:'Chat Tried',    s:'Something Went Wrong', n:'% Veto Users - Chat Tried - Something Went Wrong (SWW)',      id:'QualityVeto_Chat_Tried_Something_Went_Wrong_SWW'},
-  {p:'Chat Tried',    s:'User Throttled',   n:'% Veto Users - Chat Tried - User Throttled',                      id:'QualityVeto_Chat_Tried_User_Throttled'},
-  {p:'Chat Tried',    s:'No Cloud Content', n:'% Veto Users - Chat Tried - User unable to add cloud content',    id:'QualityVeto_Chat_Tried_User_unable_to_add_cloud_content'},
-  {p:'Chat Tried',    s:'No Local Content', n:'% Veto Users - Chat Tried - User unable to add local content',    id:'QualityVeto_Chat_Tried_User_unable_to_add_local_content'},
-  {p:'Interruptions', s:'App Not Responding', n:'% Veto Users - Interruptions - App Not Responding (ANR)',       id:'QualityVeto_Interruptions_App_Not_Responding_ANR'},
-  {p:'Interruptions', s:'App Unusable',     n:'% Veto Users - Interruptions - App Unusable',                     id:'QualityVeto_Interruptions_App_Unusable'},
-  {p:'Interruptions', s:'Auth Failed',      n:'% Veto Users - Interruptions - Authentication Failed',            id:'QualityVeto_Interruptions_Authentication_Failed'},
-  {p:'Interruptions', s:'Crash',            n:'% Veto Users - Interruptions - Crash Encountered',                id:'QualityVeto_Interruptions_Crash_Encountered'},
-  {p:'Interruptions', s:'Critical Failure', n:'% Veto Users - Interruptions - Critical Failure',                 id:'QualityVeto_Interruptions_Critical_Failure'},
-  {p:'Interruptions', s:'Feature Error',    n:'% Veto Users - Interruptions - Feature Error',                    id:'QualityVeto_Interruptions_Feature_Error'},
-  {p:'Interruptions', s:'Visual / Behaviour Flaw', n:'% Veto Users - Interruptions - Visual or Behavior Flaw',   id:'QualityVeto_Interruptions_Visual_or_Behavior_Flaw'}
+  {p:'App Boot',      s:'Auth Failed',      n:'% Veto Users - App Boot - Authentication Failed (by user)',                 b:0.888, id:'QualityVeto_App_Boot_Authentication_Failed'},
+  {p:'App Boot',      s:'Boot Failed',      n:'% Veto Users - App Boot - Boot Failed (by user)',                           b:0.722, id:'QualityVeto_App_Boot_Boot_Failed'},
+  {p:'App Boot',      s:'Boot Too Slow',    n:'% Veto Users - App Boot - Boot Too Slow (by user)',                         b:1.112, id:'QualityVeto_App_Boot_Boot_Too_Slow'},
+  {p:'Chat Tried',    s:'Access / Licensing', n:'% Veto Users - Chat Tried - Access or Licensing Issue (by user)',         b:0.052, id:'QualityVeto_Chat_Tried_Access_or_Licensing_Issue'},
+  {p:'Chat Tried',    s:'Blank Screen',     n:'% Veto Users - Chat Tried - Blank Screen (by user)',                        b:0.0696, id:'QualityVeto_Chat_Tried_Blank_Screen'},
+  {p:'Chat Tried',    s:'Response Slow',    n:'% Veto Users - Chat Tried - Chat Response Slow (by user)',                  b:7.422, id:'QualityVeto_Chat_Tried_Chat_Response_Slow'},
+  {p:'Chat Tried',    s:'ClientQueryError', n:'% Veto Users - Chat Tried - ClientQueryError (by user)',                    b:0.295, id:'QualityVeto_Chat_Tried_ClientQueryError'},
+  {p:'Chat Tried',    s:'Something Went Wrong', n:'% Veto Users - Chat Tried - Something Went Wrong (SWW) (by user)',      b:0.648, id:'QualityVeto_Chat_Tried_Something_Went_Wrong_SWW'},
+  {p:'Chat Tried',    s:'User Throttled',   n:'% Veto Users - Chat Tried - User Throttled (by user)',                      b:0.0177, id:'QualityVeto_Chat_Tried_User_Throttled'},
+  {p:'Chat Tried',    s:'No Cloud Content', n:'% Veto Users - Chat Tried - User unable to add cloud content (by user)',    b:0.0097, id:'QualityVeto_Chat_Tried_User_unable_to_add_cloud_content'},
+  {p:'Chat Tried',    s:'No Local Content', n:'% Veto Users - Chat Tried - User unable to add local content (by user)',    b:0.709, id:'QualityVeto_Chat_Tried_User_unable_to_add_local_content'},
+  {p:'Interruptions', s:'App Not Responding', n:'% Veto Users - Interruptions - App Not Responding (ANR) (by user)',       b:0.418, id:'QualityVeto_Interruptions_App_Not_Responding_ANR'},
+  {p:'Interruptions', s:'App Unusable',     n:'% Veto Users - Interruptions - App Unusable (by user)',                     b:0.0554, id:'QualityVeto_Interruptions_App_Unusable'},
+  {p:'Interruptions', s:'Auth Failed',      n:'% Veto Users - Interruptions - Authentication Failed (by user)',            b:0.369, id:'QualityVeto_Interruptions_Authentication_Failed'},
+  {p:'Interruptions', s:'Crash',            n:'% Veto Users - Interruptions - Crash Encountered (by user)',                b:0.0572, id:'QualityVeto_Interruptions_Crash_Encountered'},
+  {p:'Interruptions', s:'Critical Failure', n:'% Veto Users - Interruptions - Critical Failure (by user)',                 b:0.0267, id:'QualityVeto_Interruptions_Critical_Failure'},
+  {p:'Interruptions', s:'Feature Error',    n:'% Veto Users - Interruptions - Feature Error (by user)',                    b:0.043, id:'QualityVeto_Interruptions_Feature_Error'},
+  {p:'Interruptions', s:'Visual / Behaviour Flaw', n:'% Veto Users - Interruptions - Visual or Behavior Flaw (by user)',   b:0.0007, id:'QualityVeto_Interruptions_Visual_or_Behavior_Flaw'}
 ];
 
 /* Fictional experiment names invented for this demo. All impact numbers are synthetic. */
@@ -374,22 +377,27 @@ const EXPERIMENTS = [
 function rng(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
 const rand = rng(20260811);
 
-const DATA = []; // {e,m,delta,pct,users,p,sig,flight,ctrl,trt}
+const DATA = []; // {ei,mi,base,delta,rel,p,pmove,sig,users,none}
 EXPERIMENTS.forEach((e,ei)=>{
-  const flight = Math.round(40000 + rand()*900000);
+  const flight = Math.round(200000 + rand()*3800000);
   e.flight = flight;
   // give each experiment a "personality": some are quality wins, some regressions
   const bias = (rand()*2-1)*0.9;
   METRICS.forEach((m,mi)=>{
     const r = rand();
     if(r < 0.34){ DATA.push({ei,mi,none:true}); return; }        // no movement
-    const base = 0.02 + rand()*1.5;                               // control rate pp
-    let delta = (rand()*2-1)*0.42 + bias*0.30;                    // pp change
-    if(Math.abs(delta) < 0.015) delta = 0;
-    const p = Math.max(0.0001, Math.pow(rand(), 2.1));
-    const sig = p < 0.05 && Math.abs(delta) > 0.03;
+    // relative change (Delta %) is the comparable quantity across vetoes,
+    // because baseline rates vary widely between vetoes
+    let rel = (rand()*2-1)*9 + bias*4;
+    if(rand() < 0.06) rel *= 3.2;                                 // occasional large mover
+    if(Math.abs(rel) < 0.25) rel = 0;
+    const base  = m.b;                                            // illustrative baseline rate, %
+    const delta = base * rel/100;                                 // percentage points
+    const p     = Math.max(0.00001, Math.pow(rand(), 2.1));
+    const sig   = p < 0.05 && Math.abs(rel) > 1.2;
+    const pmove = sig ? 0.55 + rand()*0.45 : Math.pow(rand(),2)*0.5;
     const users = Math.round(delta/100 * flight);
-    DATA.push({ei,mi,delta,p,sig,base,users,none:(delta===0)});
+    DATA.push({ei,mi,base,delta,rel,p,pmove,sig,users,none:(rel===0)});
   });
 });
 const key=(ei,mi)=>ei+'|'+mi;
@@ -401,18 +409,19 @@ function colorOf(d){
   if(d.delta>0) return d.sig ? 'var(--red)'   : 'var(--red-2)';
   return          d.sig ? 'var(--green)' : 'var(--green-2)';
 }
-// "inconclusive" = movement present, wide p, tiny effect
-function isAmber(d){ return !d.none && d.delta!==0 && !d.sig && d.p>0.4 && Math.abs(d.delta)<0.12; }
+// "inconclusive" = movement present, wide p, small effect
+function isAmber(d){ return !d.none && d.rel!==0 && !d.sig && d.p>0.4 && Math.abs(d.rel)<2.5; }
 
 const SIZES=[10,15,20,26,32];
-function magnitude(d,mode){ return mode==='users' ? Math.abs(d.users) : Math.abs(d.delta); }
+function magnitude(d,mode){ return mode==='users' ? Math.abs(d.users) : Math.abs(d.rel); }
 function sizeOf(d,mode,max){
   const v=magnitude(d,mode); if(!max) return SIZES[0];
   const t=Math.sqrt(v/max);                       // area-proportional
   return SIZES[Math.min(SIZES.length-1, Math.max(0, Math.round(t*(SIZES.length-1))))];
 }
 const fmt=n=>Math.abs(n)>=1000?(n/1000).toFixed(1).replace(/\.0$/,'')+'K':String(n);
-const signed=n=>(n>0?'+':'')+n.toFixed(3)+' pp';
+const signed=n=>(n>0?'+':'')+n.toFixed(4)+' pp';
+const signedRel=n=>(n>0?'+':'')+n.toFixed(2)+'%';
 const signedU=n=>(n>0?'+':'')+fmt(n);
 
 /* ---------- state ---------- */
@@ -466,7 +475,7 @@ function render(){
       const col = isAmber(d)?'var(--amber)':colorOf(d);
       const s=sizeOf(d,S.size,max);
       const sel=S.expFilter===ei?' sel':'';
-      const tip=`${e.n}\n${METRICS[mi].s}\nΔ ${signed(d.delta)} · ${signedU(d.users)} users\np=${d.p.toFixed(4)}${d.sig?' (significant)':' (not significant)'}`;
+      const tip=`${e.n}\n${METRICS[mi].n}\nControl ${d.base.toFixed(4)}%  →  Treatment ${(d.base+d.delta).toFixed(4)}%\nΔ ${signed(d.delta)}  (${signedRel(d.rel)})\n${signedU(d.users)} net users · p=${d.p.toFixed(4)}${d.sig?' (significant)':' (not significant)'}`;
       h+=`<td class="cell"><span class="sq${sel}" style="width:${s}px;height:${s}px;background:${col}"
            title="${tip}" onclick="pickExp(${ei})"></span></td>`;
     });
@@ -491,7 +500,7 @@ function render(){
   SIZES.forEach((px,idx)=>{
     // upper edge of each size bucket, inverting the sqrt(area) scale used by sizeOf()
     const edge=Math.pow(Math.min(1,(idx+0.5)/(SIZES.length-1)),2)*max;
-    const lab=S.size==='users'?fmt(Math.round(edge)):edge.toFixed(2)+' pp';
+    const lab=S.size==='users'?fmt(Math.round(edge)):edge.toFixed(1)+'%';
     sl+=`<span><i class="sw" style="width:${px}px;height:${px}px;background:#94a3b8"></i> ${idx===SIZES.length-1?'≥':'<'} ${lab}</span>`;
   });
   document.getElementById('sizelegend').innerHTML=sl;
@@ -537,7 +546,7 @@ function renderRanks(){
       : `<td>${EXPERIMENTS[d.ei].n}<div class="bar" style="width:${w}%;background:${col}"></div></td>
          <td>${METRICS[d.mi].s}<div class="tag">${METRICS[d.mi].p}</div></td>`;
     return `<tr onclick="openCell(${d.ei},${d.mi})">${c1}
-      <td class="n" style="color:${col}">${signed(d.delta)}</td>
+      <td class="n" style="color:${col}">${signedRel(d.rel)}</td>
       <td class="n">${signedU(d.users)}</td></tr>`;}).join('');
   const none=`<tr><td colspan="4" class="tag">None${S.expFilter!==null?' for this experiment':''}</td></tr>`;
   const bad=rows.filter(d=>d.users>0).sort((a,b)=>b.users-a.users);
@@ -590,27 +599,28 @@ function openCell(ei,mi){
   document.getElementById('dbody').innerHTML=`
     <h4>${m.s}</h4>
     <div class="tag" style="margin-bottom:2px">${m.p} pillar</div>
-    <div style="font-size:11.5px;color:var(--muted);word-break:break-all">${m.id}</div>
+    <div style="font-size:11.5px;color:var(--muted)">${m.n}</div>
     <div style="margin-top:14px;padding:11px;border-radius:7px;background:${d.delta>0?'var(--red-soft)':'var(--green-soft)'}">
-      <div style="font-size:23px;font-weight:700;color:${col}">${signed(d.delta)}</div>
+      <div style="font-size:23px;font-weight:700;color:${col}">${signedRel(d.rel)}</div>
       <div style="font-size:12px;color:${col};font-weight:600">${dir}</div>
-      <div style="font-size:12px;margin-top:3px">${signedU(d.users)} net users affected</div>
+      <div style="font-size:12px;margin-top:3px">${signed(d.delta)} · ${signedU(d.users)} net users affected</div>
     </div>
     <dl class="dl">
       <div><dt>Experiment</dt><dd style="max-width:210px">${e.n}</dd></div>
       <div><dt>Org</dt><dd>${e.o}</dd></div>
-      <div><dt>Control rate</dt><dd>${ctrl.toFixed(3)}%</dd></div>
-      <div><dt>Treatment rate</dt><dd>${trt.toFixed(3)}%</dd></div>
-      <div><dt>Relative change</dt><dd style="color:${col}">${(d.delta/ctrl*100).toFixed(1)}%</dd></div>
-      <div><dt>p-value</dt><dd>${d.p.toFixed(4)}</dd></div>
+      <div><dt>Treatment</dt><dd>${trt.toFixed(4)}</dd></div>
+      <div><dt>Control</dt><dd>${ctrl.toFixed(4)}</dd></div>
+      <div><dt>Delta</dt><dd style="color:${col}">${d.delta.toFixed(4)}</dd></div>
+      <div><dt>Delta %</dt><dd style="color:${col}">${signedRel(d.rel)}</dd></div>
+      <div><dt>P-Value</dt><dd>${d.p<0.0001?d.p.toExponential(0):d.p.toFixed(4)}</dd></div>
+      <div><dt>P-Move</dt><dd>${(d.pmove*100).toFixed(1)}%</dd></div>
       <div><dt>Significant</dt><dd style="color:${d.sig?col:'var(--muted)'}">${d.sig?'Yes':'No'}</dd></div>
       <div><dt>Users in flight</dt><dd>${fmt(e.flight)}</dd></div>
       <div><dt>Desirable direction</dt><dd>Down</dd></div>
     </dl>
     <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:16px">Daily trend (mock)</div>
     <div class="mini">${spark}</div>
-    <div class="note"><b>Synthetic values.</b> Metric identity and pillar are real; every number
-      in this panel is generated for prototype layout only.</div>
+    <div class="note"><b>Fictional values.</b> Every number in this panel is generated for prototype layout only.</div>
     <div style="margin-top:12px;font-size:12px;color:var(--blue)">↗ Open ExP scorecard (not wired)</div>`;
   document.getElementById('drawer').classList.add('open');
   render();
