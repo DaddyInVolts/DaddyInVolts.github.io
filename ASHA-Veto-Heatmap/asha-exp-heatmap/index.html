@@ -100,10 +100,14 @@
   table.hm{border-collapse:separate;border-spacing:0;font-size:12px;width:100%;}
   table.hm th,table.hm td{padding:0;}
   .hm .exp-h,.hm .exp{position:sticky;left:0;z-index:5;background:#fff;
+    border-right:1px solid var(--line);}
+  /* the overall column is the second frozen column; its offset is measured after render */
+  .hm .ov-h,.hm .ov{position:sticky;left:var(--ovleft,300px);z-index:5;background:#fff;
     border-right:2px solid var(--line2);}
   .hm thead th{position:sticky;top:0;z-index:6;background:#f8fafc;
     border-bottom:1px solid var(--line2);}
   .hm thead th.exp-h{z-index:8;background:#f8fafc;}
+  .hm thead th.ov-h{z-index:8;background:#f8fafc;}
   .hm thead tr.pill-row th{border-bottom:1px solid var(--line);font-size:11px;
     text-transform:uppercase;letter-spacing:.6px;font-weight:700;padding:7px 6px;text-align:center;}
   .pil-boot{color:#7c3aed;background:#f5f3ff !important;}
@@ -136,8 +140,24 @@
   .exp .meta{font-size:10.5px;color:var(--muted);margin-top:2px;display:flex;gap:6px;align-items:center;}
   .exp-h{padding:8px 10px !important;text-align:left !important;font-size:11px;
     text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;}
+
+  /* overall (net impact) column */
+  .ov{padding:6px 10px !important;width:104px;min-width:104px;text-align:right;
+    vertical-align:middle;cursor:pointer;}
+  .ov .ovv{font-weight:700;font-size:14px;line-height:1.2;letter-spacing:-.2px;}
+  .ov .ovv.bad{color:var(--red);} .ov .ovv.good{color:var(--green);} .ov .ovv.flat{color:var(--muted);}
+  .ov .ovbar{height:5px;border-radius:3px;background:#eef2f7;margin-top:4px;overflow:hidden;}
+  .ov .ovbar i{display:block;height:100%;border-radius:3px;}
+  .ov-h{padding:8px 10px !important;text-align:right !important;font-size:11px;
+    text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;}
+  .hm thead tr.met-row th.ov-h{height:132px;vertical-align:bottom;cursor:pointer;user-select:none;
+    white-space:nowrap;}
+  .hm thead tr.met-row th.ov-h:hover{background:#eef2ff;}
+  .hm thead tr.met-row th.ov-h.sortcol{background:#eef2ff;box-shadow:inset 0 -2.5px 0 var(--blue);}
+  .hm tbody tr:hover td.ov{background:#f1f6ff;}
+  .hm tr.rowsel td.ov{background:#dbeafe !important;}
   tr.tot td{border-top:2px solid var(--line2);background:#f8fafc !important;font-weight:600;}
-  tr.tot td.exp{background:#f8fafc !important;}
+  tr.tot td.exp,tr.tot td.ov{background:#f8fafc !important;}
 
   /* legend */
   .legend{display:flex;flex-wrap:wrap;gap:26px;margin-top:14px;padding-top:13px;
@@ -519,9 +539,15 @@ function render(){
     if(g&&g.p===m.p) g.c++; else groups.push({p:m.p,c:1});});
   const cls={'App Boot':'pil-boot','Chat Tried':'pil-chat','Interruptions':'pil-intr'};
 
-  let h='<thead><tr class="pill-row"><th class="exp-h">Experiment</th>';
+  let h='<thead><tr class="pill-row"><th class="exp-h">Experiment</th>'+
+        '<th class="ov-h">Overall</th>';
   groups.forEach(g=>h+=`<th colspan="${g.c}" class="${cls[g.p]}">${g.p}</th>`);
   h+='</tr><tr class="met-row"><th class="exp-h">'+exps.length+' shown</th>';
+  // net impact gets its own frozen column so it can't be missed next to the grid
+  const ovOn=S.colSort===null&&(S.sort==='worst'||S.sort==='best');
+  h+=`<th class="ov-h${ovOn?' sortcol':''}" onclick="sortByOverall()"
+      title="Net users across the vetoes in view (significant movement only).\n\nClick to sort experiments by overall net impact"
+      >Net users<div class="si">${ovOn?(S.sort==='worst'?'▼':'▲'):''}</div></th>`;
   mets.forEach(({m,i:mi})=>{
     const on=S.colSort===mi, ind=on?(S.colDir===-1?'▼':'▲'):'';
     h+=`<th class="${on?'sortcol':''}" onclick="sortByCol(${mi})"
@@ -530,13 +556,19 @@ function render(){
   });
   h+='</tr></thead><tbody>';
 
+  const netMax=Math.max(1,...exps.map(x=>Math.abs(x.net)));
   exps.forEach(({e,i:ei,net,moved})=>{
     const chip = net>0?'bad':net<0?'good':'flat';
     const rsel = S.expFilter===ei?' rowsel':'';
+    const bw = Math.round(Math.abs(net)/netMax*100);
     h+=`<tr class="exprow${rsel}"><td class="exp" onclick="pickExp(${ei})">
         <div class="nm" title="${e.n}">${e.n}</div>
-        <div class="meta"><span class="chip ${chip}">${signedU(net)} users</span>
-        <span>${moved} sig. moves</span><span>· ${fmt(e.flight)} in flight</span></div></td>`;
+        <div class="meta"><span>${moved} sig. moves</span><span>· ${fmt(e.flight)} in flight</span></div></td>
+        <td class="ov" onclick="pickExp(${ei})"
+          title="${e.n}\nNet ${signedU(net)} users across ${moved} significant veto move${moved===1?'':'s'} in view">
+          <div class="ovv ${chip}">${net===0?'–':signedU(net)}</div>
+          ${net===0?'':`<div class="ovbar"><i style="width:${bw}%;background:var(--${net>0?'red':'green'})"></i></div>`}
+        </td>`;
     mets.forEach(({i:mi})=>{
       const d=MAP[key(ei,mi)];
       const cc='cell'+(mi===S.colSort?' colsel':'');
@@ -554,12 +586,14 @@ function render(){
 
   // column totals
   if(!exps.length){
-    h+=`<tr><td class="exp" colspan="${mets.length+1}" style="padding:18px 12px;color:var(--muted)">
+    h+=`<tr><td class="exp" colspan="${mets.length+2}" style="padding:18px 12px;color:var(--muted)">
         No experiments match this filter. <a href="#" onclick="clearKpi();return false;"
         style="color:var(--blue);font-weight:600">Clear the tile filter</a></td></tr>`;
   } else {
+  const grand=exps.reduce((s,x)=>s+x.net,0);
   h+='<tr class="tot"><td class="exp"><div class="nm">Net across experiments</div>'+
-     '<div class="meta">sum of net users per veto</div></td>';
+     '<div class="meta">sum of net users per veto</div></td>'+
+     `<td class="ov"><div class="ovv ${grand>0?'bad':grand<0?'good':'flat'}">${grand===0?'–':signedU(grand)}</div></td>`;
   mets.forEach(({i:mi})=>{
     let t=0; exps.forEach(({i:ei})=>{const d=MAP[key(ei,mi)];
       if(!d||d.none||!d.sig) return; t+=d.users;});
@@ -570,6 +604,10 @@ function render(){
   }
   h+='</tbody>';
   document.getElementById('hm').innerHTML=h;
+  // the overall column is frozen beside the name column, so its offset follows that column's width
+  const nameCell=document.querySelector('#hm .exp-h');
+  if(nameCell) document.getElementById('hm').style
+    .setProperty('--ovleft', nameCell.getBoundingClientRect().width+'px');
   document.getElementById('shown').textContent=
     `${exps.length} experiment${exps.length===1?'':'s'} × ${mets.length} vetoes`+
     (S.kpi
@@ -704,6 +742,14 @@ function pickKpi(k,ei,src){
   else if(k==='exp'){ S.kpi='exp'; S.kpiExp=ei; S.kpiSrc=src; S.expFilter=ei; }
   // a broad tile filter and a single-experiment focus would contradict each other
   else { S.kpi=k; S.kpiExp=null; S.kpiSrc=null; S.expFilter=null; }
+  render();
+}
+
+/* clicking the Overall header sorts by net impact: worst first → best first */
+function sortByOverall(){
+  if(S.colSort!==null){ S.colSort=null; S.sort='worst'; }
+  else S.sort = S.sort==='worst' ? 'best' : 'worst';
+  document.getElementById('sort').value=S.sort;
   render();
 }
 
