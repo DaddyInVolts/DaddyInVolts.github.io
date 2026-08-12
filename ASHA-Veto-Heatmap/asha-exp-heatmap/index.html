@@ -229,7 +229,7 @@
       <div>
         <b>Prototype — every experiment-level impact value on this page is a synthetic placeholder.</b>
         This is a public design demo. The experiment names, products, organisations and baseline rates shown are fictional. Every
-        delta, Δ %, p-value, user count and ship signal below is
+        delta, Δ %, p-value, user count and significance verdict below is
         <strong>randomly generated mock data for layout review only</strong> and must not be read as
         a real quality signal. The veto structure is representative of an ASHA-style guardrail model, not a production metric set.
       </div>
@@ -244,6 +244,8 @@
         user impact; <strong>colour</strong> = direction. Vetoes are <em>desirable-down</em>, so
         <span style="color:var(--red);font-weight:600">red = more vetoes (worse)</span> and
         <span style="color:var(--green);font-weight:600">green = fewer vetoes (better)</span>.
+        Only <strong>statistically significant</strong> movement is plotted — everything else
+        shows as a grey dot; the ranked tables below still carry non-significant drift.
         Click any square or experiment name to filter the tables below to that experiment;
         click a veto column header to sort experiments by their impact on that veto.
       </div>
@@ -278,7 +280,7 @@
           <div class="row">
             <span><i class="sw" style="background:var(--red)"></i> More vetoes (p ≤ .05)</span>
             <span><i class="sw" style="background:var(--green)"></i> Fewer vetoes (p ≤ .05)</span>
-            <span><i class="sw" style="background:#e2e8f0;border-radius:50%;width:7px;height:7px"></i> No movement</span>
+            <span><i class="sw" style="background:#e2e8f0;border-radius:50%;width:7px;height:7px"></i> No significant movement</span>
           </div>
         </div>
         <div class="grp">
@@ -360,44 +362,62 @@ function rng(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return
 const rand = rng(20260811);
 
 const DATA = []; // {ei,mi,base,delta,rel,p,pmove,sig,users,none}
+const key=(ei,mi)=>ei+'|'+mi;
+
+/* ASHA vetoes rarely move. The mix is stratified across the whole grid — not per
+   experiment — so it holds exactly at any grid size: ~10% of experiment × veto
+   cells are a significant regression, ~10% a significant improvement, ~20% drift
+   without reaching significance, and the remaining ~60% do not move at all.
+   An "activity" weight lets movement cluster in a few experiments and skip others
+   entirely, and each experiment's bias decides which way it tends to move. */
+const cells=[];
 EXPERIMENTS.forEach((e,ei)=>{
-  const flight = Math.round(200000 + rand()*3800000);
-  e.flight = flight;
-  // give each experiment a "personality": some are quality wins, some regressions
-  const bias = (rand()*2-1)*0.9;
-  // ASHA vetoes rarely move: ~10% of cells are a significant regression, ~10% a
-  // significant improvement, the other ~80% show no movement. The counts are
-  // stratified per experiment so that mix holds at any grid size; bias only tilts
-  // which of the two directions an experiment leans, not how often it moves.
-  const target = 0.10*METRICS.length, tilt = bias*0.45;
-  const nUp   = Math.floor(target*(1+tilt) + rand());
-  const nDown = Math.floor(target*(1-tilt) + rand());
-  const order = METRICS.map((_,i)=>i);
-  for(let i=order.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
-  const dirOf={};
-  order.slice(0,nUp).forEach(i=>dirOf[i]=1);
-  order.slice(nUp,nUp+nDown).forEach(i=>dirOf[i]=-1);
+  e.flight   = Math.round(200000 + rand()*3800000);
+  e.bias     = (rand()*2-1)*0.9;          // quality win vs quality regression
+  e.activity = 0.3 + Math.pow(rand(),1.25)*1.3;  // how many vetoes this one disturbs
+  METRICS.forEach((m,mi)=>cells.push({ei,mi,score:rand()*e.activity}));
+});
+cells.sort((a,b)=>b.score-a.score);
+const nSig=Math.round(0.20*cells.length), nNs=Math.round(0.20*cells.length);
+// within a band, bias decides who lands on the regression side; the split is exact
+const byBias=arr=>arr.map(c=>({c,d:rand()+EXPERIMENTS[c.ei].bias*0.5}))
+                     .sort((x,y)=>y.d-x.d).map(x=>x.c);
+const kind={};
+byBias(cells.slice(0,nSig)).forEach((c,i,a)=>
+  kind[key(c.ei,c.mi)]={sig:true, dir:i<a.length/2?1:-1});
+byBias(cells.slice(nSig,nSig+nNs)).forEach((c,i,a)=>
+  kind[key(c.ei,c.mi)]={sig:false,dir:i<a.length/2?1:-1});
+
+EXPERIMENTS.forEach((e,ei)=>{
   METRICS.forEach((m,mi)=>{
-    const dir  = dirOf[mi]||0;
+    const k=kind[key(ei,mi)];
     const base = m.b;                                             // illustrative baseline rate, %
-    if(dir === 0){
+    if(!k){
       DATA.push({ei,mi,base,delta:0,rel:0,users:0,p:0.2+rand()*0.75,
                  pmove:Math.pow(rand(),2)*0.35,sig:false,none:true});
+      return;
+    }
+    if(!k.sig){
+      // movement is present but small and well inside the noise band
+      const rel   = k.dir*(0.3 + Math.pow(rand(),1.6)*3.7);
+      const delta = base * rel/100;
+      DATA.push({ei,mi,base,delta,rel,p:0.06+Math.pow(rand(),0.9)*0.89,
+                 pmove:Math.pow(rand(),2)*0.5,sig:false,
+                 users:Math.round(delta/100 * e.flight),none:false});
       return;
     }
     // relative change (Delta %) is the comparable quantity across vetoes,
     // because baseline rates vary widely between vetoes
     let relMag = 1.5 + Math.pow(rand(),2)*13;
     if(rand() < 0.10) relMag *= 2.2;                              // occasional large mover
-    const rel   = dir * relMag;
+    const rel   = k.dir * relMag;
     const delta = base * rel/100;                                 // percentage points
-    const p     = Math.max(0.000005, Math.pow(rand(),2.2)*0.049); // movers are all p ≤ .05
+    const p     = Math.max(0.000005, Math.pow(rand(),2.2)*0.049); // significant movers
     const pmove = 0.55 + rand()*0.45;
-    const users = Math.round(delta/100 * flight);
+    const users = Math.round(delta/100 * e.flight);
     DATA.push({ei,mi,base,delta,rel,p,pmove,sig:true,users,none:false});
   });
 });
-const key=(ei,mi)=>ei+'|'+mi;
 const MAP={}; DATA.forEach(d=>MAP[key(d.ei,d.mi)]=d);
 
 /* ---------- encoding helpers ---------- */
@@ -427,8 +447,7 @@ const S={q:'',pillar:'',sort:'worst',size:'users',sigonly:false,expFilter:null,
 
 function cellUsers(ei,mi){
   const d=MAP[key(ei,mi)];
-  if(!d||d.none) return 0;
-  if(S.sigonly&&!d.sig) return 0;
+  if(!d||d.none||!d.sig) return 0;   // the grid only depicts significant movement
   return d.users;
 }
 
@@ -436,7 +455,7 @@ function visibleMetrics(){ return METRICS.map((m,i)=>({m,i})).filter(x=>!S.pilla
 function rowScore(ei){
   let net=0,moved=0;
   visibleMetrics().forEach(({i})=>{const d=MAP[key(ei,i)];
-    if(!d||d.none) return; if(S.sigonly&&!d.sig) return; net+=d.users; moved++;});
+    if(!d||d.none||!d.sig) return; net+=d.users; moved++;});
   return {net,moved};
 }
 function visibleExperiments(){
@@ -460,7 +479,7 @@ function render(){
   const mets=visibleMetrics(), exps=visibleExperiments();
   let max=0;
   exps.forEach(({i:ei})=>mets.forEach(({i:mi})=>{const d=MAP[key(ei,mi)];
-    if(!d||d.none) return; if(S.sigonly&&!d.sig) return;
+    if(!d||d.none||!d.sig) return;
     max=Math.max(max,magnitude(d,S.size));}));
 
   const groups=[];
@@ -485,13 +504,13 @@ function render(){
     h+=`<tr class="exprow${rsel}"><td class="exp" onclick="pickExp(${ei})">
         <div class="nm" title="${e.n}">${e.n}</div>
         <div class="meta"><span class="chip ${chip}">${signedU(net)} users</span>
-        <span>${moved} moved</span><span>· ${fmt(e.flight)} in flight</span></div></td>`;
+        <span>${moved} sig. moves</span><span>· ${fmt(e.flight)} in flight</span></div></td>`;
     mets.forEach(({i:mi})=>{
       const d=MAP[key(ei,mi)];
       const cc='cell'+(mi===S.colSort?' colsel':'');
-      const skip = !d||d.none||(S.sigonly&&!d.sig);
+      const skip = !d||d.none||!d.sig;   // colour is reserved for significant movement
       if(skip){h+=`<td class="${cc}"><span class="sq none"></span></td>`;return;}
-      const col = isAmber(d)?'var(--amber)':colorOf(d);
+      const col = colorOf(d);
       const s=sizeOf(d,S.size,max);
       const sel=S.expFilter===ei?' sel':'';
       const tip=`${e.n}\n${METRICS[mi].n}\nControl ${d.base.toFixed(4)}%  →  Treatment ${(d.base+d.delta).toFixed(4)}%\nΔ ${signed(d.delta)}  (${signedRel(d.rel)})\n${signedU(d.users)} net users · p=${d.p.toFixed(4)}${d.sig?' (significant)':' (not significant)'}`;
@@ -506,7 +525,7 @@ function render(){
      '<div class="meta">sum of net users per veto</div></td>';
   mets.forEach(({i:mi})=>{
     let t=0; exps.forEach(({i:ei})=>{const d=MAP[key(ei,mi)];
-      if(!d||d.none) return; if(S.sigonly&&!d.sig) return; t+=d.users;});
+      if(!d||d.none||!d.sig) return; t+=d.users;});
     const c=t>0?'var(--red)':t<0?'var(--green)':'var(--muted)';
     h+=`<td class="cell" style="font-size:10px;color:${c};font-weight:700">${t===0?'–':signedU(t)}</td>`;
   });
@@ -533,18 +552,19 @@ function render(){
 }
 
 function renderKpis(exps,mets){
-  let bad=0,good=0,sigbad=0,worst=null,best=null,expWithSigReg=new Set();
+  // the grid only paints significant movement, so the cards count the same cells
+  let bad=0,good=0,worst=null,best=null,expWithSigReg=new Set();
   exps.forEach(({i:ei})=>mets.forEach(({i:mi})=>{
-    const d=MAP[key(ei,mi)]; if(!d||d.none) return;
-    if(d.delta>0){bad++; if(d.sig){sigbad++;expWithSigReg.add(ei);}}
+    const d=MAP[key(ei,mi)]; if(!d||d.none||!d.sig) return;
+    if(d.delta>0){bad++; expWithSigReg.add(ei);}
     if(d.delta<0) good++;
     if(!worst||d.users>worst.users) worst=d;
     if(!best||d.users<best.users) best=d;
   }));
   const cards=[
     {l:'Experiments analysed',v:exps.length,c:'flat',s:'in current filter'},
-    {l:'Veto regressions',v:bad,c:'bad',s:sigbad+' statistically significant'},
-    {l:'Veto improvements',v:good,c:'good',s:'cells trending down'},
+    {l:'Veto regressions',v:bad,c:'bad',s:'significant, more vetoes'},
+    {l:'Veto improvements',v:good,c:'good',s:'significant, fewer vetoes'},
     {l:'Experiments w/ sig. regression',v:expWithSigReg.size,c:'bad',s:'need review'},
     {l:'Worst single cell',v:worst?signedU(worst.users):'–',c:'bad',
       s:worst?EXPERIMENTS[worst.ei].n.slice(0,30):''},
@@ -603,7 +623,7 @@ function renderFilterBar(){
   el.innerHTML=`<span class="fl-lab">Filtered to</span>
     <span class="fl-name">${e.n}</span>
     <span class="chip ${cls}">${signedU(net)} net users</span>
-    <span class="fl-meta">${moved} vetoes moved · ${fmt(e.flight)} users in flight</span>
+    <span class="fl-meta">${moved} vetoes moved significantly · ${fmt(e.flight)} users in flight</span>
     <button class="fl-x" onclick="clearExp()">Clear ✕</button>`;
 }
 

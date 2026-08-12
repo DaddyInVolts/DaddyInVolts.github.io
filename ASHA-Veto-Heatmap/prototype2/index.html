@@ -288,7 +288,7 @@
         <select id="sort">
           <option value="worst">Sort: worst net impact first</option>
           <option value="best">Sort: best net impact first</option>
-          <option value="most">Sort: most vetoes moved</option>
+          <option value="most">Sort: most vetoes moved (p ≤ .05)</option>
           <option value="name">Sort: experiment name</option>
         </select>
         <select id="sizeBy">
@@ -304,7 +304,7 @@
           <div class="row">
             <span><i class="sw" style="background:var(--red)"></i> More vetoes (p ≤ .05)</span>
             <span><i class="sw" style="background:var(--green)"></i> Fewer vetoes (p ≤ .05)</span>
-            <span><i class="sw" style="width:7px;height:7px;border-radius:50%;background:var(--line-2)"></i> No movement</span>
+            <span><i class="sw" style="width:7px;height:7px;border-radius:50%;background:var(--line-2)"></i> No significant movement</span>
           </div>
         </div>
         <div><b>Size — magnitude</b><div class="row" id="sizeLegend"></div></div>
@@ -381,34 +381,49 @@ const rand=rng(20260811);
 const STATUS=['Shipped','Active','Stopped'];
 const DATA=[],MAP={};
 const key=(a,b)=>a+'|'+b;
+/* Movement is stratified across the whole grid, not per experiment: ~10% of cells
+   are a significant regression, ~10% a significant improvement, ~20% non-significant
+   drift, ~60% no movement. "activity" lets movement cluster in some experiments and
+   skip others entirely; bias decides which direction an experiment leans. */
+const cells=[];
 EXPERIMENTS.forEach((e,ei)=>{
   e.flight=Math.round(200000+rand()*3800000);
   e.status=STATUS[Math.floor(rand()*3)];
   e.started=new Date(2026,1+Math.floor(rand()*6),1+Math.floor(rand()*28));
-  const bias=(rand()*2-1)*0.9;
-  // ~10% significant regressions, ~10% significant improvements, ~80% no movement.
-  // Counts are stratified per experiment so the mix holds at any grid size; bias
-  // only tilts which direction an experiment leans.
-  const target=0.10*METRICS.length, tilt=bias*0.45;
-  const nUp=Math.floor(target*(1+tilt)+rand()), nDown=Math.floor(target*(1-tilt)+rand());
-  const order=METRICS.map((_,i)=>i);
-  for(let i=order.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
-  const dirOf={};
-  order.slice(0,nUp).forEach(i=>dirOf[i]=1);
-  order.slice(nUp,nUp+nDown).forEach(i=>dirOf[i]=-1);
+  e.bias=(rand()*2-1)*0.9;
+  e.activity=0.3+Math.pow(rand(),1.25)*1.3;
+  METRICS.forEach((m,mi)=>cells.push({ei,mi,score:rand()*e.activity}));
+});
+cells.sort((a,b)=>b.score-a.score);
+const nSig=Math.round(0.20*cells.length), nNs=Math.round(0.20*cells.length);
+const byBias=arr=>arr.map(c=>({c,d:rand()+EXPERIMENTS[c.ei].bias*0.5}))
+                     .sort((x,y)=>y.d-x.d).map(x=>x.c);
+const kind={};
+byBias(cells.slice(0,nSig)).forEach((c,i,a)=>kind[key(c.ei,c.mi)]={sig:true,dir:i<a.length/2?1:-1});
+byBias(cells.slice(nSig,nSig+nNs)).forEach((c,i,a)=>kind[key(c.ei,c.mi)]={sig:false,dir:i<a.length/2?1:-1});
+
+EXPERIMENTS.forEach((e,ei)=>{
   METRICS.forEach((m,mi)=>{
-    const dir=dirOf[mi]||0;
+    const k=kind[key(ei,mi)];
     const base=m.b;                       // illustrative baseline rate, %
-    if(dir===0){
+    if(!k){
       const d={ei,mi,base,delta:0,rel:0,users:0,p:0.2+rand()*0.75,
                pmove:Math.pow(rand(),2)*0.35,sig:false,none:true};
+      DATA.push(d);MAP[key(ei,mi)]=d;return;
+    }
+    if(!k.sig){
+      // movement present but small and well inside the noise band
+      const rel=k.dir*(0.3+Math.pow(rand(),1.6)*3.7), delta=base*rel/100;
+      const d={ei,mi,base,delta,rel,p:0.06+Math.pow(rand(),0.9)*0.89,
+               pmove:Math.pow(rand(),2)*0.5,sig:false,
+               users:Math.round(delta/100*e.flight),none:false};
       DATA.push(d);MAP[key(ei,mi)]=d;return;
     }
     // relative change (Delta %) is what compares across vetoes, since control
     // rates vary widely between vetoes
     let relMag=1.5+Math.pow(rand(),2)*13;
     if(rand()<0.10) relMag*=2.2;
-    const rel=dir*relMag;
+    const rel=k.dir*relMag;
     const delta=base*rel/100;             // percentage points
     const p=Math.max(0.000005,Math.pow(rand(),2.2)*0.049);
     const pmove=0.55+rand()*0.45;
@@ -457,7 +472,7 @@ function expPass(e){
 const visMetrics=()=>METRICS.map((m,i)=>({m,i})).filter(x=>!S.pillar||x.m.p===S.pillar);
 function rowScore(ei){let net=0,moved=0;
   visMetrics().forEach(({i})=>{const d=MAP[key(ei,i)];
-    if(!d||d.none)return; if(S.sigonly&&!d.sig)return; net+=d.users;moved++;});
+    if(!d||d.none||!d.sig)return; net+=d.users;moved++;});
   return{net,moved};}
 function visExps(){
   let l=EXPERIMENTS.map((e,i)=>({e,i,...rowScore(i)})).filter(x=>expPass(x.e));
@@ -492,7 +507,7 @@ function renderHeatmap(){
   const mets=visMetrics(),exps=visExps();
   let max=0;
   exps.forEach(({i:ei})=>mets.forEach(({i:mi})=>{const d=MAP[key(ei,mi)];
-    if(!d||d.none)return; if(S.sigonly&&!d.sig)return; max=Math.max(max,mag(d,S.size));}));
+    if(!d||d.none||!d.sig)return; max=Math.max(max,mag(d,S.size));}));
   const groups=[];
   mets.forEach(({m})=>{const g=groups[groups.length-1];
     if(g&&g.p===m.p)g.c++;else groups.push({p:m.p,c:1});});
@@ -509,11 +524,11 @@ function renderHeatmap(){
     const col=net>0?'var(--red)':net<0?'var(--green)':'var(--muted)';
     h+=`<tr><td class="exp"><div class="nm" title="${e.n}">${e.n}</div><div class="meta">
       <span style="color:${col};font-weight:600">${sU(net)} users</span>
-      <span>· ${moved} moved</span><span>· ${e.pr}</span></div></td>`;
+      <span>· ${moved} sig. moves</span><span>· ${e.pr}</span></div></td>`;
     mets.forEach(({i:mi})=>{
       const d=MAP[key(ei,mi)],act=mi===S.metric;
       const cls='cell'+(act?' act':'');
-      if(!d||d.none||(S.sigonly&&!d.sig)){h+=`<td class="${cls}"><span class="sq none"></span></td>`;return;}
+      if(!d||d.none||!d.sig){h+=`<td class="${cls}"><span class="sq none"></span></td>`;return;}
       const px=sizeOf(d,S.size,max);
       const tip=`${METRICS[mi].n}\nControl ${d.base.toFixed(4)}%  →  Treatment ${(d.base+d.delta).toFixed(4)}%\nΔ ${sPP(d.delta)}  (${sRel(d.rel)})\n${sU(d.users)} net users · p=${d.p.toFixed(4)}${d.sig?' (p ≤ .05)':' (n.s.)'}`;
       h+=`<td class="${cls}"><span class="sq" title="${tip}" onclick="pickMetric(${mi})"
@@ -525,7 +540,7 @@ function renderHeatmap(){
      '<div class="meta">sum of net users per veto</div></td>';
   mets.forEach(({i:mi})=>{let t=0;
     exps.forEach(({i:ei})=>{const d=MAP[key(ei,mi)];
-      if(!d||d.none)return; if(S.sigonly&&!d.sig)return; t+=d.users;});
+      if(!d||d.none||!d.sig)return; t+=d.users;});
     const c=t>0?'var(--red)':t<0?'var(--green)':'var(--muted)';
     h+=`<td class="cell${mi===S.metric?' act':''}" style="color:${c}">${t===0?'–':sU(t)}</td>`;});
   h+='</tr></tbody>';
