@@ -295,13 +295,13 @@
     <div class="two">
       <div class="panel sec">
         <h3 id="badTitle">Top regressions</h3>
-        <div class="sub" id="badSub">Experiment × veto pairs adding the most vetoed users.</div>
+        <div class="sub" id="badSub">Experiment × veto pairs adding the most error sessions.</div>
         <table class="rank"><thead><tr><th id="badH1">Experiment</th><th id="badH2">Veto metric</th><th class="n">Δ %</th><th class="n">Net users</th></tr></thead>
         <tbody id="topbad"></tbody></table>
       </div>
       <div class="panel sec">
         <h3 id="goodTitle">Top improvements</h3>
-        <div class="sub" id="goodSub">Experiment × veto pairs removing the most vetoed users.</div>
+        <div class="sub" id="goodSub">Experiment × veto pairs removing the most error sessions.</div>
         <table class="rank"><thead><tr><th id="goodH1">Experiment</th><th id="goodH2">Veto metric</th><th class="n">Δ %</th><th class="n">Net users</th></tr></thead>
         <tbody id="topgood"></tbody></table>
       </div>
@@ -606,10 +606,10 @@ function renderRanks(){
   document.getElementById('goodTitle').textContent = scope?'Improvements':'Top improvements';
   document.getElementById('badSub').textContent = scope
     ? `${bad.length} veto${bad.length===1?'':'es'} worsened by ${scope}`
-    : 'Experiment × veto pairs adding the most vetoed users.';
+    : 'Experiment × veto pairs adding the most error sessions.';
   document.getElementById('goodSub').textContent = scope
     ? `${good.length} veto${good.length===1?'':'es'} improved by ${scope}`
-    : 'Experiment × veto pairs removing the most vetoed users.';
+    : 'Experiment × veto pairs removing the most error sessions.';
   renderFilterBar();
 }
 
