@@ -69,7 +69,13 @@
 
   /* KPI */
   .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px;}
-  .kpi{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;
+    cursor:pointer;transition:border-color .12s,box-shadow .12s;}
+  .kpi:hover{border-color:var(--line2);box-shadow:0 1px 4px rgba(15,23,42,.08);}
+  .kpi:hover .lab::after{content:' ▸';color:var(--blue);}
+  .kpi.sel{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-soft);}
+  .kpi.sel .lab{color:var(--blue);}
+  .kpi.sel .lab::after{content:' ✕';color:var(--blue);}
   .kpi .lab{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;}
   .kpi .val{font-size:22px;font-weight:700;margin:3px 0 5px;}
   .chip{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;}
@@ -247,7 +253,8 @@
         Only <strong>statistically significant</strong> movement is plotted — everything else
         shows as a grey dot; the ranked tables below still carry non-significant drift.
         Click any square or experiment name to filter the tables below to that experiment;
-        click a veto column header to sort experiments by their impact on that veto.
+        click a veto column header to sort experiments by their impact on that veto;
+        click a tile above to filter the grid to that set of experiments.
       </div>
 
       <div class="ctl">
@@ -443,7 +450,27 @@ const signedU=n=>(n>0?'+':'')+fmt(n);
 
 /* ---------- state ---------- */
 const S={q:'',pillar:'',sort:'worst',size:'users',sigonly:false,expFilter:null,
-         colSort:null,colDir:-1};
+         colSort:null,colDir:-1,kpi:null,kpiExp:null,kpiSrc:null};
+
+/* the KPI tiles double as filters: each one narrows the grid to its own experiments */
+const KPILAB={moved:'experiments with significant movement',
+              reg:'experiments with a significant regression',
+              imp:'experiments with a significant improvement'};
+function sigSplit(ei){
+  let bad=0,good=0;
+  visibleMetrics().forEach(({i:mi})=>{const d=MAP[key(ei,mi)];
+    if(!d||d.none||!d.sig) return;
+    if(d.delta>0) bad++; else if(d.delta<0) good++;});
+  return {bad,good};
+}
+function kpiMatch(ei){
+  if(S.kpi==='exp') return ei===S.kpiExp;
+  const {bad,good}=sigSplit(ei);
+  if(S.kpi==='moved') return bad+good>0;
+  if(S.kpi==='reg')   return bad>0;
+  if(S.kpi==='imp')   return good>0;
+  return true;
+}
 
 function cellUsers(ei,mi){
   const d=MAP[key(ei,mi)];
@@ -458,9 +485,14 @@ function rowScore(ei){
     if(!d||d.none||!d.sig) return; net+=d.users; moved++;});
   return {net,moved};
 }
-function visibleExperiments(){
+function expList(applyKpi){
   let list=EXPERIMENTS.map((e,i)=>({e,i,...rowScore(i)}));
   if(S.q){const q=S.q.toLowerCase();list=list.filter(x=>x.e.n.toLowerCase().includes(q)||x.e.o.toLowerCase().includes(q));}
+  if(applyKpi&&S.kpi) list=list.filter(x=>kpiMatch(x.i));
+  return list;
+}
+function visibleExperiments(){
+  let list=expList(true);
   // a veto column header takes over row order: net impact on that one veto
   if(S.colSort!==null){
     const mi=S.colSort;
@@ -521,6 +553,11 @@ function render(){
   });
 
   // column totals
+  if(!exps.length){
+    h+=`<tr><td class="exp" colspan="${mets.length+1}" style="padding:18px 12px;color:var(--muted)">
+        No experiments match this filter. <a href="#" onclick="clearKpi();return false;"
+        style="color:var(--blue);font-weight:600">Clear the tile filter</a></td></tr>`;
+  } else {
   h+='<tr class="tot"><td class="exp"><div class="nm">Net across experiments</div>'+
      '<div class="meta">sum of net users per veto</div></td>';
   mets.forEach(({i:mi})=>{
@@ -529,10 +566,15 @@ function render(){
     const c=t>0?'var(--red)':t<0?'var(--green)':'var(--muted)';
     h+=`<td class="cell" style="font-size:10px;color:${c};font-weight:700">${t===0?'–':signedU(t)}</td>`;
   });
-  h+='</tr></tbody>';
+  h+='</tr>';
+  }
+  h+='</tbody>';
   document.getElementById('hm').innerHTML=h;
   document.getElementById('shown').textContent=
-    `${exps.length} experiments × ${mets.length} vetoes`+
+    `${exps.length} experiment${exps.length===1?'':'s'} × ${mets.length} vetoes`+
+    (S.kpi
+      ? ` · ${S.kpi==='exp'?'one experiment (worst / best cell)':KPILAB[S.kpi]}`
+      : '')+
     (S.colSort!==null
       ? ` · sorted by ${METRICS[S.colSort].s} (${S.colDir===-1?'most vetoes added first':'most vetoes removed first'})`
       : '');
@@ -547,33 +589,48 @@ function render(){
   });
   document.getElementById('sizelegend').innerHTML=sl;
 
-  renderKpis(exps,mets);
+  renderKpis(mets);
   renderRanks();
 }
 
-function renderKpis(exps,mets){
-  // the grid only paints significant movement, so the cards count the same cells
-  let bad=0,good=0,worst=null,best=null,expWithSigReg=new Set();
-  exps.forEach(({i:ei})=>mets.forEach(({i:mi})=>{
-    const d=MAP[key(ei,mi)]; if(!d||d.none||!d.sig) return;
-    if(d.delta>0){bad++; expWithSigReg.add(ei);}
-    if(d.delta<0) good++;
-    if(!worst||d.users>worst.users) worst=d;
-    if(!best||d.users<best.users) best=d;
-  }));
+function renderKpis(mets){
+  // the grid only paints significant movement, so the cards count the same cells.
+  // counts ignore the active tile filter so the tiles stay comparable while toggling.
+  const base=expList(false);
+  let bad=0,good=0,moved=0,worst=null,best=null;
+  base.forEach(({i:ei})=>{
+    let rb=0,rg=0;
+    mets.forEach(({i:mi})=>{
+      const d=MAP[key(ei,mi)]; if(!d||d.none||!d.sig) return;
+      if(d.delta>0) rb++; else if(d.delta<0) rg++;
+      if(!worst||d.users>worst.users) worst=d;
+      if(!best||d.users<best.users) best=d;
+    });
+    bad+=rb; good+=rg; if(rb+rg>0) moved++;
+  });
   const cards=[
-    {l:'Experiments analysed',v:exps.length,c:'flat',s:'in current filter'},
-    {l:'Veto regressions',v:bad,c:'bad',s:'significant, more vetoes'},
-    {l:'Veto improvements',v:good,c:'good',s:'significant, fewer vetoes'},
-    {l:'Experiments w/ sig. regression',v:expWithSigReg.size,c:'bad',s:'need review'},
+    {l:'Experiments with movement',v:moved,c:'flat',s:'significant, any direction',k:'moved'},
+    {l:'Veto regressions',v:bad,c:'bad',s:'significant, more vetoes',k:'reg'},
+    {l:'Veto improvements',v:good,c:'good',s:'significant, fewer vetoes',k:'imp'},
     {l:'Worst single cell',v:worst?signedU(worst.users):'–',c:'bad',
-      s:worst?EXPERIMENTS[worst.ei].n.slice(0,30):''},
+      s:worst?EXPERIMENTS[worst.ei].n.slice(0,30):'', k:worst?'exp':null,
+      ei:worst?worst.ei:null, src:'worst'},
     {l:'Best single cell',v:best?signedU(best.users):'–',c:'good',
-      s:best?EXPERIMENTS[best.ei].n.slice(0,30):''}
+      s:best?EXPERIMENTS[best.ei].n.slice(0,30):'', k:best?'exp':null,
+      ei:best?best.ei:null, src:'best'}
   ];
-  document.getElementById('kpis').innerHTML=cards.map(c=>
-    `<div class="kpi"><div class="lab">${c.l}</div><div class="val">${c.v}</div>
-     <span class="chip ${c.c}">${c.s}</span></div>`).join('');
+  document.getElementById('kpis').innerHTML=cards.map(c=>{
+    if(!c.k) return `<div class="kpi" style="cursor:default"><div class="lab">${c.l}</div>
+      <div class="val">${c.v}</div><span class="chip ${c.c}">${c.s}</span></div>`;
+    const sel = c.k==='exp' ? (S.kpi==='exp'&&S.kpiSrc===c.src) : S.kpi===c.k;
+    const tip = sel?'Click to clear this filter'
+              : c.k==='exp'?`Filter the grid to ${EXPERIMENTS[c.ei].n}`
+              : `Filter the grid to ${KPILAB[c.k]}`;
+    return `<div class="kpi${sel?' sel':''}" title="${tip}"
+      onclick="pickKpi('${c.k}',${c.ei===undefined?null:c.ei},'${c.src||''}')">
+      <div class="lab">${c.l}</div><div class="val">${c.v}</div>
+      <span class="chip ${c.c}">${c.s}</span></div>`;
+  }).join('');
 }
 
 function renderRanks(){
@@ -628,11 +685,27 @@ function renderFilterBar(){
 }
 
 /* clicking a heatmap square or experiment name filters the tables below */
-function pickExp(ei){ S.expFilter = S.expFilter===ei ? null : ei; render(); }
-function clearExp(){ S.expFilter=null; render(); }
+function pickExp(ei){
+  if(S.expFilter===ei){ S.expFilter=null; if(S.kpi==='exp') clearKpiState(); }
+  else { S.expFilter=ei; if(S.kpi==='exp') S.kpiExp=ei; }
+  render();
+}
+function clearExp(){ S.expFilter=null; if(S.kpi==='exp') clearKpiState(); render(); }
 
 /* clicking a ranked-list row focuses that experiment (no overlay) */
-function focusExp(ei){ S.expFilter=ei; render(); }
+function focusExp(ei){ S.expFilter=ei; if(S.kpi==='exp') S.kpiExp=ei; render(); }
+
+/* KPI tiles act as grid filters: same tile again clears it */
+function clearKpiState(){ S.kpi=null; S.kpiExp=null; S.kpiSrc=null; }
+function clearKpi(){ clearKpiState(); render(); }
+function pickKpi(k,ei,src){
+  const same = k==='exp' ? (S.kpi==='exp'&&S.kpiSrc===src) : S.kpi===k;
+  if(same){ clearKpiState(); if(k==='exp') S.expFilter=null; }
+  else if(k==='exp'){ S.kpi='exp'; S.kpiExp=ei; S.kpiSrc=src; S.expFilter=ei; }
+  // a broad tile filter and a single-experiment focus would contradict each other
+  else { S.kpi=k; S.kpiExp=null; S.kpiSrc=null; S.expFilter=null; }
+  render();
+}
 
 /* clicking a veto column header sorts experiments by net impact on that veto:
    descending → ascending → back to the sort dropdown */
