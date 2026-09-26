@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Spec — Give Me a Deep Analysis</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-light: #e8f0fe;
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --risk-red: #d93025;
+    --risk-bg: #fce8e6;
+    --success-green: #1e8e3e;
+    --success-bg: #e6f4ea;
+    --warn-amber: #e37400;
+    --warn-bg: #fef7e0;
+    --p0: #d93025;
+    --p1: #e37400;
+    --p2: #1a73e8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #1a2332 0%, #2d4a6f 60%, var(--primary) 100%);
+    color: #fff;
+    padding: 48px 40px 36px;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .header .subtitle {
+    font-size: 1rem;
+    opacity: 0.85;
+    font-weight: 400;
+  }
+  .meta-bar {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+  .meta-item strong {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.65;
+    margin-bottom: 2px;
+  }
+
+  /* ── Content ── */
+  .content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 60px;
+  }
+
+  /* ── Section ── */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .section-number {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .section h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 20px 0 10px;
+    color: var(--text);
+  }
+  .section p, .section li {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .section ul, .section ol {
+    padding-left: 22px;
+  }
+
+  /* ── Placeholder / fill-in text ── */
+  .placeholder {
+    background: var(--primary-light);
+    border-left: 3px solid var(--primary);
+    padding: 12px 16px;
+    border-radius: 0 6px 6px 0;
+    font-style: italic;
+    color: var(--primary);
+    font-size: 0.9rem;
+    margin: 12px 0;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.9rem;
+  }
+  thead th {
+    background: var(--bg);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ── Priority badges ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-p0 { background: #fce8e6; color: var(--p0); }
+  .badge-p1 { background: var(--warn-bg); color: var(--p1); }
+  .badge-p2 { background: var(--primary-light); color: var(--p2); }
+
+  /* ── Metric cards ── */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .metric-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .metric-card .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .metric-card .value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .metric-card .target {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* ── Scenario cards ── */
+  .scenario-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .scenario-card .persona {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .scenario-card .narrative {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  /* ── Risk / Open Q cards ── */
+  .risk-card {
+    border-left: 4px solid var(--risk-red);
+    background: var(--risk-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .risk-card .risk-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--risk-red);
+    margin-bottom: 4px;
+  }
+  .risk-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  .question-card {
+    border-left: 4px solid var(--warn-amber);
+    background: var(--warn-bg);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+  .question-card .q-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--warn-amber);
+    margin-bottom: 4px;
+  }
+  .question-card p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+  /* ── UX Flow box ── */
+  .ux-flow {
+    background: var(--bg);
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 32px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin: 14px 0;
+  }
+
+  /* ── Nongoal chip ── */
+  .nongoal {
+    background: #f1f3f4;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 6px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nongoal::before {
+    content: '✕';
+    color: var(--risk-red);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  /* ── Print ── */
+  @media print {
+    body { background: #fff; }
+    .content { padding: 0 20px; }
+    .section { break-inside: avoid; }
+  }
+</style>
+<style>
+  /* ── Spec-specific additions ── */
+  .tbd {
+    display: inline-block;
+    background: var(--warn-bg);
+    color: var(--warn-amber);
+    border: 1px solid #f5d38b;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 10px;
+    letter-spacing: 0.04em;
+    font-style: normal;
+    vertical-align: middle;
+  }
+  code {
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 0.85rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    color: var(--text);
+    word-break: break-all;
+  }
+  .testcase dl { display: grid; grid-template-columns: 190px 1fr; gap: 8px 16px; margin-top: 8px; }
+  .testcase dt { font-weight: 600; font-size: 0.85rem; color: var(--text); }
+  .testcase dd { font-size: 0.9rem; color: var(--text-secondary); }
+  .testcase dd ul { padding-left: 18px; }
+  .testcase dd li { margin-bottom: 4px; }
+
+  /* ── Wireframe mock of the experiment summary card ── */
+  .wire-label {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-secondary); font-weight: 700; margin: 18px 0 6px;
+  }
+  .mock-page { background: #f3f3f3; border: 1px solid var(--border); border-radius: 8px; padding: 22px 24px; }
+  .mock-page .exp-title { font-size: 1.3rem; font-weight: 700; color: #242424; margin-bottom: 2px; }
+  .mock-page .exp-sub { font-size: 0.8rem; color: #424242; margin-bottom: 10px; }
+  .mock-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px 18px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .mock-card .sa-head { font-size: 0.88rem; font-weight: 600; color: #242424; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .mock-card .sa-head .spark { color: #0f6cbd; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip-btn {
+    border: 1px solid #d1d1d1; background: #fff; border-radius: 22px;
+    padding: 10px 18px; font: 600 0.82rem 'Segoe UI', sans-serif; color: #242424; cursor: default;
+  }
+  .chip-btn.new { border: 2px solid #0f6cbd; box-shadow: 0 0 0 3px #e8f0fe; font-weight: 500; }
+  .chip-btn.new::after {
+    content: 'NEW'; margin-left: 8px; font-size: 0.62rem; font-weight: 700; color: #fff;
+    background: #0f6cbd; border-radius: 8px; padding: 1px 6px; vertical-align: 1px;
+  }
+  .pills { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .pill { background: #ebf3fc; border: 1px solid #b4d6fa; border-radius: 14px; padding: 3px 12px; font-size: 0.75rem; color: #242424; }
+
+  .mock-form { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 18px 20px; max-width: 640px; }
+  .mock-form h4 { font-size: 0.95rem; margin-bottom: 12px; color: #242424; }
+  .mock-field { margin-bottom: 12px; }
+  .mock-field label { display: block; font-size: 0.8rem; font-weight: 600; color: #242424; margin-bottom: 4px; }
+  .mock-field label .req { color: var(--risk-red); }
+  .mock-field label .opt { font-weight: 400; color: var(--text-secondary); }
+  .mock-input { border: 1px solid #d1d1d1; border-radius: 4px; padding: 7px 10px; font-size: 0.8rem; color: #8a8a8a; background: #fafafa; }
+  .mock-input.tall { height: 72px; }
+  .mock-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
+  .mock-btn { border-radius: 4px; padding: 6px 16px; font-size: 0.8rem; font-weight: 600; border: 1px solid #d1d1d1; background: #fff; color: #242424; }
+  .mock-btn.primary { background: #0f6cbd; border-color: #0f6cbd; color: #fff; }
+
+  .mock-report { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 18px 20px; max-width: 640px; }
+  .mock-report .bar { height: 10px; background: #ececec; border-radius: 4px; margin: 6px 0; }
+  .mock-report .blk { border: 1px dashed #c8c8c8; border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-size: 0.8rem; color: var(--text-secondary); }
+  .mock-report .blk strong { color: #242424; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Give Me a Deep Analysis</h1>
+  <div class="subtitle">Product Specification · New skill for the <code style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3);color:#fff">fabric-expedite-mcp-app</code> MCP server</div>
+  <div class="meta-bar">
+    <div class="meta-item"><strong>PM Owner</strong> David Lydston</div>
+    <div class="meta-item"><strong>Skill Owner</strong> Ruby Mazumdar (Data Science)</div>
+    <div class="meta-item"><strong>Team</strong> Expedite · Experimentation</div>
+    <div class="meta-item"><strong>Last Updated</strong> September 25, 2026</div>
+    <div class="meta-item"><strong>Status</strong> Draft</div>
+    <div class="meta-item"><strong>Timeline</strong> ASAP</div>
+    <div class="meta-item"><strong>Stakeholders</strong> Experimentation Data Science</div>
+  </div>
+</div>
+
+<div class="content">
+
+<div class="placeholder" style="font-style:normal">
+  <strong>About this draft:</strong> Everything in this spec comes from the PM or from the two example experiments the PM provided. If something hasn't been supplied yet (the plugin address, the plugin contract, the default metrics, expected outputs, and quantitative evidence), it's marked <span class="tbd">TBD</span>. Nothing has been estimated or made up to fill the gaps.
+</div>
+
+<!-- SECTION 1 -->
+<div class="section">
+  <div class="section-number">Section 1</div>
+  <h2>Problem &amp; Opportunity</h2>
+
+  <h3>Problem Statement</h3>
+  <p>Feature owners want a more complete analysis of their experiment, run against a scorecard they choose. Today, getting that analysis means reading the xCard (the experiment scorecard) yourself. Few people at Microsoft know how to read an xCard well. People who don't have to spend time learning before they can reach a conclusion about their experiment.</p>
+  <p>This affects two groups. The first is feature crews who own experiments. The second is anyone who needs to understand an experiment's result but doesn't know how to read an xCard.</p>
+
+  <h3>Opportunity</h3>
+  <p>A single "Give me a deep analysis" skill in the <code>fabric-expedite-mcp-app</code> MCP server, launched from the Expedite experiment summary page, removes the need to learn xCards first. The user supplies the xCard link, the scorecard ID, and the experiment hypothesis. They can optionally list the metrics they expect to be stat-sig. The skill calls an analysis plugin written by the Data Science skill owner and returns an HTML analysis with sections, tradeoffs to discuss, and a verdict.</p>
+  <p><strong>PM estimate of time saved:</strong> today a deep analysis takes about <strong>3 hours</strong> of manual work. The goal is for the skill to finish in <strong>about 5 minutes or less</strong>.</p>
+
+  <h3>Evidence</h3>
+  <ul>
+    <li><strong>PM observation:</strong> Reading an xCard is still a niche skill at Microsoft. Feature crews, and people who don't know how to read an xCard, both need a fuller analysis of their experiments.</li>
+    <li><strong>Time-to-analysis:</strong> About 3 hours manually versus a target of 5 minutes or less. This is a PM estimate, not a measured baseline.</li>
+    <li><strong>User research, telemetry, support data:</strong> <span class="tbd">TBD</span> No quantitative evidence has been gathered for this spec yet.</li>
+  </ul>
+</div>
+
+<!-- SECTION 2 -->
+<div class="section">
+  <div class="section-number">Section 2</div>
+  <h2>Goals &amp; Success Metrics</h2>
+
+  <h3>Goals</h3>
+  <ol>
+    <li>Get a deep analysis of a specific experiment and scorecard in about 5 minutes or less, down from about 3 hours of manual work (PM estimate).</li>
+    <li>Give people who can't read an xCard an analysis they can act on, with sections, tradeoffs to discuss, and a verdict. They shouldn't have to learn xCards first.</li>
+    <li>Make the Data Science deep-analysis plugin available as a skill in <code>fabric-expedite-mcp-app</code>, launched from the Expedite experiment summary page.</li>
+  </ol>
+
+  <h3>Success Metrics</h3>
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="label">Primary Metric</div>
+      <div class="value">Time to deep analysis</div>
+      <div class="target">Target: about 5 min or less, end to end · Baseline: about 3 hours manual (PM estimate, not measured)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Secondary Metric</div>
+      <div class="value">Skill adoption</div>
+      <div class="target">Definition, target, and baseline: <span class="tbd">TBD</span></div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Guardrail Metric</div>
+      <div class="value">Skill run success rate</div>
+      <div class="target">Share of runs that return an analysis without errors or timeouts. Threshold: <span class="tbd">TBD</span></div>
+    </div>
+  </div>
+
+  <h3>Explicit Non-Goals</h3>
+  <div class="nongoal">Pre-filling inputs from the experiment summary page. In V1 the user types in every input using a form or chat prompt.</div>
+  <div class="nongoal">Defining the analysis method or the default stat-sig metrics. These belong to the skill author (Ruby Mazumdar) and live in the plugin.</div>
+  <div class="nongoal">Changing the existing suggested actions ("Which variant is the winner and which should be avoided?" and "What is the description for a metric?").</div>
+</div>
+
+<!-- SECTION 3 -->
+<div class="section">
+  <div class="section-number">Section 3</div>
+  <h2>User Scenarios</h2>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 1: Feature crew experiment owner (primary)</div>
+    <div class="narrative">
+      <p>A feature owner is on the Expedite experiment summary page for their experiment. They want more than the headline results: a fuller analysis tied to the hypothesis they actually set out to test. Under <em>Suggested actions to explore this experiment</em>, they click <strong>"Give me a deep analysis on this."</strong> They paste in the xCard link and the scorecard ID, enter their hypothesis, and list the metrics they expect to be stat-sig. They submit, and a new browser tab opens with an HTML analysis: sections, tradeoffs to discuss with their crew, and a verdict.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Scenario 2: Someone who doesn't know how to read an xCard</div>
+    <div class="narrative">
+      <p>A stakeholder needs to understand an experiment's result but has never learned to read an xCard. From the same experiment summary page, they launch the skill and fill in the three required inputs. They leave the metrics list empty, so the skill uses its default metrics, which the skill author defined. They get the same HTML analysis and verdict and never have to read the xCard themselves.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge case: No metrics supplied</div>
+    <div class="narrative">
+      <p>The user leaves the optional stat-sig metrics list empty. The skill still runs and uses the default metrics the skill author defined. This is TC-2. <span class="tbd">TBD</span>: whether the output should say which default metrics were used.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge case: Invalid or missing required input</div>
+    <div class="narrative">
+      <p>The user leaves a required field empty, or enters a scorecard ID that isn't an integer. The skill doesn't call the plugin. The form marks the field in question and explains what's wrong.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4 -->
+<div class="section">
+  <div class="section-number">Section 4</div>
+  <h2>Requirements</h2>
+
+  <h3>Skill Inputs</h3>
+  <table>
+    <thead>
+      <tr><th style="width:190px">Input</th><th style="width:130px">Type</th><th style="width:100px">Required</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>xCard hyperlink</td><td>string</td><td>Yes</td><td>URL of the experiment scorecard (xCard) to analyze</td></tr>
+      <tr><td>Scorecard ID</td><td>integer</td><td>Yes</td><td>Numeric ID of the scorecard to analyze</td></tr>
+      <tr><td>Experiment hypothesis</td><td>string (long text)</td><td>Yes</td><td>The experimenter's hypothesis, in free text. It can be several lines long (see TC-1).</td></tr>
+      <tr><td>Expected stat-sig metrics</td><td>list of strings</td><td>No</td><td>Metric display names the experimenter expects to be stat-sig if the hypothesis holds. If this is left empty, the skill uses the default metrics set by the skill author.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Functional Requirements</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:70px">Priority</th>
+        <th style="width:64px;white-space:nowrap">ID</th>
+        <th>Requirement</th>
+        <th style="width:220px">Acceptance Criteria</th>
+        <th style="width:130px">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td><td>R-01</td>
+        <td>Add a new "Give me a deep analysis" skill (MCP tool) to the <code>fabric-expedite-mcp-app</code> MCP server.</td>
+        <td>The tool shows up in the server's tool list with its input schema and can be called by MCP clients.</td>
+        <td>Tool name <span class="tbd">TBD</span></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td><td>R-02</td>
+        <td>The skill takes three required inputs (xCard hyperlink as a string, scorecard ID as an integer, experiment hypothesis as long text) and one optional input (a list of metric display names expected to be stat-sig).</td>
+        <td>The schema marks the three required inputs as required and the metrics list as optional. Calls missing a required input are rejected before the plugin is called.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td><td>R-03</td>
+        <td>The skill sends the inputs to the deep-analysis plugin and returns what the plugin produces.</td>
+        <td>The plugin gets all inputs the user provided, unchanged. The plugin endpoint is set in configuration, not hard-coded.</td>
+        <td>Plugin address <span class="tbd">TBD</span> (the PM will provide it)</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td><td>R-04</td>
+        <td>If no expected stat-sig metrics are given, the analysis uses the default metrics set by the skill author.</td>
+        <td>TC-2 runs with the metrics input omitted and returns an analysis.</td>
+        <td>Defaults are owned by Ruby Mazumdar</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td><td>R-05</td>
+        <td>Add a <strong>"Give me a deep analysis on this."</strong> chip to the <em>Suggested actions to explore this experiment</em> card on Expedite experiment summary pages (<code>/experimentSummary/by_id?featureId=…&amp;audience=…</code>), next to the chips that are already there.</td>
+        <td>The chip shows up on the experiment summary page for a specific experiment, for example <code>featureId=7d80e84c-168f-4b9f-9ac4-aff2faf40a92&amp;audience=Commercial</code>.</td>
+        <td>See Section 5</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td><td>R-06</td>
+        <td>Clicking the chip opens a form or chat prompt where the user types in every input. Nothing is pre-filled in V1.</td>
+        <td>All four inputs can be entered. Submit stays disabled until the three required fields are valid.</td>
+        <td>Form vs. chat prompt <span class="tbd">TBD</span></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td><td>R-07</td>
+        <td>The analysis comes back as an HTML page and opens in a new browser tab. It includes sections, tradeoffs to discuss, and a verdict.</td>
+        <td>After a successful run, a new tab opens with an HTML page that has sections, a tradeoffs section, and a verdict.</td>
+        <td>Section structure is set by the plugin</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td><td>R-08</td>
+        <td>End-to-end runtime of about 5 minutes or less, from submit to the analysis tab opening.</td>
+        <td>Both test cases finish in 5 minutes or less.</td>
+        <td>Depends on plugin latency <span class="tbd">TBD</span></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p0">P0</span></td><td>R-09</td>
+        <td>Both acceptance test cases (below) run successfully.</td>
+        <td>Each run returns an HTML analysis that matches the PM's reference output.</td>
+        <td>Reference outputs <span class="tbd">TBD</span> (the PM will provide them)</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td><td>R-10</td>
+        <td>Validate inputs on the client: the xCard hyperlink must be a well-formed URL, the scorecard ID must be an integer, and the hypothesis can't be empty.</td>
+        <td>Each invalid field gets its own error message next to it. The plugin isn't called.</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td><td>R-11</td>
+        <td>Show that the analysis is in progress while the skill runs, and show a clear error with a retry option if it fails or times out.</td>
+        <td>The user sees a loading state within 1 second of submitting. Failures and timeouts show an error message and a Retry button.</td>
+        <td>Timeout value <span class="tbd">TBD</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Acceptance Test Cases</h3>
+  <p>The PM has two complete example experiments to use as reference inputs and acceptance tests. Their details (scorecard links, IDs, hypotheses, and expected metrics) are internal, so they're kept in a private copy of this spec and not published here. Expected outputs are <span class="tbd">TBD</span>. The PM will supply reference analyses later.</p>
+
+  <table>
+    <thead>
+      <tr><th style="width:140px">Test Case</th><th>Coverage</th><th style="width:200px">Details</th><th style="width:160px">Expected Output</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TC-1</td><td>All four inputs supplied, including a list of metrics the experimenter expects to be stat-sig. The hypothesis spans several lines.</td><td>Held privately by the PM</td><td><span class="tbd">TBD</span></td></tr>
+      <tr><td>TC-2</td><td>Only the three required inputs are supplied, so the skill's default metrics are used. The hypothesis is a single sentence. The xCard link has no scorecard ID in it.</td><td>Held privately by the PM</td><td><span class="tbd">TBD</span></td></tr>
+    </tbody>
+  </table>
+</div>
+<!-- SECTION 5 -->
+<div class="section">
+  <div class="section-number">Section 5</div>
+  <h2>Design Direction</h2>
+
+  <h3>Entry Point: Experiment Summary Page</h3>
+  <p>The skill is launched from the <em>Suggested actions to explore this experiment</em> card on Expedite experiment summary pages, for example <code>https://expedite.microsoft.com/experimentSummary/by_id?featureId=7d80e84c-168f-4b9f-9ac4-aff2faf40a92&amp;audience=Commercial</code>. It's added as a third chip after the two existing ones, matching the reference screenshot the PM provided. The mocks below are illustrative wireframes with placeholder text. They don't show real experiment data.</p>
+
+  <div class="wire-label">Wireframe A: Suggested actions card with the new chip</div>
+  <div class="mock-page" role="img" aria-label="Wireframe of the experiment summary header with a suggested actions card containing three chips; the third chip reads 'Give me a deep analysis on this.'">
+    <div class="exp-title">Experiment: {experiment name}</div>
+    <div class="exp-sub">{rollout / iteration description}</div>
+    <div class="mock-card">
+      <div class="sa-head"><span class="spark">✦</span> Suggested actions to explore this experiment</div>
+      <div class="chips">
+        <span class="chip-btn">Which variant is the winner and which should be avoided?</span>
+        <span class="chip-btn">What is the description for a metric?</span>
+        <span class="chip-btn new">Give me a deep analysis on this.</span>
+      </div>
+    </div>
+    <div class="pills">
+      <span class="pill">Audience: {audience}</span>
+      <span class="pill">Variants: {control} vs {treatment}</span>
+    </div>
+  </div>
+
+  <div class="wire-label">Wireframe B: Input form (user enters all inputs)</div>
+  <div class="mock-form" role="img" aria-label="Wireframe of the deep analysis input form with xCard hyperlink, scorecard ID, hypothesis, and optional metrics fields">
+    <h4>Give me a deep analysis</h4>
+    <div class="mock-field"><label>xCard hyperlink <span class="req">*</span></label><div class="mock-input">https://exp.microsoft.com/scorecard?…</div></div>
+    <div class="mock-field"><label>Scorecard ID <span class="req">*</span></label><div class="mock-input">Integer, e.g. 123456789</div></div>
+    <div class="mock-field"><label>Experiment hypothesis <span class="req">*</span></label><div class="mock-input tall">Describe what you expect the treatment to change, and why…</div></div>
+    <div class="mock-field"><label>Metrics you expect to be stat-sig <span class="opt">(optional; leave empty to use the skill defaults)</span></label><div class="mock-input">Metric display names</div></div>
+    <div class="mock-actions"><span class="mock-btn">Cancel</span><span class="mock-btn primary">Run deep analysis</span></div>
+  </div>
+
+  <div class="wire-label">Wireframe C: Analysis output (opens in a new tab)</div>
+  <div class="mock-report" role="img" aria-label="Wireframe of the HTML analysis output with sections, tradeoffs, and verdict blocks">
+    <div class="bar" style="width:60%;height:14px;background:#d6d6d6"></div>
+    <div class="bar" style="width:40%"></div>
+    <div class="blk"><strong>Sections</strong> — set by the plugin <span class="tbd">TBD</span></div>
+    <div class="blk"><strong>Tradeoffs to discuss</strong></div>
+    <div class="blk"><strong>Verdict</strong></div>
+  </div>
+
+  <h3>UX Flow</h3>
+  <div class="ux-flow">
+    Experiment Summary page → <em>Suggested actions</em> card → click "Give me a deep analysis on this."<br>
+    → Input form or chat prompt (xCard hyperlink*, Scorecard ID*, Hypothesis*, Expected stat-sig metrics) → Submit<br>
+    → Loading state → <code>fabric-expedite-mcp-app</code> skill → DS deep-analysis plugin (address TBD)<br>
+    → HTML analysis (sections · tradeoffs · verdict) opens in a new tab · Target: about 5 min or less end to end<br><br>
+    <small>Figma: <span class="tbd">TBD</span></small>
+  </div>
+
+  <h3>Key Interaction Notes</h3>
+  <ul>
+    <li>The new chip uses the same style as the existing suggested-action chips and appears after them.</li>
+    <li>In V1 the user types in every input. Nothing is pre-filled from the page, even though the page already knows which experiment is open.</li>
+    <li>The optional metrics field takes metric display names. Leaving it empty is a supported path, and the skill author's defaults are used.</li>
+    <li>The result opens in a new browser tab so the user doesn't lose their place on the experiment summary page.</li>
+  </ul>
+
+  <h3>Edge Cases &amp; Empty States</h3>
+  <ul>
+    <li><strong>Missing or invalid required input:</strong> The field in question is marked with an error message and Submit stays disabled.</li>
+    <li><strong>Plugin error:</strong> An error message with a Retry button. Exact wording and retry policy are <span class="tbd">TBD</span>.</li>
+    <li><strong>Runtime exceeds target:</strong> Behavior past about 5 minutes (keep waiting, time out, or notify the user when it's done) is <span class="tbd">TBD</span>.</li>
+    <li><strong>Pop-up blocked:</strong> If the browser blocks the new tab, show a link the user can click to open the analysis.</li>
+  </ul>
+
+  <h3>Accessibility</h3>
+  <ul>
+    <li>The chip, form fields, and Submit button can all be reached with Tab and Shift+Tab. The chip and Submit button activate with Enter or Space.</li>
+    <li>Required fields are marked for screen readers. Validation errors are linked to their fields and announced. The loading state is announced when it starts and when it ends.</li>
+    <li>The HTML analysis uses semantic headings for its sections, the tradeoffs, and the verdict, so screen reader users can navigate it.</li>
+  </ul>
+</div>
+
+<!-- SECTION 6 -->
+<div class="section">
+  <div class="section-number">Section 6</div>
+  <h2>Open Questions &amp; Risks</h2>
+
+  <h3>Open Questions</h3>
+  <div class="question-card">
+    <div class="q-title">Q1: What is the plugin address?</div>
+    <p>The skill calls a plugin at an address the PM will provide later. <strong>Owner:</strong> David Lydston (PM).</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q2: What is the plugin contract?</div>
+    <p>Still unknown: the request format, authentication, response format (an HTML document or a URL to one), expected latency, and timeout. <strong>Owner:</strong> Ruby Mazumdar (DS).</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q3: Which default metrics are used, and should the output list them?</div>
+    <p>The skill has defaults that its author knows and defines. Should the analysis, or the input form, show which defaults were used for a run? <strong>Owner:</strong> Ruby Mazumdar (DS).</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q4: What are the reference outputs for the two test cases?</div>
+    <p>These are needed to verify R-09. <strong>Owner:</strong> David Lydston (PM).</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q5: Should the scorecard ID be checked against the xCard link?</div>
+    <p>Some xCard links include a <code>scorecardIds</code> parameter that matches the scorecard ID input (TC-1). Others don't include one at all (TC-2). Should the skill flag a mismatch when the link does include an ID, or should it just trust the scorecard ID input? <strong>Owner:</strong> <span class="tbd">TBD</span>.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q6: How are metric expectations written in plain language matched to metric display names?</div>
+    <p>The optional input is a list of metric display names. But experimenters may describe their expectations in plain language, including direction and thresholds, as TC-1 does, rather than giving exact metric display names. Who maps these to scorecard metric names: the user, the skill, or the plugin? And should direction ("increase") be part of the input? <strong>Owner:</strong> Ruby Mazumdar (DS) and David Lydston (PM).</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q7: Form or chat prompt?</div>
+    <p>V1 has the user type in every input. Should that happen in a structured form, as in Wireframe B, or in a chat prompt? <strong>Owner:</strong> David Lydston (PM).</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q8: Where is the HTML analysis hosted, and who can see it?</div>
+    <p>Still unknown: whether the analysis is saved, whether it can be shared by link, how long it's kept, and whether it respects the same permissions as the experiment and scorecard. <strong>Owner:</strong> <span class="tbd">TBD</span>.</p>
+  </div>
+  <div class="question-card">
+    <div class="q-title">Q9: What are the adoption and success-rate targets?</div>
+    <p>Only the time-to-analysis target (about 5 min or less) has been set. <strong>Owner:</strong> David Lydston (PM).</p>
+  </div>
+
+  <h3>Risks</h3>
+  <div class="risk-card">
+    <div class="risk-title">Risk 1: Readers can't check the verdict for themselves</div>
+    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. A main audience is people who don't know how to read an xCard, so they may take the verdict at face value. <strong>Proposed mitigations:</strong> (1) show the inputs used (including default metrics) at the top of the analysis; (2) link back to the source xCard; (3) have DS review the test case outputs before launch.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 2: Runtime goes past the 5-minute target</div>
+    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. Plugin latency hasn't been characterized yet. <strong>Proposed mitigations:</strong> (1) measure runtime on both test cases before launch; (2) show progress while the skill runs; (3) decide what happens on timeout (see Edge Cases).</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 3: Metric names typed by the user don't match the scorecard</div>
+    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. Users typing free-text metric display names may not match the scorecard's metric names exactly (see Q6). <strong>Proposed mitigation:</strong> the plugin reports any metric names it couldn't match instead of silently dropping them.</p>
+  </div>
+  <div class="risk-card">
+    <div class="risk-title">Risk 4: The skill depends on a single plugin owner</div>
+    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. The analysis logic and default metrics are owned by one DS skill author. <strong>Proposed mitigation:</strong> document the plugin contract, defaults, and on-call and support ownership before GA.</p>
+  </div>
+</div>
+
+</div><!-- end .content -->
+
+<div class="footer">
+  Give Me a Deep Analysis — Product Specification · Expedite · Experimentation · Last updated September 25, 2026
+</div>
+
+</body>
+</html>
