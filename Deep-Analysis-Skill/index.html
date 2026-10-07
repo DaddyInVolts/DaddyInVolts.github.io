@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Product Spec — Give Me a Deep Analysis</title>
+<title>Product Spec — Give Me a Deep Analysis (experiment-analyzer)</title>
 <style>
   :root {
     --primary: #1a73e8;
@@ -323,7 +323,7 @@
     border-radius: 4px;
     padding: 1px 5px;
     color: var(--text);
-    word-break: break-all;
+    overflow-wrap: anywhere;
   }
   .testcase dl { display: grid; grid-template-columns: 190px 1fr; gap: 8px 16px; margin-top: 8px; }
   .testcase dt { font-weight: 600; font-size: 0.85rem; color: var(--text); }
@@ -372,18 +372,40 @@
   .mock-report .blk { border: 1px dashed #c8c8c8; border-radius: 6px; padding: 10px 12px; margin: 10px 0; font-size: 0.8rem; color: var(--text-secondary); }
   .mock-report .blk strong { color: #242424; }
 </style>
+<style>
+  .term {
+    background: #1e1e1e; color: #d4d4d4; border-radius: 8px; padding: 14px 18px;
+    font-family: Consolas, 'Courier New', monospace; font-size: 0.85rem; line-height: 1.7;
+    margin: 10px 0 14px; white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  .term .c { color: #6a9955; }
+  .term .p { color: #569cd6; }
+  .src { font-size: 0.78rem; color: var(--text-secondary); font-style: italic; }
+  .resolved {
+    border-left: 4px solid var(--success-green); background: var(--success-bg);
+    border-radius: 0 8px 8px 0; padding: 12px 18px; margin: 10px 0;
+  }
+  .resolved .r-title { font-weight: 700; font-size: 0.92rem; color: var(--success-green); margin-bottom: 4px; }
+  .resolved p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+  .channel-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin: 14px 0; }
+  .channel { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; }
+  .channel h4 { font-size: 0.95rem; margin-bottom: 6px; color: var(--text); }
+  .channel p { font-size: 0.88rem; }
+  .verdicts { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .verdicts span { background: var(--primary-light); color: var(--primary); border-radius: 12px; padding: 2px 10px; font-size: 0.78rem; font-weight: 600; }
+</style>
 </head>
 <body>
 
 <div class="header">
   <h1>Give Me a Deep Analysis</h1>
-  <div class="subtitle">Product Specification · New skill for the <code style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3);color:#fff">fabric-expedite-mcp-app</code> MCP server</div>
+  <div class="subtitle">Product Specification · <code style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3);color:#fff">experiment-analyzer</code> plugin, generally available through the GitHub plugin marketplace and Agency</div>
   <div class="meta-bar">
     <div class="meta-item"><strong>PM Owner</strong> David Lydston</div>
     <div class="meta-item"><strong>Skill Owner</strong> Ruby Mazumdar (Data Science)</div>
     <div class="meta-item"><strong>Team</strong> Expedite · Experimentation</div>
-    <div class="meta-item"><strong>Last Updated</strong> September 25, 2026</div>
-    <div class="meta-item"><strong>Status</strong> Draft</div>
+    <div class="meta-item"><strong>Last Updated</strong> October 7, 2026</div>
+    <div class="meta-item"><strong>Status</strong> Draft · Revision 2</div>
     <div class="meta-item"><strong>Timeline</strong> ASAP</div>
     <div class="meta-item"><strong>Stakeholders</strong> Experimentation Data Science</div>
   </div>
@@ -392,7 +414,9 @@
 <div class="content">
 
 <div class="placeholder" style="font-style:normal">
-  <strong>About this draft:</strong> Everything in this spec comes from the PM or from the two example experiments the PM provided. If something hasn't been supplied yet (the plugin address, the plugin contract, the default metrics, expected outputs, and quantitative evidence), it's marked <span class="tbd">TBD</span>. Nothing has been estimated or made up to fill the gaps.
+  <strong>About this draft:</strong> Content comes from three places: the PM, the two example experiments the PM provided, and the published <code>experiment-analyzer</code> plugin (v1.0.0, author Ruby Mazumdar) in the <code>experiences-and-devices/DPG-AI-Skilling</code> marketplace. Facts taken from the plugin say <span class="src">(source: plugin README / SKILL.md)</span>. Anything not yet supplied or checked is marked <span class="tbd">TBD</span>. Nothing has been estimated or made up to fill the gaps.
+  <br><br>
+  <strong>Revision 2:</strong> The Expedite experiment-summary entry point has been removed from scope. The skill is now distributed as a plugin through the GitHub plugin marketplace and Agency.
 </div>
 
 <!-- SECTION 1 -->
@@ -405,7 +429,7 @@
   <p>This affects two groups. The first is feature crews who own experiments. The second is anyone who needs to understand an experiment's result but doesn't know how to read an xCard.</p>
 
   <h3>Opportunity</h3>
-  <p>A single "Give me a deep analysis" skill in the <code>fabric-expedite-mcp-app</code> MCP server, launched from the Expedite experiment summary page, removes the need to learn xCards first. The user supplies the xCard link, the scorecard ID, and the experiment hypothesis. They can optionally list the metrics they expect to be stat-sig. The skill calls an analysis plugin written by the Data Science skill owner and returns an HTML analysis with sections, tradeoffs to discuss, and a verdict.</p>
+  <p>A "Give me a deep analysis" skill that's generally available as the <code>experiment-analyzer</code> plugin removes the need to learn xCards first. Anyone using GitHub Copilot CLI, Claude Code, or Agency can install it from the <code>DPG-AI-Skilling</code> plugin marketplace. The user supplies the xCard link, the scorecard ID, and the experiment hypothesis, and can optionally list the metrics they expect to be stat-sig. The skill then produces an HTML analysis with sections, tradeoffs to discuss, and a verdict.</p>
   <p><strong>PM estimate of time saved:</strong> today a deep analysis takes about <strong>3 hours</strong> of manual work. The goal is for the skill to finish in <strong>about 5 minutes or less</strong>.</p>
 
   <h3>Evidence</h3>
@@ -425,7 +449,7 @@
   <ol>
     <li>Get a deep analysis of a specific experiment and scorecard in about 5 minutes or less, down from about 3 hours of manual work (PM estimate).</li>
     <li>Give people who can't read an xCard an analysis they can act on, with sections, tradeoffs to discuss, and a verdict. They shouldn't have to learn xCards first.</li>
-    <li>Make the Data Science deep-analysis plugin available as a skill in <code>fabric-expedite-mcp-app</code>, launched from the Expedite experiment summary page.</li>
+    <li>Make the skill generally available through the GitHub plugin marketplace (GitHub Copilot CLI and Claude Code) and through Agency, with one documented way to install it for each.</li>
   </ol>
 
   <h3>Success Metrics</h3>
@@ -437,20 +461,20 @@
     </div>
     <div class="metric-card">
       <div class="label">Secondary Metric</div>
-      <div class="value">Skill adoption</div>
-      <div class="target">Definition, target, and baseline: <span class="tbd">TBD</span></div>
+      <div class="value">Plugin adoption</div>
+      <div class="target">Installs or invocations across the marketplace and Agency. Definition, data source, target, and baseline: <span class="tbd">TBD</span></div>
     </div>
     <div class="metric-card">
       <div class="label">Guardrail Metric</div>
-      <div class="value">Skill run success rate</div>
-      <div class="target">Share of runs that return an analysis without errors or timeouts. Threshold: <span class="tbd">TBD</span></div>
+      <div class="value">Analysis completion rate</div>
+      <div class="target">Share of runs that produce an HTML report. Threshold: <span class="tbd">TBD</span></div>
     </div>
   </div>
 
   <h3>Explicit Non-Goals</h3>
-  <div class="nongoal">Pre-filling inputs from the experiment summary page. In V1 the user types in every input using a form or chat prompt.</div>
-  <div class="nongoal">Defining the analysis method or the default stat-sig metrics. These belong to the skill author (Ruby Mazumdar) and live in the plugin.</div>
-  <div class="nongoal">Changing the existing suggested actions ("Which variant is the winner and which should be avoided?" and "What is the description for a metric?").</div>
+  <div class="nongoal">An entry point inside Expedite, such as a suggested-action chip on experiment summary pages. Removed from scope in Revision 2.</div>
+  <div class="nongoal">Hosting the skill as a tool in the <code>fabric-expedite-mcp-app</code> MCP server. The plugin can optionally use Expedite MCP tools to cross-check results, but it isn't distributed through Expedite <span class="src">(source: plugin README, Prerequisites)</span>.</div>
+  <div class="nongoal">Defining the analysis method or the default metrics. These belong to the skill author (Ruby Mazumdar) and live in the plugin.</div>
 </div>
 
 <!-- SECTION 3 -->
@@ -459,30 +483,37 @@
   <h2>User Scenarios</h2>
 
   <div class="scenario-card">
-    <div class="persona">Scenario 1: Feature crew experiment owner (primary)</div>
+    <div class="persona">Scenario 1: Feature crew experiment owner using GitHub Copilot CLI or Claude Code (primary)</div>
     <div class="narrative">
-      <p>A feature owner is on the Expedite experiment summary page for their experiment. They want more than the headline results: a fuller analysis tied to the hypothesis they actually set out to test. Under <em>Suggested actions to explore this experiment</em>, they click <strong>"Give me a deep analysis on this."</strong> They paste in the xCard link and the scorecard ID, enter their hypothesis, and list the metrics they expect to be stat-sig. They submit, and a new browser tab opens with an HTML analysis: sections, tradeoffs to discuss with their crew, and a verdict.</p>
+      <p>A feature owner wants more than the headline results: a fuller analysis tied to the hypothesis they actually set out to test. In GitHub Copilot CLI they add the <code>DPG-AI-Skilling</code> marketplace and install <code>experiment-analyzer</code>, which only needs to be done once. Then they run <code>/experiment-analyzer</code>, or just ask the agent to analyze an ExP scorecard. They provide the xCard link, the scorecard ID, their hypothesis, and the metrics they expect to be stat-sig. The skill writes a standalone HTML report to their workspace with sections, tradeoffs to discuss with their crew, and a verdict.</p>
     </div>
   </div>
 
   <div class="scenario-card">
-    <div class="persona">Scenario 2: Someone who doesn't know how to read an xCard</div>
+    <div class="persona">Scenario 2: Agency user who doesn't know how to read an xCard</div>
     <div class="narrative">
-      <p>A stakeholder needs to understand an experiment's result but has never learned to read an xCard. From the same experiment summary page, they launch the skill and fill in the three required inputs. They leave the metrics list empty, so the skill uses its default metrics, which the skill author defined. They get the same HTML analysis and verdict and never have to read the xCard themselves.</p>
+      <p>A stakeholder needs to understand an experiment's result but has never learned to read an xCard. They already use Agency, so they install the plugin through Agency and start a session. They fill in the three required inputs and skip the metrics list. The skill applies the default metrics for the scorecard's metric set <span class="src">(source: SKILL.md, Required Inputs)</span>. They get the same HTML report and verdict and never have to read the xCard themselves.</p>
     </div>
   </div>
 
   <div class="scenario-card">
     <div class="persona">Edge case: No metrics supplied</div>
     <div class="narrative">
-      <p>The user leaves the optional stat-sig metrics list empty. The skill still runs and uses the default metrics the skill author defined. This is TC-2. <span class="tbd">TBD</span>: whether the output should say which default metrics were used.</p>
+      <p>The user leaves the optional metrics list empty. The skill reads the scorecard's metric set from Metadata and uses that profile's defaults <span class="src">(source: SKILL.md)</span>. This is TC-2.</p>
     </div>
   </div>
 
   <div class="scenario-card">
-    <div class="persona">Edge case: Invalid or missing required input</div>
+    <div class="persona">Edge case: Scorecard on an unsupported metric set</div>
     <div class="narrative">
-      <p>The user leaves a required field empty, or enters a scorecard ID that isn't an integer. The skill doesn't call the plugin. The form marks the field in question and explains what's wrong.</p>
+      <p>The scorecard's metric set isn't one of the supported profiles. The skill stops interpreting effects and reports <code>Unsupported metric set: &lt;exact value&gt;</code>. It doesn't fall back to another profile's defaults <span class="src">(source: SKILL.md, Scorecard Context)</span>.</p>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="persona">Edge case: Missing input or prerequisite</div>
+    <div class="narrative">
+      <p>The skill asks only for required values it can't parse from the scorecard link or the conversation <span class="src">(source: plugin README, Usage)</span>. If a prerequisite is missing (ExP scorecard MCP access, Python 3, or PowerShell 7), the user should get a clear message saying what to install or request. <span class="tbd">TBD</span>: whether the plugin does this today.</p>
     </div>
   </div>
 </div>
@@ -492,16 +523,36 @@
   <div class="section-number">Section 4</div>
   <h2>Requirements</h2>
 
+  <h3>Distribution Channels</h3>
+  <div class="channel-grid">
+    <div class="channel">
+      <h4>GitHub plugin marketplace: GitHub Copilot CLI or Claude Code</h4>
+      <p>These commands come from the PM and match the plugin README.</p>
+      <div class="term"><span class="p">/plugin marketplace add</span> experiences-and-devices/DPG-AI-Skilling
+<span class="p">/plugin install</span> experiment-analyzer@dpg-ai-skilling</div>
+      <p>Then run <code>/experiment-analyzer</code> or ask the agent to analyze an ExP scorecard.</p>
+    </div>
+    <div class="channel">
+      <h4>Agency</h4>
+      <p>There are two options. You can run the native commands above inside an <code>agency copilot</code> or <code>agency claude</code> session. Or you can use an Agency-managed install, which doesn't require adding the marketplace first:</p>
+      <div class="term"><span class="c"># Persistent install</span>
+<span class="p">agency plugin install</span> market:experiment-analyzer@experiences-and-devices/DPG-AI-Skilling
+<span class="c"># One session only</span>
+<span class="p">agency copilot --plugin</span> market:experiment-analyzer@experiences-and-devices/DPG-AI-Skilling</div>
+      <p>The Agency commands follow the <code>market:</code> spec format in Agency's plugin documentation. <span class="tbd">TBD</span>: they haven't been tested with this plugin yet (see R-02).</p>
+    </div>
+  </div>
+
   <h3>Skill Inputs</h3>
   <table>
     <thead>
       <tr><th style="width:190px">Input</th><th style="width:130px">Type</th><th style="width:100px">Required</th><th>Description</th></tr>
     </thead>
     <tbody>
-      <tr><td>xCard hyperlink</td><td>string</td><td>Yes</td><td>URL of the experiment scorecard (xCard) to analyze</td></tr>
-      <tr><td>Scorecard ID</td><td>integer</td><td>Yes</td><td>Numeric ID of the scorecard to analyze</td></tr>
+      <tr><td>xCard hyperlink</td><td>string</td><td>Yes</td><td>URL of the ExP scorecard (xCard) to analyze</td></tr>
+      <tr><td>Scorecard ID</td><td>integer</td><td>Yes</td><td>Numeric ID of the scorecard. The plugin reads it from the link's <code>scorecardIds=</code> parameter when that's present <span class="src">(source: SKILL.md)</span>.</td></tr>
       <tr><td>Experiment hypothesis</td><td>string (long text)</td><td>Yes</td><td>The experimenter's hypothesis, in free text. It can be several lines long (see TC-1).</td></tr>
-      <tr><td>Expected stat-sig metrics</td><td>list of strings</td><td>No</td><td>Metric display names the experimenter expects to be stat-sig if the hypothesis holds. If this is left empty, the skill uses the default metrics set by the skill author.</td></tr>
+      <tr><td>Expected stat-sig metrics</td><td>list of strings</td><td>No</td><td>Metrics the experimenter expects to move if the hypothesis holds. If this is left empty, the skill uses the defaults for the metric set it finds in Metadata <span class="src">(source: SKILL.md)</span>.</td></tr>
     </tbody>
   </table>
 
@@ -512,76 +563,70 @@
         <th style="width:70px">Priority</th>
         <th style="width:64px;white-space:nowrap">ID</th>
         <th>Requirement</th>
-        <th style="width:220px">Acceptance Criteria</th>
-        <th style="width:130px">Notes</th>
+        <th style="width:240px">Acceptance Criteria</th>
+        <th style="width:140px">Notes</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td><span class="badge badge-p0">P0</span></td><td>R-01</td>
-        <td>Add a new "Give me a deep analysis" skill (MCP tool) to the <code>fabric-expedite-mcp-app</code> MCP server.</td>
-        <td>The tool shows up in the server's tool list with its input schema and can be called by MCP clients.</td>
-        <td>Tool name <span class="tbd">TBD</span></td>
+        <td>The skill is generally available as <code>experiment-analyzer</code> in the <code>experiences-and-devices/DPG-AI-Skilling</code> GitHub plugin marketplace.</td>
+        <td>On a clean machine, <code>/plugin marketplace add experiences-and-devices/DPG-AI-Skilling</code> followed by <code>/plugin install experiment-analyzer@dpg-ai-skilling</code> succeeds in both GitHub Copilot CLI and Claude Code.</td>
+        <td>v1.0.0 is in the marketplace. Who can access the repo: <span class="tbd">TBD</span> (Q2)</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td><td>R-02</td>
-        <td>The skill takes three required inputs (xCard hyperlink as a string, scorecard ID as an integer, experiment hypothesis as long text) and one optional input (a list of metric display names expected to be stat-sig).</td>
-        <td>The schema marks the three required inputs as required and the metrics list as optional. Calls missing a required input are rejected before the plugin is called.</td>
-        <td></td>
+        <td>The skill is generally available through Agency.</td>
+        <td>The plugin installs and runs from an Agency session. The working install command is confirmed and documented in the plugin README.</td>
+        <td>Agency command not yet tested <span class="tbd">TBD</span></td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td><td>R-03</td>
-        <td>The skill sends the inputs to the deep-analysis plugin and returns what the plugin produces.</td>
-        <td>The plugin gets all inputs the user provided, unchanged. The plugin endpoint is set in configuration, not hard-coded.</td>
-        <td>Plugin address <span class="tbd">TBD</span> (the PM will provide it)</td>
+        <td>The skill takes three required inputs (xCard hyperlink, integer scorecard ID, hypothesis) and an optional list of expected stat-sig metrics. It asks only for values it can't parse from the link or the conversation.</td>
+        <td>Scorecard ID is an integer. When the link includes the scorecard ID, the user isn't asked for it again.</td>
+        <td>Source: SKILL.md, plugin README</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td><td>R-04</td>
-        <td>If no expected stat-sig metrics are given, the analysis uses the default metrics set by the skill author.</td>
-        <td>TC-2 runs with the metrics input omitted and returns an analysis.</td>
-        <td>Defaults are owned by Ruby Mazumdar</td>
+        <td>If no metrics are given, the analysis uses the defaults for the scorecard's metric set, identified from Metadata. Metric sets the plugin doesn't support fail closed.</td>
+        <td>TC-2 runs with no metrics and returns an analysis that uses profile defaults. A scorecard on an unsupported set returns <code>Unsupported metric set</code>.</td>
+        <td>Supported today: M365 Copilot App OKR and Commercial Agent Engagement (source: plugin README)</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td><td>R-05</td>
-        <td>Add a <strong>"Give me a deep analysis on this."</strong> chip to the <em>Suggested actions to explore this experiment</em> card on Expedite experiment summary pages (<code>/experimentSummary/by_id?featureId=…&amp;audience=…</code>), next to the chips that are already there.</td>
-        <td>The chip shows up on the experiment summary page for a specific experiment, for example <code>featureId=7d80e84c-168f-4b9f-9ac4-aff2faf40a92&amp;audience=Commercial</code>.</td>
-        <td>See Section 5</td>
+        <td>The output is a standalone HTML report that includes sections, tradeoffs to discuss, and a verdict. It's saved to the user's workspace.</td>
+        <td>The report opens offline. It shows a verdict, a metric performance section, and the tradeoff discussion (gains versus guardrail regressions).</td>
+        <td>Report structure is set by the plugin (see Section 5)</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td><td>R-06</td>
-        <td>Clicking the chip opens a form or chat prompt where the user types in every input. Nothing is pre-filled in V1.</td>
-        <td>All four inputs can be entered. Submit stays disabled until the three required fields are valid.</td>
-        <td>Form vs. chat prompt <span class="tbd">TBD</span></td>
+        <td>End-to-end runtime of about 5 minutes or less, from invoking the skill to the HTML report being written.</td>
+        <td>Both test cases finish in 5 minutes or less.</td>
+        <td>Measured runtime <span class="tbd">TBD</span></td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td><td>R-07</td>
-        <td>The analysis comes back as an HTML page and opens in a new browser tab. It includes sections, tradeoffs to discuss, and a verdict.</td>
-        <td>After a successful run, a new tab opens with an HTML page that has sections, a tradeoffs section, and a verdict.</td>
-        <td>Section structure is set by the plugin</td>
-      </tr>
-      <tr>
-        <td><span class="badge badge-p0">P0</span></td><td>R-08</td>
-        <td>End-to-end runtime of about 5 minutes or less, from submit to the analysis tab opening.</td>
-        <td>Both test cases finish in 5 minutes or less.</td>
-        <td>Depends on plugin latency <span class="tbd">TBD</span></td>
-      </tr>
-      <tr>
-        <td><span class="badge badge-p0">P0</span></td><td>R-09</td>
         <td>Both acceptance test cases (below) run successfully.</td>
-        <td>Each run returns an HTML analysis that matches the PM's reference output.</td>
+        <td>Each run produces an HTML report that matches the PM's reference output.</td>
         <td>Reference outputs <span class="tbd">TBD</span> (the PM will provide them)</td>
       </tr>
       <tr>
-        <td><span class="badge badge-p1">P1</span></td><td>R-10</td>
-        <td>Validate inputs on the client: the xCard hyperlink must be a well-formed URL, the scorecard ID must be an integer, and the hypothesis can't be empty.</td>
-        <td>Each invalid field gets its own error message next to it. The plugin isn't called.</td>
-        <td></td>
+        <td><span class="badge badge-p1">P1</span></td><td>R-08</td>
+        <td>Prerequisites are documented, and the skill checks for them: access to the ExP scorecard MCP endpoint (or its documented PowerShell JSON-RPC fallback), Python 3, and PowerShell 7.</td>
+        <td>Prerequisites are listed in the README. If one is missing, the user gets a message naming it before any analysis starts.</td>
+        <td>README lists them. Runtime check <span class="tbd">TBD</span></td>
       </tr>
       <tr>
-        <td><span class="badge badge-p1">P1</span></td><td>R-11</td>
-        <td>Show that the analysis is in progress while the skill runs, and show a clear error with a retry option if it fails or times out.</td>
-        <td>The user sees a loading state within 1 second of submitting. Failures and timeouts show an error message and a Retry button.</td>
-        <td>Timeout value <span class="tbd">TBD</span></td>
+        <td><span class="badge badge-p1">P1</span></td><td>R-09</td>
+        <td>Supporting artifacts are saved next to the HTML report: the analysis JSON, a Prompt Library DOCX, and an offline reproducibility bundle under <code>experiment-analyzer-results/scorecard-&lt;id&gt;/</code>.</td>
+        <td>The bundle reproduces the report offline with its documented one-command runner.</td>
+        <td>Already in plugin v1.0.0 (source: plugin README)</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-p1">P1</span></td><td>R-10</td>
+        <td>The skill can be found by name and by intent: the <code>/experiment-analyzer</code> slash command, or a natural-language request such as "analyze ExP scorecard &lt;id&gt;".</td>
+        <td>Both ways start the skill in GitHub Copilot CLI, Claude Code, and Agency.</td>
+        <td>Source: plugin README, Install</td>
       </tr>
     </tbody>
   </table>
@@ -599,81 +644,59 @@
     </tbody>
   </table>
 </div>
+
 <!-- SECTION 5 -->
 <div class="section">
   <div class="section-number">Section 5</div>
   <h2>Design Direction</h2>
 
-  <h3>Entry Point: Experiment Summary Page</h3>
-  <p>The skill is launched from the <em>Suggested actions to explore this experiment</em> card on Expedite experiment summary pages, for example <code>https://expedite.microsoft.com/experimentSummary/by_id?featureId=7d80e84c-168f-4b9f-9ac4-aff2faf40a92&amp;audience=Commercial</code>. It's added as a third chip after the two existing ones, matching the reference screenshot the PM provided. The mocks below are illustrative wireframes with placeholder text. They don't show real experiment data.</p>
-
-  <div class="wire-label">Wireframe A: Suggested actions card with the new chip</div>
-  <div class="mock-page" role="img" aria-label="Wireframe of the experiment summary header with a suggested actions card containing three chips; the third chip reads 'Give me a deep analysis on this.'">
-    <div class="exp-title">Experiment: {experiment name}</div>
-    <div class="exp-sub">{rollout / iteration description}</div>
-    <div class="mock-card">
-      <div class="sa-head"><span class="spark">✦</span> Suggested actions to explore this experiment</div>
-      <div class="chips">
-        <span class="chip-btn">Which variant is the winner and which should be avoided?</span>
-        <span class="chip-btn">What is the description for a metric?</span>
-        <span class="chip-btn new">Give me a deep analysis on this.</span>
-      </div>
-    </div>
-    <div class="pills">
-      <span class="pill">Audience: {audience}</span>
-      <span class="pill">Variants: {control} vs {treatment}</span>
-    </div>
-  </div>
-
-  <div class="wire-label">Wireframe B: Input form (user enters all inputs)</div>
-  <div class="mock-form" role="img" aria-label="Wireframe of the deep analysis input form with xCard hyperlink, scorecard ID, hypothesis, and optional metrics fields">
-    <h4>Give me a deep analysis</h4>
-    <div class="mock-field"><label>xCard hyperlink <span class="req">*</span></label><div class="mock-input">https://exp.microsoft.com/scorecard?…</div></div>
-    <div class="mock-field"><label>Scorecard ID <span class="req">*</span></label><div class="mock-input">Integer, e.g. 123456789</div></div>
-    <div class="mock-field"><label>Experiment hypothesis <span class="req">*</span></label><div class="mock-input tall">Describe what you expect the treatment to change, and why…</div></div>
-    <div class="mock-field"><label>Metrics you expect to be stat-sig <span class="opt">(optional; leave empty to use the skill defaults)</span></label><div class="mock-input">Metric display names</div></div>
-    <div class="mock-actions"><span class="mock-btn">Cancel</span><span class="mock-btn primary">Run deep analysis</span></div>
-  </div>
-
-  <div class="wire-label">Wireframe C: Analysis output (opens in a new tab)</div>
-  <div class="mock-report" role="img" aria-label="Wireframe of the HTML analysis output with sections, tradeoffs, and verdict blocks">
-    <div class="bar" style="width:60%;height:14px;background:#d6d6d6"></div>
-    <div class="bar" style="width:40%"></div>
-    <div class="blk"><strong>Sections</strong> — set by the plugin <span class="tbd">TBD</span></div>
-    <div class="blk"><strong>Tradeoffs to discuss</strong></div>
-    <div class="blk"><strong>Verdict</strong></div>
-  </div>
-
   <h3>UX Flow</h3>
   <div class="ux-flow">
-    Experiment Summary page → <em>Suggested actions</em> card → click "Give me a deep analysis on this."<br>
-    → Input form or chat prompt (xCard hyperlink*, Scorecard ID*, Hypothesis*, Expected stat-sig metrics) → Submit<br>
-    → Loading state → <code>fabric-expedite-mcp-app</code> skill → DS deep-analysis plugin (address TBD)<br>
-    → HTML analysis (sections · tradeoffs · verdict) opens in a new tab · Target: about 5 min or less end to end<br><br>
-    <small>Figma: <span class="tbd">TBD</span></small>
+    Install once: GitHub plugin marketplace (<code>/plugin marketplace add</code> + <code>/plugin install</code>) <strong>or</strong> Agency<br>
+    → Invoke <code>/experiment-analyzer</code> or ask the agent to "analyze ExP scorecard …"<br>
+    → Provide xCard link*, scorecard ID*, hypothesis*, and optional expected stat-sig metrics (the agent asks only for what's missing)<br>
+    → Skill: scorecard context → statistics → data → hypothesis and decision<br>
+    → Standalone HTML decision brief + supporting artifacts written to the workspace · Target: about 5 min or less end to end
   </div>
+  <p class="src">The four-step workflow comes from SKILL.md ("Four-Layer Workflow").</p>
+
+  <h3>Output: HTML Decision Brief</h3>
+  <p>The verdict is one of these recommendations <span class="src">(source: SKILL.md, Hypothesis And Decision)</span>:</p>
+  <div class="verdicts"><span>Ship</span><span>Gradual ramp</span><span>Iterate and re-test</span><span>Do not ship</span><span>Invalid / Re-run</span><span>Not tested</span></div>
+  <p>Report sections, in order <span class="src">(source: SKILL.md, HTML Deliverable)</span>:</p>
+  <ol>
+    <li>A masthead that leads with the decision: recommendation, exact scorecard title, hypothesis, variant IDs, analysis dates, and checkpoint</li>
+    <li>A KPI strip showing only the outcomes that drive the decision</li>
+    <li>An executive action sentence, with ramp stages and stop conditions</li>
+    <li>Setup and validity</li>
+    <li>Metric performance, covering every declared outcome, guardrail, and durability metric</li>
+    <li>A metric-definition glossary</li>
+    <li>Weekday-aware drift and audience consistency</li>
+    <li>The latest Expedite scorecard update and the next tests to run</li>
+    <li>A 13-question prompt library with precomputed answers. This includes the tradeoff questions "Are the gains worth the guardrail regressions?" and "Are any audiences helped or harmed differently?"</li>
+    <li>A provenance footer</li>
+  </ol>
 
   <h3>Key Interaction Notes</h3>
   <ul>
-    <li>The new chip uses the same style as the existing suggested-action chips and appears after them.</li>
-    <li>In V1 the user types in every input. Nothing is pre-filled from the page, even though the page already knows which experiment is open.</li>
-    <li>The optional metrics field takes metric display names. Leaving it empty is a supported path, and the skill author's defaults are used.</li>
-    <li>The result opens in a new browser tab so the user doesn't lose their place on the experiment summary page.</li>
+    <li>The skill runs entirely inside the user's agent CLI. There's no Expedite UI surface.</li>
+    <li>The agent collects inputs conversationally and asks only for what it can't parse from the link or the conversation.</li>
+    <li>The report is written for Technical PMs and SLT first. Technical evidence stays in closed disclosures so data scientists can audit it <span class="src">(source: SKILL.md)</span>.</li>
   </ul>
 
   <h3>Edge Cases &amp; Empty States</h3>
   <ul>
-    <li><strong>Missing or invalid required input:</strong> The field in question is marked with an error message and Submit stays disabled.</li>
-    <li><strong>Plugin error:</strong> An error message with a Retry button. Exact wording and retry policy are <span class="tbd">TBD</span>.</li>
-    <li><strong>Runtime exceeds target:</strong> Behavior past about 5 minutes (keep waiting, time out, or notify the user when it's done) is <span class="tbd">TBD</span>.</li>
-    <li><strong>Pop-up blocked:</strong> If the browser blocks the new tab, show a link the user can click to open the analysis.</li>
+    <li><strong>Unsupported metric set:</strong> The skill fails closed with <code>Unsupported metric set: &lt;value&gt;</code>.</li>
+    <li><strong>Assignment imbalance (SRM) on the randomization unit:</strong> The decision is <code>Invalid / Re-run</code> and no causal inference is drawn <span class="src">(source: SKILL.md, Hard gates)</span>.</li>
+    <li><strong>No matching Expedite record:</strong> The report says "Exact Expedite record not resolved" or "Not indexed" and lists the lookup terms it tried <span class="src">(source: SKILL.md)</span>.</li>
+    <li><strong>Runtime goes past the target:</strong> What the user sees past about 5 minutes is <span class="tbd">TBD</span>.</li>
   </ul>
 
   <h3>Accessibility</h3>
   <ul>
-    <li>The chip, form fields, and Submit button can all be reached with Tab and Shift+Tab. The chip and Submit button activate with Enter or Space.</li>
-    <li>Required fields are marked for screen readers. Validation errors are linked to their fields and announced. The loading state is announced when it starts and when it ends.</li>
-    <li>The HTML analysis uses semantic headings for its sections, the tradeoffs, and the verdict, so screen reader users can navigate it.</li>
+    <li>The report uses native <code>&lt;details&gt;</code> disclosures, which work with a keyboard and screen readers without JavaScript <span class="src">(source: SKILL.md)</span>.</li>
+    <li>Status color is never the only signal. A "Reliable improvement" badge always has a visible text label <span class="src">(source: SKILL.md)</span>.</li>
+    <li>The report uses semantic headings for each section so screen reader users can navigate it.</li>
   </ul>
 </div>
 
@@ -682,67 +705,77 @@
   <div class="section-number">Section 6</div>
   <h2>Open Questions &amp; Risks</h2>
 
+  <h3>Resolved Since Revision 1</h3>
+  <div class="resolved">
+    <div class="r-title">Plugin address and contract (was Q1, Q2)</div>
+    <p>The skill is the <code>experiment-analyzer</code> plugin in the <code>experiences-and-devices/DPG-AI-Skilling</code> marketplace. It isn't an HTTP endpoint called through Expedite.</p>
+  </div>
+  <div class="resolved">
+    <div class="r-title">Default metrics (was Q3)</div>
+    <p>The defaults are profile-specific and chosen from the scorecard's Metadata <code>MetricSet</code> <span class="src">(source: SKILL.md)</span>.</p>
+  </div>
+  <div class="resolved">
+    <div class="r-title">Scorecard ID versus link (was Q5)</div>
+    <p>The ID is read from <code>scorecardIds=</code> when it's present. Otherwise the agent asks for it.</p>
+  </div>
+  <div class="resolved">
+    <div class="r-title">Turning plain-language metric expectations into metrics (was Q6)</div>
+    <p>The skill turns the hypothesis into a signed metric map and resolves each metric through Metadata and MDL before it looks at any results <span class="src">(source: SKILL.md)</span>.</p>
+  </div>
+  <div class="resolved">
+    <div class="r-title">Where output appears (was Q7, Q8)</div>
+    <p>There's no form and no browser tab. Inputs are collected in the conversation, and the report is written to the user's workspace.</p>
+  </div>
+
   <h3>Open Questions</h3>
   <div class="question-card">
-    <div class="q-title">Q1: What is the plugin address?</div>
-    <p>The skill calls a plugin at an address the PM will provide later. <strong>Owner:</strong> David Lydston (PM).</p>
+    <div class="q-title">Q1: What is the confirmed Agency install command?</div>
+    <p>The Agency-managed commands in Section 4 follow Agency's documented <code>market:</code> spec format but haven't been tested with this plugin. The native <code>/plugin</code> commands should also work inside <code>agency copilot</code> and <code>agency claude</code>. <strong>Owner:</strong> David Lydston (PM).</p>
   </div>
   <div class="question-card">
-    <div class="q-title">Q2: What is the plugin contract?</div>
-    <p>Still unknown: the request format, authentication, response format (an HTML document or a URL to one), expected latency, and timeout. <strong>Owner:</strong> Ruby Mazumdar (DS).</p>
+    <div class="q-title">Q2: Who does "generally available" include?</div>
+    <p>Whoever can't access the <code>experiences-and-devices/DPG-AI-Skilling</code> repository can't install the plugin. Users also need authenticated access to the ExP scorecard MCP endpoint. Which audiences are in scope, and how do they get access? <strong>Owner:</strong> <span class="tbd">TBD</span>.</p>
   </div>
   <div class="question-card">
-    <div class="q-title">Q3: Which default metrics are used, and should the output list them?</div>
-    <p>The skill has defaults that its author knows and defines. Should the analysis, or the input form, show which defaults were used for a run? <strong>Owner:</strong> Ruby Mazumdar (DS).</p>
+    <div class="q-title">Q3: Are both test case scorecards on supported metric sets?</div>
+    <p>The plugin supports only the M365 Copilot App OKR and Commercial Agent Engagement profiles, and it fails closed on any other set. We need to confirm both test cases are on supported sets before using them as acceptance tests. <strong>Owner:</strong> Ruby Mazumdar (DS).</p>
   </div>
   <div class="question-card">
     <div class="q-title">Q4: What are the reference outputs for the two test cases?</div>
-    <p>These are needed to verify R-09. <strong>Owner:</strong> David Lydston (PM).</p>
+    <p>These are needed to verify R-07. <strong>Owner:</strong> David Lydston (PM).</p>
   </div>
   <div class="question-card">
-    <div class="q-title">Q5: Should the scorecard ID be checked against the xCard link?</div>
-    <p>Some xCard links include a <code>scorecardIds</code> parameter that matches the scorecard ID input (TC-1). Others don't include one at all (TC-2). Should the skill flag a mismatch when the link does include an ID, or should it just trust the scorecard ID input? <strong>Owner:</strong> <span class="tbd">TBD</span>.</p>
+    <div class="q-title">Q5: How will adoption be measured?</div>
+    <p>We don't yet know where install and invocation counts would come from for the marketplace and for Agency. Targets are also <span class="tbd">TBD</span>. <strong>Owner:</strong> David Lydston (PM).</p>
   </div>
   <div class="question-card">
-    <div class="q-title">Q6: How are metric expectations written in plain language matched to metric display names?</div>
-    <p>The optional input is a list of metric display names. But experimenters may describe their expectations in plain language, including direction and thresholds, as TC-1 does, rather than giving exact metric display names. Who maps these to scorecard metric names: the user, the skill, or the plugin? And should direction ("increase") be part of the input? <strong>Owner:</strong> Ruby Mazumdar (DS) and David Lydston (PM).</p>
-  </div>
-  <div class="question-card">
-    <div class="q-title">Q7: Form or chat prompt?</div>
-    <p>V1 has the user type in every input. Should that happen in a structured form, as in Wireframe B, or in a chat prompt? <strong>Owner:</strong> David Lydston (PM).</p>
-  </div>
-  <div class="question-card">
-    <div class="q-title">Q8: Where is the HTML analysis hosted, and who can see it?</div>
-    <p>Still unknown: whether the analysis is saved, whether it can be shared by link, how long it's kept, and whether it respects the same permissions as the experiment and scorecard. <strong>Owner:</strong> <span class="tbd">TBD</span>.</p>
-  </div>
-  <div class="question-card">
-    <div class="q-title">Q9: What are the adoption and success-rate targets?</div>
-    <p>Only the time-to-analysis target (about 5 min or less) has been set. <strong>Owner:</strong> David Lydston (PM).</p>
+    <div class="q-title">Q6: Can the full workflow finish in about 5 minutes?</div>
+    <p>The skill runs four workflow layers and writes a report, a DOCX, and a reproducibility bundle. Runtime hasn't been measured against the 5-minute target. <strong>Owner:</strong> Ruby Mazumdar (DS).</p>
   </div>
 
   <h3>Risks</h3>
   <div class="risk-card">
-    <div class="risk-title">Risk 1: Readers can't check the verdict for themselves</div>
-    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. A main audience is people who don't know how to read an xCard, so they may take the verdict at face value. <strong>Proposed mitigations:</strong> (1) show the inputs used (including default metrics) at the top of the analysis; (2) link back to the source xCard; (3) have DS review the test case outputs before launch.</p>
+    <div class="risk-title">Risk 1: Setup is too much for people who don't read xCards</div>
+    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. The plugin needs an agent CLI, ExP scorecard MCP authentication, Python 3, and PowerShell 7. That's a lot to ask of one of the two target audiences. <strong>Proposed mitigations:</strong> (1) a one-page setup guide; (2) prerequisite checks with clear messages (R-08); (3) try installation with first-time users.</p>
   </div>
   <div class="risk-card">
-    <div class="risk-title">Risk 2: Runtime goes past the 5-minute target</div>
-    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. Plugin latency hasn't been characterized yet. <strong>Proposed mitigations:</strong> (1) measure runtime on both test cases before launch; (2) show progress while the skill runs; (3) decide what happens on timeout (see Edge Cases).</p>
+    <div class="risk-title">Risk 2: Coverage is limited to supported metric sets</div>
+    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. Scorecards outside the two supported profiles fail closed, so some users won't get an analysis. <strong>Proposed mitigation:</strong> publish the list of supported metric sets and a roadmap for adding more.</p>
   </div>
   <div class="risk-card">
-    <div class="risk-title">Risk 3: Metric names typed by the user don't match the scorecard</div>
-    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. Users typing free-text metric display names may not match the scorecard's metric names exactly (see Q6). <strong>Proposed mitigation:</strong> the plugin reports any metric names it couldn't match instead of silently dropping them.</p>
+    <div class="risk-title">Risk 3: Readers can't check the verdict for themselves</div>
+    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. People who don't read xCards may take the verdict at face value. <strong>Existing mitigations in the plugin:</strong> technical evidence in disclosures, a provenance footer, and an offline reproducibility bundle <span class="src">(source: SKILL.md)</span>. <strong>Proposed:</strong> have DS review the test case outputs before launch.</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 4: The skill depends on a single plugin owner</div>
-    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. The analysis logic and default metrics are owned by one DS skill author. <strong>Proposed mitigation:</strong> document the plugin contract, defaults, and on-call and support ownership before GA.</p>
+    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. The analysis logic and default metrics are owned by one DS skill author. <strong>Proposed mitigation:</strong> document the support and on-call path for the plugin before GA.</p>
   </div>
 </div>
 
 </div><!-- end .content -->
 
 <div class="footer">
-  Give Me a Deep Analysis — Product Specification · Expedite · Experimentation · Last updated September 25, 2026
+  Give Me a Deep Analysis — Product Specification · Expedite · Experimentation · Last updated October 7, 2026
 </div>
 
 </body>
