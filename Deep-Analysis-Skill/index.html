@@ -405,7 +405,7 @@
     <div class="meta-item"><strong>Skill Owner</strong> Ruby Mazumdar (Data Science)</div>
     <div class="meta-item"><strong>Team</strong> Expedite · Experimentation</div>
     <div class="meta-item"><strong>Last Updated</strong> October 7, 2026</div>
-    <div class="meta-item"><strong>Status</strong> Draft · Revision 2</div>
+    <div class="meta-item"><strong>Status</strong> Draft · Revision 3</div>
     <div class="meta-item"><strong>Timeline</strong> ASAP</div>
     <div class="meta-item"><strong>Stakeholders</strong> Experimentation Data Science</div>
   </div>
@@ -417,6 +417,8 @@
   <strong>About this draft:</strong> Content comes from three places: the PM, the two example experiments the PM provided, and the published <code>experiment-analyzer</code> plugin (v1.0.0, author Ruby Mazumdar) in the <code>experiences-and-devices/DPG-AI-Skilling</code> marketplace. Facts taken from the plugin say <span class="src">(source: plugin README / SKILL.md)</span>. Anything not yet supplied or checked is marked <span class="tbd">TBD</span>. Nothing has been estimated or made up to fill the gaps.
   <br><br>
   <strong>Revision 2:</strong> The Expedite experiment-summary entry point has been removed from scope. The skill is now distributed as a plugin through the GitHub plugin marketplace and Agency.
+  <br>
+  <strong>Revision 3:</strong> Two new requirements from the PM. The skill must analyze every metric set the user has access to (R-04), and anyone at Microsoft must be able to install it (R-01). The published v1.0.0 plugin doesn't yet meet the metric-set requirement. The gap is tracked in R-04, Q3, and Risk 2.
 </div>
 
 <!-- SECTION 1 -->
@@ -429,7 +431,7 @@
   <p>This affects two groups. The first is feature crews who own experiments. The second is anyone who needs to understand an experiment's result but doesn't know how to read an xCard.</p>
 
   <h3>Opportunity</h3>
-  <p>A "Give me a deep analysis" skill that's generally available as the <code>experiment-analyzer</code> plugin removes the need to learn xCards first. Anyone using GitHub Copilot CLI, Claude Code, or Agency can install it from the <code>DPG-AI-Skilling</code> plugin marketplace. The user supplies the xCard link, the scorecard ID, and the experiment hypothesis, and can optionally list the metrics they expect to be stat-sig. The skill then produces an HTML analysis with sections, tradeoffs to discuss, and a verdict.</p>
+  <p>A "Give me a deep analysis" skill that's generally available as the <code>experiment-analyzer</code> plugin removes the need to learn xCards first. Anyone at Microsoft can install it from the <code>DPG-AI-Skilling</code> plugin marketplace into GitHub Copilot CLI or Claude Code, or through Agency. The user supplies the xCard link, the scorecard ID, and the experiment hypothesis, and can optionally list the metrics they expect to be stat-sig. The skill then produces an HTML analysis with sections, tradeoffs to discuss, and a verdict.</p>
   <p><strong>PM estimate of time saved:</strong> today a deep analysis takes about <strong>3 hours</strong> of manual work. The goal is for the skill to finish in <strong>about 5 minutes or less</strong>.</p>
 
   <h3>Evidence</h3>
@@ -449,7 +451,7 @@
   <ol>
     <li>Get a deep analysis of a specific experiment and scorecard in about 5 minutes or less, down from about 3 hours of manual work (PM estimate).</li>
     <li>Give people who can't read an xCard an analysis they can act on, with sections, tradeoffs to discuss, and a verdict. They shouldn't have to learn xCards first.</li>
-    <li>Make the skill generally available through the GitHub plugin marketplace (GitHub Copilot CLI and Claude Code) and through Agency, with one documented way to install it for each.</li>
+    <li>Make the skill generally available to anyone at Microsoft through the GitHub plugin marketplace (GitHub Copilot CLI and Claude Code) and through Agency, with one documented way to install it for each.</li>
   </ol>
 
   <h3>Success Metrics</h3>
@@ -504,9 +506,9 @@
   </div>
 
   <div class="scenario-card">
-    <div class="persona">Edge case: Scorecard on an unsupported metric set</div>
+    <div class="persona">Edge case: Scorecard on a metric set with no documented profile</div>
     <div class="narrative">
-      <p>The scorecard's metric set isn't one of the supported profiles. The skill stops interpreting effects and reports <code>Unsupported metric set: &lt;exact value&gt;</code>. It doesn't fall back to another profile's defaults <span class="src">(source: SKILL.md, Scorecard Context)</span>.</p>
+      <p><strong>Required:</strong> the skill analyzes any metric set the user has access to <span class="src">(source: PM)</span>. <strong>Gap:</strong> v1.0.0 lists three supported MetricSets. For any other set, it stops and reports <code>Unsupported metric set: &lt;exact value&gt;</code> <span class="src">(source: metric-set-profiles.md)</span>. Until the gap is closed, users with scorecards on other metric sets won't get an analysis.</p>
     </div>
   </div>
 
@@ -570,9 +572,9 @@
     <tbody>
       <tr>
         <td><span class="badge badge-p0">P0</span></td><td>R-01</td>
-        <td>The skill is generally available as <code>experiment-analyzer</code> in the <code>experiences-and-devices/DPG-AI-Skilling</code> GitHub plugin marketplace.</td>
-        <td>On a clean machine, <code>/plugin marketplace add experiences-and-devices/DPG-AI-Skilling</code> followed by <code>/plugin install experiment-analyzer@dpg-ai-skilling</code> succeeds in both GitHub Copilot CLI and Claude Code.</td>
-        <td>v1.0.0 is in the marketplace. Who can access the repo: <span class="tbd">TBD</span> (Q2)</td>
+        <td>The skill is generally available as <code>experiment-analyzer</code> in the <code>experiences-and-devices/DPG-AI-Skilling</code> GitHub plugin marketplace. Anyone at Microsoft can access the marketplace and install the plugin.</td>
+        <td>On a clean machine, <code>/plugin marketplace add experiences-and-devices/DPG-AI-Skilling</code> followed by <code>/plugin install experiment-analyzer@dpg-ai-skilling</code> succeeds in both GitHub Copilot CLI and Claude Code for any Microsoft employee.</td>
+        <td>v1.0.0 is in the marketplace. Microsoft-wide access: requirement and current state (source: PM)</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td><td>R-02</td>
@@ -588,9 +590,9 @@
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td><td>R-04</td>
-        <td>If no metrics are given, the analysis uses the defaults for the scorecard's metric set, identified from Metadata. Metric sets the plugin doesn't support fail closed.</td>
-        <td>TC-2 runs with no metrics and returns an analysis that uses profile defaults. A scorecard on an unsupported set returns <code>Unsupported metric set</code>.</td>
-        <td>Supported today: M365 Copilot App OKR and Commercial Agent Engagement (source: plugin README)</td>
+        <td>The skill analyzes scorecards on every metric set the user has access to in ExP. If no metrics are given, the analysis uses the defaults for the scorecard's metric set, identified from Metadata.</td>
+        <td>TC-2 runs with no metrics and returns an analysis that uses the metric set's defaults. A scorecard on a metric set outside the three documented in v1.0.0 returns a full analysis, not <code>Unsupported metric set</code>.</td>
+        <td>Requirement source: PM. <strong>Gap:</strong> v1.0.0 documents 3 MetricSets and fails closed on others (source: metric-set-profiles.md). Owner: Ruby Mazumdar</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td><td>R-05</td>
@@ -686,7 +688,7 @@
 
   <h3>Edge Cases &amp; Empty States</h3>
   <ul>
-    <li><strong>Unsupported metric set:</strong> The skill fails closed with <code>Unsupported metric set: &lt;value&gt;</code>.</li>
+    <li><strong>Metric set with no documented profile:</strong> Required behavior is a full analysis (R-04). v1.0.0 currently stops with <code>Unsupported metric set: &lt;value&gt;</code>, which is the gap tracked in Q3.</li>
     <li><strong>Assignment imbalance (SRM) on the randomization unit:</strong> The decision is <code>Invalid / Re-run</code> and no causal inference is drawn <span class="src">(source: SKILL.md, Hard gates)</span>.</li>
     <li><strong>No matching Expedite record:</strong> The report says "Exact Expedite record not resolved" or "Not indexed" and lists the lookup terms it tried <span class="src">(source: SKILL.md)</span>.</li>
     <li><strong>Runtime goes past the target:</strong> What the user sees past about 5 minutes is <span class="tbd">TBD</span>.</li>
@@ -705,7 +707,7 @@
   <div class="section-number">Section 6</div>
   <h2>Open Questions &amp; Risks</h2>
 
-  <h3>Resolved Since Revision 1</h3>
+  <h3>Resolved Questions</h3>
   <div class="resolved">
     <div class="r-title">Plugin address and contract (was Q1, Q2)</div>
     <p>The skill is the <code>experiment-analyzer</code> plugin in the <code>experiences-and-devices/DPG-AI-Skilling</code> marketplace. It isn't an HTTP endpoint called through Expedite.</p>
@@ -726,6 +728,10 @@
     <div class="r-title">Where output appears (was Q7, Q8)</div>
     <p>There's no form and no browser tab. Inputs are collected in the conversation, and the report is written to the user's workspace.</p>
   </div>
+  <div class="resolved">
+    <div class="r-title">Who can access the marketplace (was part of Q2)</div>
+    <p>Anyone at Microsoft has access to the marketplace repo and can install the plugin <span class="src">(source: PM)</span>. This is now a requirement in R-01.</p>
+  </div>
 
   <h3>Open Questions</h3>
   <div class="question-card">
@@ -733,12 +739,12 @@
     <p>The Agency-managed commands in Section 4 follow Agency's documented <code>market:</code> spec format but haven't been tested with this plugin. The native <code>/plugin</code> commands should also work inside <code>agency copilot</code> and <code>agency claude</code>. <strong>Owner:</strong> David Lydston (PM).</p>
   </div>
   <div class="question-card">
-    <div class="q-title">Q2: Who does "generally available" include?</div>
-    <p>Whoever can't access the <code>experiences-and-devices/DPG-AI-Skilling</code> repository can't install the plugin. Users also need authenticated access to the ExP scorecard MCP endpoint. Which audiences are in scope, and how do they get access? <strong>Owner:</strong> <span class="tbd">TBD</span>.</p>
+    <div class="q-title">Q2: How do users get ExP scorecard access?</div>
+    <p>Anyone at Microsoft can install the plugin (R-01). To run an analysis, they also need authenticated access to the ExP scorecard MCP endpoint, and the skill can only analyze metric sets the user can access (R-04). How do users get that access, and what does the skill tell them when they don't have it? <strong>Owner:</strong> <span class="tbd">TBD</span>.</p>
   </div>
   <div class="question-card">
-    <div class="q-title">Q3: Are both test case scorecards on supported metric sets?</div>
-    <p>The plugin supports only the M365 Copilot App OKR and Commercial Agent Engagement profiles, and it fails closed on any other set. We need to confirm both test cases are on supported sets before using them as acceptance tests. <strong>Owner:</strong> Ruby Mazumdar (DS).</p>
+    <div class="q-title">Q3: How and when will the plugin close the metric-set gap?</div>
+    <p>R-04 requires every metric set the user can access (source: PM). v1.0.0 documents three MetricSets: <code>IDEAsCommercialCopilotApp</code>, <code>IDEAsCommercialCopilotAppFast</code>, and <code>CommercialAgentEngagementFast</code>. It reports <code>Unsupported metric set</code> for any other. For metric sets without a profile, where will the default metrics, guardrails, and correction families come from? And until the gap is closed, are both test case scorecards on one of the three documented sets? <strong>Owner:</strong> Ruby Mazumdar (DS).</p>
   </div>
   <div class="question-card">
     <div class="q-title">Q4: What are the reference outputs for the two test cases?</div>
@@ -759,8 +765,8 @@
     <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. The plugin needs an agent CLI, ExP scorecard MCP authentication, Python 3, and PowerShell 7. That's a lot to ask of one of the two target audiences. <strong>Proposed mitigations:</strong> (1) a one-page setup guide; (2) prerequisite checks with clear messages (R-08); (3) try installation with first-time users.</p>
   </div>
   <div class="risk-card">
-    <div class="risk-title">Risk 2: Coverage is limited to supported metric sets</div>
-    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. Scorecards outside the two supported profiles fail closed, so some users won't get an analysis. <strong>Proposed mitigation:</strong> publish the list of supported metric sets and a roadmap for adding more.</p>
+    <div class="risk-title">Risk 2: The published plugin doesn't yet meet the metric-set requirement</div>
+    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. R-04 requires every metric set the user can access, but v1.0.0 fails closed outside three documented MetricSets. Users on other metric sets would install the plugin and get no analysis. <strong>Proposed mitigations:</strong> (1) close the gap before GA; (2) add an acceptance test with a scorecard outside the three documented sets; (3) until the gap is closed, state the supported sets in the README and in the skill's response.</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 3: Readers can't check the verdict for themselves</div>
