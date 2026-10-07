@@ -345,7 +345,7 @@
     <div class="meta-item"><strong>Eng Owner</strong> kumarvp</div>
     <div class="meta-item"><strong>Team</strong> IDEAS · Experimentation</div>
     <div class="meta-item"><strong>Last Updated</strong> October 7, 2026</div>
-    <div class="meta-item"><strong>Status</strong> Draft</div>
+    <div class="meta-item"><strong>Status</strong> Draft · Revision 2</div>
     <div class="meta-item"><strong>Timeline</strong> October 2026</div>
     <div class="meta-item"><strong>Stakeholders</strong> IDEAS Exp PM and Data Science</div>
   </div>
@@ -354,7 +354,7 @@
 <div class="content">
 
 <div class="placeholder" style="font-style:normal">
-  <strong>About this draft:</strong> Content comes from the PM and from one reference design: the <a href="https://microsoft.sharepoint.com/teams/M365CopilotPlatformTeam/Shared%20Documents/AQUA%20Team/Incident%20Management/EM%20Ops%20Dashboard%20Mock/IcM%20Operations%20Dashboard.html?web=1" target="_blank" rel="noopener">EM Operations Dashboard mock</a> (AQUA team, mock data). Facts taken from that mock say <span class="src">(source: reference mock)</span>. Metric formulas adapted from it are marked as proposed. Anything not yet supplied is marked <span class="tbd">TBD</span>. No numbers or evidence have been made up.
+  <strong>About this draft:</strong> Content comes from the PM and from one reference design: the <a href="https://microsoft.sharepoint.com/teams/M365CopilotPlatformTeam/Shared%20Documents/AQUA%20Team/Incident%20Management/EM%20Ops%20Dashboard%20Mock/IcM%20Operations%20Dashboard.html?web=1" target="_blank" rel="noopener">EM Operations Dashboard mock</a> (AQUA team, mock data). Facts taken from that mock say <span class="src">(source: reference mock)</span>. Metric formulas adapted from it are marked as proposed. Anything not yet supplied is marked <span class="tbd">TBD</span>. No numbers or evidence have been made up. <strong>Revision 2</strong> adds the PM's answers to Q1–Q7 and Q9 (October 7, 2026); see Resolved Questions in Section 6.
 </div>
 
 <!-- SECTION 1 -->
@@ -419,6 +419,7 @@
   <div class="nongoal">Visibility outside Microsoft, or to anyone beyond IDEAS leadership</div>
   <div class="nongoal">Changing how incidents are triaged, routed, or worked in IcM. This report only reads IcM data.</div>
   <div class="nongoal">Reusing an existing IDEAS IcM report. There isn't one, so this is a new UX.</div>
+  <div class="nongoal">Retrospective (PIR) and repair-item tracking, which the reference mock includes. Out of scope at this time (PM).</div>
 </div>
 
 <!-- SECTION 3 -->
@@ -468,7 +469,7 @@
   <h2>Requirements</h2>
 
   <h3>Metric Definitions</h3>
-  <p>The PM supplied the list of metrics. Where a definition comes from the reference mock's Kusto queries, it's marked <em>proposed</em> and needs confirmation for OGA Experimentation. Default window: the last 28 days.</p>
+  <p>The PM supplied the list of metrics. Where a definition comes from the reference mock's Kusto queries, it's marked <em>proposed</em> and needs confirmation for OGA Experimentation. Default window: the last 28 days. Data comes from an IcM Kusto query and refreshes daily (PM).</p>
   <table>
     <thead>
       <tr><th style="width:190px">Metric</th><th>Definition</th><th style="width:220px">Status</th></tr>
@@ -480,7 +481,7 @@
       <tr><td>Open incident count</td><td>Incidents that are still active (not mitigated or resolved), by severity</td><td>Proposed, from the reference mock (<code>Status == "Active"</code>)</td></tr>
       <tr><td>Incident aging</td><td>How long each open incident has gone without mitigation: <code>now() − CreateDate</code>. Used to rank incidents that need attention.</td><td>Proposed</td></tr>
       <tr><td>Incident rate by service</td><td>Incidents per service over the window</td><td>"Service" field <span class="tbd">TBD</span>. The mock uses <code>Component</code>.</td></tr>
-      <tr><td>Automation coverage</td><td><span class="tbd">TBD</span></td><td>Needs a definition (Q4)</td></tr>
+      <tr><td>Automation coverage</td><td>IcMs that came from automation ÷ all IcMs in the time period</td><td>PM definition. As written, this matches auto-IcM generation rate (Q10).</td></tr>
       <tr><td>Auto-IcM generation rate</td><td>Share of incidents created automatically, out of all incidents in the window</td><td>Proposed. The mock counts <code>SourceType</code> Monitor, Alert, and Synthetic as auto-detected.</td></tr>
       <tr><td>SLA adherence rate</td><td>Share of incidents that meet each SLA target (TTD, TTM, and TTO for outages)</td><td>OGA Experimentation SLA targets <span class="tbd">TBD</span>. For reference only, the mock uses TTM &lt;4h, TTD &lt;30 min, TTO &lt;45 min.</td></tr>
     </tbody>
@@ -502,19 +503,19 @@
         <td><span class="badge badge-p0">P0</span></td><td>R-01</td>
         <td>A standalone web app that only IDEAS leadership can open.</td>
         <td>Anyone outside the approved leadership group gets an access-denied page.</td>
-        <td>How access is enforced <span class="tbd">TBD</span> (Q2)</td>
+        <td>Access is controlled through an IDEAS security group in Core Identity (PM). Group name <span class="tbd">TBD</span></td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td><td>R-02</td>
         <td>Covers incidents owned by the <strong>OGA Experimentation</strong> IcM team: service ID <code>35021</code>, team ID <code>115361</code>, service category <code>2</code>. <span class="src">(source: <a href="https://portal.microsofticm.com/imp/v5/incidents/queries/new?servicecategories=2&amp;services=35021&amp;teams=115361">PM-provided IcM query</a>)</span></td>
         <td>The incident list matches the <a href="https://portal.microsofticm.com/imp/v5/incidents/queries/new?servicecategories=2&amp;services=35021&amp;teams=115361">reference IcM query</a> (service 35021, team 115361) for the same time window.</td>
-        <td>Whether the Kusto <code>OwningTeamName</code> string maps 1:1 to team 115361 is still to be confirmed (Q1).</td>
+        <td>Team 115361 is the only team in scope (PM).</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td><td>R-03</td>
         <td>A KPI header leaders can read at a glance: open Sev 0-1 incidents being worked on, total open incidents, incidents logged in the last 28 days, and average TTM over the last 28 days.</td>
-        <td>All tiles show without scrolling on a standard laptop screen. Each tile number matches the source query.</td>
-        <td>What "being worked on" means <span class="tbd">TBD</span> (Q3)</td>
+        <td>All tiles show without scrolling on a standard laptop screen. Each tile number matches the source query. A Sev 0-1 incident counts as "being worked on" when it has been acknowledged and not yet mitigated.</td>
+        <td>"Being worked on" = acknowledged, not mitigated (PM)</td>
       </tr>
       <tr>
         <td><span class="badge badge-p0">P0</span></td><td>R-04</td>
@@ -542,21 +543,21 @@
       </tr>
       <tr>
         <td><span class="badge badge-p1">P1</span></td><td>R-08</td>
-        <td>A customer view that groups incidents by submitter and shows count and severity for each one.</td>
+        <td>A customer view that groups incidents by submitter (the IcM <strong>Created By</strong> field) and shows count and severity for each one.</td>
         <td>Submitters are ranked by incident count. Auto-generated incidents are labeled separately and never attributed to a person.</td>
-        <td>IcM submitter field <span class="tbd">TBD</span> (Q5)</td>
+        <td>Customer = IcM "Created By" (PM)</td>
       </tr>
       <tr>
         <td><span class="badge badge-p1">P1</span></td><td>R-09</td>
-        <td>An incident history view that engineering can use to prioritize work, going back further than 28 days.</td>
-        <td>History can be filtered by service and severity.</td>
-        <td>How far back <span class="tbd">TBD</span> (Q6)</td>
+        <td>An incident history view covering the last 90 days, which engineering can use to prioritize work.</td>
+        <td>History covers the last 90 days and can be filtered by service and severity.</td>
+        <td>90 days (PM)</td>
       </tr>
       <tr>
         <td><span class="badge badge-p1">P1</span></td><td>R-10</td>
         <td>Show when the data was last refreshed.</td>
-        <td>The page header shows a last-refreshed timestamp, as in the reference mock.</td>
-        <td>Refresh frequency <span class="tbd">TBD</span> (Q7)</td>
+        <td>The page header shows a last-refreshed timestamp, as in the reference mock. Data refreshes once a day.</td>
+        <td>Daily refresh from an IcM Kusto query (PM)</td>
       </tr>
     </tbody>
   </table>
@@ -571,9 +572,9 @@
 
   <div class="wire-label">Wireframe: leadership view (placeholder values)</div>
   <div class="wf" role="img" aria-label="Wireframe of the IDEAS Exp IcM leadership report: KPI tiles, 28-day trend, open incidents by aging, metrics panel and customers panel">
-    <div class="wf-head"><span class="t">IDEAS Exp IcM Report · OGA Experimentation</span><span class="s">Last refreshed: {timestamp} · Window: last 28 days</span></div>
+    <div class="wf-head"><span class="t">IDEAS Exp IcM Report · OGA Experimentation</span><span class="s">Last refreshed: {timestamp} (daily) · Window: last 28 days</span></div>
     <div class="wf-tiles">
-      <div class="wf-tile hot"><div class="n">{n}</div><div class="l">Open Sev 0-1 being worked on</div></div>
+      <div class="wf-tile hot"><div class="n">{n}</div><div class="l">Sev 0-1 being worked on (ack'd, not mitigated)</div></div>
       <div class="wf-tile"><div class="n">{n}</div><div class="l">Open incidents (all severities)</div></div>
       <div class="wf-tile"><div class="n">{n}</div><div class="l">Incidents logged (28d)</div></div>
       <div class="wf-tile"><div class="n">{h}</div><div class="l">Average TTM (28d)</div></div>
@@ -599,7 +600,7 @@
           <tr><td>Incident rate by service</td><td>{chart}</td></tr>
         </tbody></table>
       </div>
-      <div class="wf-panel"><div class="h">Customers: incidents by submitter</div>
+      <div class="wf-panel"><div class="h">Customers: incidents by Created By</div>
         <table><tbody>
           <tr><td>{submitter}</td><td>{count} · {sev mix}</td></tr>
           <tr><td>{submitter}</td><td>{count} · {sev mix}</td></tr>
@@ -611,9 +612,9 @@
 
   <h3>UX Flow</h3>
   <div class="ux-flow">
-    Leader signs in → access check (IDEAS leadership only) → KPI header (Sev 0-1 being worked on, open count, 28-day volume, average TTM)<br>
+    Leader signs in → access check (IDEAS Core Identity security group) → KPI header (Sev 0-1 being worked on, open count, 28-day volume, average TTM)<br>
     → 28-day trend by severity → "Needs attention" list (by severity, longest without mitigation first) → click incident ID to open it in IcM<br>
-    → Operational metrics → Customers (by submitter) → Incident history (engineering)<br><br>
+    → Operational metrics → Customers (by Created By) → Incident history, last 90 days (engineering)<br><br>
     <small>Figma: <span class="tbd">TBD</span></small>
   </div>
 
@@ -622,6 +623,7 @@
     <li>Everything in the KPI header has to be readable at a glance. That's the PM's main success criterion.</li>
     <li>Incident IDs link to the incident in IcM. The report itself is read-only.</li>
     <li>Severity is shown as text ("Sev 1"), not just a color.</li>
+    <li>Numbers reflect the most recent daily refresh, not real time. The last-refreshed timestamp makes this clear.</li>
   </ul>
 
   <h3>Edge Cases &amp; Empty States</h3>
@@ -647,46 +649,33 @@
 
   <h3>Open Questions</h3>
   <div class="question-card">
-    <div class="q-title">Q1: What is the exact IcM owning-team value?</div>
-    <p>The team is "OGA Experimentation". The PM's IcM query identifies it as service <code>35021</code>, team <code>115361</code> <span class="src">(source: <a href="https://portal.microsofticm.com/imp/v5/incidents/queries/new?servicecategories=2&amp;services=35021&amp;teams=115361">IcM query</a>)</span>. Still open: the matching <code>OwningTeamName</code> / team ID filter in the Kusto <code>Incidents</code> table, and whether any other teams under service 35021 are in scope. <strong>Owner:</strong> kumarvp (Eng).</p>
-  </div>
-  <div class="question-card">
-    <div class="q-title">Q2: How is "IDEAS leadership only" enforced?</div>
-    <p>Which security group or allow-list controls access, and who maintains it? <strong>Owner:</strong> <span class="tbd">TBD</span>.</p>
-  </div>
-  <div class="question-card">
-    <div class="q-title">Q3: What does "being worked on" mean for Sev 0-1?</div>
-    <p>Does it mean open with an owner assigned, acknowledged, or simply any open incident? The reference mock tracks acknowledgement through <code>OwningContactAlias</code>. <strong>Owner:</strong> David Lydston (PM).</p>
-  </div>
-  <div class="question-card">
-    <div class="q-title">Q4: How is automation coverage defined?</div>
-    <p>It's on the PM's metric list but doesn't have a definition yet. It might mean auto-detection, auto-mitigation, or something else. <strong>Owner:</strong> David Lydston (PM) and kumarvp (Eng).</p>
-  </div>
-  <div class="question-card">
-    <div class="q-title">Q5: Which IcM field holds the submitter, and should submitters be grouped by team?</div>
-    <p>The customer is the person who submitted the IcM (PM). We still need the exact field, and to decide whether to show individuals or roll them up to their team or org. <strong>Owner:</strong> kumarvp (Eng).</p>
-  </div>
-  <div class="question-card">
-    <div class="q-title">Q6: How far back should engineering's incident history go?</div>
-    <p>The leadership metrics use a 28-day window. Engineering's history view needs its own window. For comparison, the reference mock uses 90 days for retrospectives and repair items. <strong>Owner:</strong> kumarvp (Eng).</p>
-  </div>
-  <div class="question-card">
-    <div class="q-title">Q7: How does data get from IcM into the app, and how often?</div>
-    <p>The reference mock notes that a browser app can't query Kusto directly; real data needs a backend API or an export <span class="src">(source: reference mock)</span>. Which approach will we use, and how often will it refresh? <strong>Owner:</strong> kumarvp (Eng).</p>
-  </div>
-  <div class="question-card">
     <div class="q-title">Q8: What are the SLA targets for OGA Experimentation?</div>
-    <p>We need SLA adherence targets for TTD, TTM, and TTO. The mock's values are another team's targets, so they're reference only. <strong>Owner:</strong> <span class="tbd">TBD</span>.</p>
+    <p>We need SLA adherence targets for TTD, TTM, and TTO. The mock's values are another team's targets, so they're reference only. Until the targets are set, SLA adherence shows "Definition pending" (R-07). <strong>Owner:</strong> <span class="tbd">TBD</span>.</p>
   </div>
   <div class="question-card">
-    <div class="q-title">Q9: Should the retrospectives and repair items sections be included?</div>
-    <p>The reference mock tracks both for Sev 0-2 incidents. They aren't in the PM's requirements yet. <strong>Owner:</strong> David Lydston (PM).</p>
+    <div class="q-title">Q10: How does automation coverage differ from auto-IcM generation rate?</div>
+    <p>With the PM's Q4 answer, both metrics are defined as IcMs created by automation divided by all IcMs in the period. Should they be merged into one metric, or should one of them be redefined (for example, to cover auto-mitigation)? <strong>Owner:</strong> David Lydston (PM).</p>
   </div>
+
+  <h3>Resolved Questions</h3>
+  <table>
+    <thead><tr><th style="width:56px">#</th><th style="width:280px">Question</th><th>Answer (PM, October 7, 2026)</th></tr></thead>
+    <tbody>
+      <tr><td>Q1</td><td>Is OGA Experimentation team 115361 the only team in scope?</td><td>Yes. Scope is service 35021, team 115361 <span class="src">(source: <a href="https://portal.microsofticm.com/imp/v5/incidents/queries/new?servicecategories=2&amp;services=35021&amp;teams=115361">IcM query</a>)</span>.</td></tr>
+      <tr><td>Q2</td><td>How is "IDEAS leadership only" enforced?</td><td>Through an IDEAS security group in Core Identity. Group name <span class="tbd">TBD</span>.</td></tr>
+      <tr><td>Q3</td><td>What does "being worked on" mean for Sev 0-1?</td><td>Acknowledged but not mitigated.</td></tr>
+      <tr><td>Q4</td><td>How is automation coverage defined?</td><td>IcMs that came from automation ÷ all IcMs in the time period. See Q10.</td></tr>
+      <tr><td>Q5</td><td>Which IcM field identifies the customer?</td><td>Created By.</td></tr>
+      <tr><td>Q6</td><td>How far back should the incident history go?</td><td>90 days.</td></tr>
+      <tr><td>Q7</td><td>How does data get from IcM into the app, and how often?</td><td>From an IcM Kusto query, refreshed daily.</td></tr>
+      <tr><td>Q9</td><td>Include retrospectives and repair items?</td><td>Out of scope at this time. Listed as a non-goal.</td></tr>
+    </tbody>
+  </table>
 
   <h3>Risks</h3>
   <div class="risk-card">
     <div class="risk-title">Risk 1: The submitter isn't always the customer</div>
-    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. Monitors create some incidents, and DRIs file others on a customer's behalf, so counting by submitter could misidentify customers. <strong>Proposed mitigations:</strong> keep auto-generated incidents out of the customer view, and check the submitter field against a sample of incidents.</p>
+    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. Monitors create some incidents, and DRIs file others on a customer's behalf, so counting by submitter could misidentify customers. <strong>Proposed mitigations:</strong> keep auto-generated incidents out of the customer view, and check the Created By field against a sample of incidents.</p>
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 2: Incident details reach people outside leadership</div>
@@ -698,7 +687,7 @@
   </div>
   <div class="risk-card">
     <div class="risk-title">Risk 4: Tight timeline</div>
-    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. The target is October 2026, and several definitions are still open (Q1–Q8). <strong>Proposed mitigation:</strong> ship the P0 leadership view first and follow with the P1 customer and history views.</p>
+    <p><strong>Likelihood / Impact:</strong> <span class="tbd">TBD</span>. The target is October 2026, and the SLA targets (Q8) and the automation coverage overlap (Q10) are still open. <strong>Proposed mitigation:</strong> ship the P0 leadership view first and follow with the P1 customer and history views.</p>
   </div>
 </div>
 
