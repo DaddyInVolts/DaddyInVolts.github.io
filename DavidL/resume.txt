@@ -1,0 +1,69 @@
+David Lydston
+Principal Product Manager | Data Platforms, Metric Governance & Experimentation
+david.lydston@gmail.com
+https://www.linkedin.com/in/dlydston/
+Portfolio: https://daddyinvolts.github.io/
+
+Profile
+Principal Product Manager with 10+ years building experimentation, measurement, and big-data analytics platforms at Microsoft. Leads a shared scorecard platform serving 30+ products and more than 3,000 experiments each month, with division-wide evaluation using common metrics drawn exclusively from the UDM measurement catalog. Promotes catalog adoption and championed adding experiment randomizations for 30+ products. Standardized measurement across hundreds of features and delivered $7M in scorecard cost improvements (May–Sep 2024). Skilled at managing multi-discipline teams and aligning senior partners across Bing, Office, and Azure.
+
+Core expertise
+Causal data analysis · Metric governance & standardization · Experimentation platforms & scorecards · Data-quality monitoring · Big-data compute efficiency (Cosmos, Spark) · Azure compliance & production readiness · Sensitive-data protection · Product strategy & roadmaps · Executive alignment
+
+Professional experience
+
+Principal PM, IDEAS Experimentation Lead
+Microsoft | Sep 2024 – Present
+Lead division-wide standardization of experiment evaluation across products and platforms using a common set of metrics. Require all scorecard metrics to come from the UDM measurement catalog, promoting its adoption and contributing to its evolution.
+
+- Built a cross-organization experiment scorecard platform serving 30+ products and more than 3,000 experiments each month.
+- Championed adding experiment randomizations to the UDM catalog for 30+ products.
+- Led migration of key metrics from legacy to team-owned scorecards, standardizing measurement across hundreds of features supporting major launches.
+- Restored Copilot experimentation scorecards across about 14 Microsoft 365 partner areas, establishing a single source of truth for ownership, readiness, and service targets.
+- Reduced the experimentation SLA from EOD + 3 days to EOD + 36 hours and cut scorecard compute consumption more than 75% through fast metrics and lean scorecards.
+- Grew scorecard coverage about 50x, from one experiment at a time to more than 85% of E+D experimentation scale.
+- Relaunched the Expedite homepage as a leadership decision system, growing experiment coverage 50% and surfacing 10,238 active experiments.
+- Rejected requests to place High Business Impact (HBI) data on unsecured scorecards, protecting security posture during platform transitions.
+
+Principal PM Manager, Office Growth Accelerators Experimentation
+Microsoft | Oct 2023 – Sep 2024
+- Prioritized a Copilot token-usage scorecard across all Office experiments and rollouts, catching a 7% top-of-funnel regression in OneNote (p < 0.001) that would otherwise have been missed.
+- Reduced time to insight 20% for Office Online experiments and enabled Word Online scorecards 14 hours earlier.
+- Co-authored the FY25 experimentation strategy, recognized by senior leadership as the organization's vision.
+
+Principal PM, Experimentation Lead, Office Growth Accelerators
+Microsoft | Nov 2022 – Oct 2023
+- Restored platform trust with Microsoft's lowest sample-ratio-mismatch rate, a scorecard alert-to-bug pathway, and partner office hours.
+- Resolved a recurring escalation by showing with data that scorecard delivery was not a meaningful driver of experiment velocity.
+
+Principal Program Manager, Analysis & Experimentation
+Microsoft | Jan 2020 – Nov 2022 | Promoted to Principal PM Jan 2020
+- Prioritized and planned the experimentation platform's five core Azure certifications and Ring 1 readiness, unblocking Dynamics 365 onboarding and Azure Portal adoption.
+- Negotiated an Azure Compliance audit exception that removed a policy blocker to platform certification.
+- Co-drove a 100,000 daily Cosmos compute-token reduction with Bing, cutting ship-decision time from six days to two.
+- Negotiated cost sharing with Bing to fund a Cosmos-to-Spark migration and staged delivery when proposed scope grew 50%.
+- Authored and externally published a cross-product experimentation cookbook adopted by multiple Microsoft organizations.
+
+Senior PM, Analysis & Experimentation
+Microsoft | May 2018 – Jan 2020
+- Improved pipeline fault tolerance 10x and cut p90 job-submission latency from over an hour to about 15 minutes.
+- Improved intraday alert accuracy 50% with bot-tolerant, user-based metrics, virtually eliminating false positives.
+- Shipped metric vectorization, delivering about 30% Cosmos compute-token efficiency for trigger and filter scorecards.
+- Delivered 33% Exchange scorecard efficiency by eliminating an approximately 4x compute-token over-allocation.
+
+Senior PM, Microsoft Marketing Analytics
+Microsoft | Feb 2016 – May 2018
+- Brought Windows 10 DAU/WAU/MAU by platform into SDX, correcting a frequently cited erroneous insights source.
+- Reduced Adobe Analytics sampling volume 50%, delivering $60K+/month in savings while preserving business-review cadence.
+- Hardened analytics access by retiring 28 administrator accounts, ending account sharing, and enforcing global address library validation.
+
+Leadership
+Set vision and charter for a 24-person experimentation team (15 engineers, five data scientists, and four product managers) through organizational changes and a team reduction. Directly managed four individual contributors.
+
+Education
+Master of Science, Information Systems Management
+Seattle Pacific University | 2005–2007
+Master of Arts, Behavioral Psychology
+San Diego State University | 1997–1999
+Bachelor of Arts, Psychology
+Western Washington University | 1994–1997
