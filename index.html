@@ -197,6 +197,18 @@
     border-radius: 999px;
     margin-bottom: 10px;
   }
+  .project-status {
+    margin-left: 6px;
+    border-color: transparent;
+  }
+  .project-status.shipped {
+    background: var(--success-bg);
+    color: var(--success-green);
+  }
+  .project-status.in-progress {
+    background: #fff4ce;
+    color: #7a4b00;
+  }
   .project-banner h3 {
     font-size: 1.3rem;
     font-weight: 700;
@@ -336,7 +348,7 @@
 
   <div class="section-title">
     <h2>Projects</h2>
-    <span class="count">19 live</span>
+    <span class="count">20 projects</span>
   </div>
 
   <div class="projects">
@@ -344,11 +356,12 @@
     <article class="project">
       <div class="project-banner alt2">
         <span class="project-tag">Product Spec</span>
+        <span class="project-tag project-status in-progress">In progress</span>
         <h3>IDEAS Exp IcM Reporting</h3>
         <p class="subtitle">A leadership view of OGA Experimentation incidents: Sev 0-1 status, what needs attention, and the 28-day trend at a glance.</p>
       </div>
       <div class="project-body">
-        <p>A standalone, leadership-only web report on incidents owned by the <strong>OGA Experimentation</strong> IcM team (service 35021, team 115361). At a glance, IDEAS leaders can see how many Sev 0-1 incidents are open and being worked on, which incidents have been open longest without mitigation, and the 28-day trend in volume and average time to mitigate (TTM). It also tracks detection, mitigation, and resolution times, incident aging, incident rate by service, automation coverage, auto-IcM generation, and SLA adherence. Breaking incidents down by submitter shows who the customers are and which products they value most, so engineering can prioritize from incident history. Data refreshes daily from an IcM Kusto query, with a 90-day history for engineering. Access is limited by an IDEAS Core Identity security group. Modeled on an existing IcM operations dashboard mock. Target: October 2026. Items still to be confirmed are marked TBD.</p>
+        <p>A standalone, leadership-only web report on incidents owned by the <strong>OGA Experimentation</strong> IcM team (service 35021, team 115361). At a glance, IDEAS leaders can see how many Sev 0-1 incidents are open and being worked on, which incidents have been open longest without mitigation, and the 28-day trend in volume and average time to mitigate (TTM). It also tracks detection, mitigation, and resolution times, incident aging, incident rate by service, automation coverage, auto-IcM generation, and SLA adherence. Breaking incidents down by submitter shows who the customers are and which products they value most, so engineering can prioritize from incident history. Data refreshes daily from an IcM Kusto query, with a 90-day history for engineering. Access is limited by an IDEAS Core Identity security group. Modeled on an existing IcM operations dashboard mock. Original target: October 2026. Items still to be confirmed are marked TBD.</p>
         <div class="project-meta">
           <span class="chip">IcM</span>
           <span class="chip">Operations</span>
@@ -366,6 +379,7 @@
     <article class="project">
       <div class="project-banner alt4">
         <span class="project-tag">Product Spec</span>
+        <span class="project-tag project-status shipped">Shipped</span>
         <h3>Give Me a Deep Analysis</h3>
         <p class="subtitle">A deep dive on any experiment scorecard, no xCard expertise needed. Install from the plugin marketplace or Agency.</p>
       </div>
@@ -433,6 +447,7 @@
     <article class="project">
       <div class="project-banner alt">
         <span class="project-tag">Product Spec</span>
+        <span class="project-tag project-status shipped">Shipped</span>
         <h3>Experimentation Flight Assignments in RapidIQ</h3>
         <p class="subtitle">Self-serve segmenting &amp; on-the-fly experimentation insights</p>
       </div>
@@ -478,6 +493,7 @@
     <article class="project">
       <div class="project-banner">
         <span class="project-tag">Product Spec · Prototype</span>
+        <span class="project-tag project-status shipped">Shipped</span>
         <h3>Expedite — Experiment Detail Page</h3>
         <p class="subtitle">A decision-grade view for ship / iterate / stop calls</p>
       </div>
@@ -499,6 +515,7 @@
     <article class="project">
       <div class="project-banner alt">
         <span class="project-tag">Product Spec · Prototype</span>
+        <span class="project-tag project-status shipped">Shipped</span>
         <h3>Copilot Metric Impact Page</h3>
         <p class="subtitle">A metric-first lens on the experiment portfolio</p>
       </div>
@@ -541,6 +558,7 @@
     <article class="project">
       <div class="project-banner alt3">
         <span class="project-tag">Product Spec</span>
+        <span class="project-tag project-status shipped">Shipped</span>
         <h3>Guardrail Decision Framework</h3>
         <p class="subtitle">A deterministic safe / extend / not-safe verdict for every guardrail</p>
       </div>
@@ -606,6 +624,7 @@
     <article class="project">
       <div class="project-banner alt2">
         <span class="project-tag">Mini Spec</span>
+        <span class="project-tag project-status shipped">Shipped</span>
         <h3>GPT Token &amp; AI Credit Metrics</h3>
         <p class="subtitle">Adding cost-impact metrics to the Copilot Token Consumption Scorecard</p>
       </div>
@@ -650,6 +669,7 @@
     <article class="project">
       <div class="project-banner alt4">
         <span class="project-tag">Product Spec</span>
+        <span class="project-tag project-status shipped">Shipped</span>
         <h3>Anytime-Valid Inference for Experiments</h3>
         <p class="subtitle">Continuous-monitoring safety detection for online A/B tests</p>
       </div>
@@ -693,6 +713,7 @@
     <article class="project">
       <div class="project-banner alt3">
         <span class="project-tag">Mini Spec</span>
+        <span class="project-tag project-status in-progress">In progress</span>
         <h3>Feature Flag Insights in Expedite</h3>
         <p class="subtitle">Auto-inferred descriptions of every feature flag, joined to its experiment results</p>
       </div>
@@ -715,6 +736,7 @@
     <article class="project">
       <div class="project-banner alt2">
         <span class="project-tag">Mini Spec</span>
+        <span class="project-tag project-status in-progress">In progress</span>
         <h3>Next-Iteration Recommender for Expedite</h3>
         <p class="subtitle">Given the inferred flag description and the experiment results, propose what V2 should change</p>
       </div>
