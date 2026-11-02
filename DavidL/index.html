@@ -25,8 +25,8 @@
     .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:24px; }
     .actions a, .actions button { padding:10px 16px; border:1px solid #d8d1ef; border-radius:26px; color:var(--blue); background:white; font:inherit; font-size:.8rem; font-weight:700; text-decoration:none; cursor:pointer; }
     .actions a:hover, .actions button:hover { border-color:#5364fd; background:#e8eafe; }
-    .actions a[href="resume.pdf"] { border-color:var(--magenta); background:var(--magenta); color:white; }
-    .actions a[href="resume.pdf"]:hover { border-color:#930195; background:#930195; }
+    .actions a[download$=".pdf"] { border-color:var(--magenta); background:var(--magenta); color:white; }
+    .actions a[download$=".pdf"]:hover { border-color:#930195; background:#930195; }
     main { padding:30px 52px 40px; }
     h2 { font-size:1.2rem; letter-spacing:-.3px; font-weight:700; color:var(--blue); margin:30px 0 14px; padding-bottom:9px; border-bottom:1px solid var(--line); }
     .profile h2 { margin-top:0; }
@@ -57,9 +57,9 @@
     }
     @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
     @media (forced-colors:active) { h1 { background:none; color:CanvasText; -webkit-text-fill-color:CanvasText; } }
-    @page { size:Letter; margin:.55in .6in; }
+    @page { size:Letter; margin:.45in .55in; }
     @media print {
-      body { background:white; color:var(--ink); font:10pt/1.3 Arial,sans-serif; }
+      body { background:white; color:var(--ink); font:9.5pt/1.24 Arial,sans-serif; }
       .document { max-width:none; margin:0; border:0; border-radius:0; box-shadow:none; overflow:visible; }
       .hero { padding:0 0 8pt; border-top:0; border-bottom:2pt solid var(--blue); background:none; color:var(--ink); }
       h1 { font-family:var(--font); font-size:25pt; letter-spacing:-.7pt; background:none; color:#17147e; -webkit-text-fill-color:#17147e; }
@@ -68,17 +68,21 @@
       .contact a { color:#453963; }
       .contact-divider { display:inline; }
       .actions, .screen-footer, .skip-link { display:none !important; }
-      main { padding:11pt 0 0; }
-      h2 { margin:8pt 0 6pt; padding-bottom:3pt; font-size:9pt; letter-spacing:1pt; break-after:avoid; }
+      main { padding:8pt 0 0; }
+      h2 { margin:7pt 0 5pt; padding-bottom:3pt; font-size:9pt; letter-spacing:1pt; break-after:avoid; }
       .skills, .education p { font-size:9.5pt; }
       .skills { padding:0; border:0; border-radius:0; background:none; color:var(--ink); }
       p { margin-bottom:4pt; }
-      .job { padding:4pt 0 5pt; }
-      h3 { font-size:10pt; break-after:avoid; }
-      .meta { font-size:9pt; margin:2pt 0 3pt; break-after:avoid; }
+      .job { padding:3pt 0; break-inside:avoid; }
+      h3 { display:inline; font-size:9.5pt; break-after:avoid; }
+      .meta { display:inline; font-size:8.5pt; margin:0; break-after:avoid; }
+      .meta::before { content:" | "; }
+      .job > p:not(.meta) { margin-top:2pt; }
       li { margin:3pt 0; padding-left:1pt; break-inside:avoid; }
       ul { padding-left:13pt; }
       .education p { margin-bottom:6pt; break-inside:avoid; }
+      .earlier { break-before:page; }
+      .earlier h2 { margin-top:0; }
       a { color:inherit; text-decoration:none; }
     }
   </style>
@@ -98,95 +102,136 @@
       </div>
       <nav class="actions" aria-label="Document actions">
         <button type="button" onclick="window.print()">Print / Save PDF</button>
-        <a href="resume.pdf" download="David_Lydston_Resume_Disney_Governance_20261029.pdf">Download PDF</a>
-        <a href="resume.txt" download="David_Lydston_Resume_Disney_Governance_20261029.txt">Plain text</a>
+        <a href="resume.pdf" download="David_Lydston_Resume_Disney_Governance_20261102.pdf">Download PDF</a>
+        <a href="resume.txt" download="David_Lydston_Resume_Disney_Governance_20261102.txt">Plain text</a>
       </nav>
     </header>
     <main id="main">
       <section class="profile" aria-labelledby="profile-heading">
         <h2 id="profile-heading">Profile</h2>
-        <p>Principal Product Manager with 10+ years building experimentation, measurement, and big-data analytics platforms at Microsoft. Leads a shared scorecard platform serving <strong>30+ products</strong> and more than <strong>3,000 experiments each month</strong>, with division-wide evaluation using common metrics drawn exclusively from the UDM measurement catalog. Promotes catalog adoption and championed adding experiment randomizations for <strong>30+ products</strong>. Standardized measurement across hundreds of features and delivered <strong>$7M in scorecard cost improvements</strong> (May&ndash;Sep 2024). Skilled at managing multi-discipline teams and aligning senior partners across Bing, Office, and Azure.</p>
+        <p>Product leader building governed data platforms, common metric definitions, and reliable measurement for <strong>30+ products and 3,000+ experiments monthly</strong>. Hands-on background in customer analytics and clinical data management. Set vision for a <strong>24-person team</strong>; directly managed four individual contributors.</p>
       </section>
       <section aria-labelledby="expertise-heading">
         <h2 id="expertise-heading">Core expertise</h2>
-        <p class="skills">Causal data analysis &middot; Metric governance &amp; standardization &middot; Experimentation platforms &amp; scorecards &middot; Data-quality monitoring &middot; Big-data compute efficiency (Cosmos, Spark) &middot; Azure compliance &amp; production readiness &middot; Sensitive-data protection &middot; Product strategy &amp; roadmaps &middot; Executive alignment</p>
+        <p class="skills">Product strategy and roadmaps &middot; Metric governance and catalog adoption &middot; Metadata and schema requirements &middot; Data quality and validation &middot; Causal data analysis &middot; Structured Query Language (SQL), SQL Server, Apache Spark</p>
       </section>
       <section id="experience" aria-labelledby="experience-heading">
         <h2 id="experience-heading">Professional experience</h2>
         <article class="job">
-          <h3>Principal PM, IDEAS Experimentation Lead</h3>
-          <p class="meta">Microsoft | Sep 2024 &ndash; Present</p>
-          <p>Lead division-wide standardization of experiment evaluation across products and platforms using a common set of metrics. Require all scorecard metrics to come from the UDM measurement catalog, promoting its adoption and contributing to its evolution.</p>
+          <h3>Principal Product Manager</h3>
+          <p class="meta">Microsoft | Central Data &amp; Experimentation | Aug 2024 &ndash; Present</p>
+          <p>Lead shared experiment measurement for Microsoft 365 and Copilot, Microsoft's generative artificial intelligence assistant, so product teams evaluate changes using consistent definitions.</p>
           <ul>
-            <li>Built a cross-organization experiment scorecard platform serving <strong>30+ products</strong> and more than <strong>3,000 experiments each month</strong>.</li>
-            <li>Championed adding experiment randomizations to the UDM catalog for <strong>30+ products</strong>.</li>
-            <li>Led migration of key metrics from legacy to team-owned scorecards, standardizing measurement across <strong>hundreds of features</strong> supporting major launches.</li>
-            <li>Restored Copilot experimentation scorecards across about 14 Microsoft 365 partner areas, establishing a single source of truth for ownership, readiness, and service targets.</li>
-            <li>Reduced the experimentation SLA from <strong>EOD + 3 days to EOD + 36 hours</strong> and cut scorecard compute consumption <strong>more than 75%</strong> through fast metrics and lean scorecards.</li>
-            <li>Grew scorecard coverage about <strong>50x</strong>, from one experiment at a time to more than <strong>85% of E+D experimentation scale</strong>.</li>
-            <li>Relaunched the Expedite homepage as a leadership decision system, growing experiment coverage <strong>50%</strong> and surfacing 10,238 active experiments.</li>
-            <li>Rejected requests to place High Business Impact (HBI) data on unsecured scorecards, protecting security posture during platform transitions.</li>
+            <li>Required metrics to use Microsoft's <strong>Unified Data Model</strong>, a governed shared data model; championed adding experiment-assignment data for <strong>30+ products</strong> to connect tests with common user, organization, and device metrics.</li>
+            <li>Standardized measurement across <strong>hundreds of features</strong> by moving key metrics to team-owned scorecards; clarified ownership, readiness, and service targets across partner teams.</li>
+            <li>Cut results delivery from <strong>three days to 36 hours</strong> after daily data collection and reduced compute consumption <strong>more than 75%</strong> through leaner scorecards and faster metric processing.</li>
+            <li>Protected sensitive customer data by rejecting publication on unsecured scorecards during platform transitions.</li>
           </ul>
         </article>
         <article class="job">
-          <h3>Principal PM Manager, Office Growth Accelerators Experimentation</h3>
-          <p class="meta">Microsoft | Oct 2023 &ndash; Sep 2024</p>
+          <h3>Principal Product Manager</h3>
+          <p class="meta">Microsoft | Office Product Group | Nov 2022 &ndash; Aug 2024</p>
+          <p>Led experimentation infrastructure for Office products, helping teams evaluate growth initiatives through reliable measurement.</p>
           <ul>
-            <li>Prioritized a Copilot token-usage scorecard across all Office experiments and rollouts, catching a <strong>7% top-of-funnel regression</strong> in OneNote (p &lt; 0.001) that would otherwise have been missed.</li>
-            <li>Reduced time to insight <strong>20%</strong> for Office Online experiments and enabled Word Online scorecards <strong>14 hours earlier</strong>.</li>
-            <li>Co-authored the FY25 experimentation strategy, recognized by senior leadership as the organization's vision.</li>
+            <li>Co-authored the <strong>fiscal year 2025 experimentation strategy</strong>, adopted by senior leadership as the organization's vision.</li>
+            <li>Prioritized Copilot usage scorecards and connected data-quality alerts to engineering bug triage, helping teams identify and address unreliable results.</li>
           </ul>
         </article>
         <article class="job">
-          <h3>Principal PM, Experimentation Lead, Office Growth Accelerators</h3>
-          <p class="meta">Microsoft | Nov 2022 &ndash; Oct 2023</p>
+          <h3>Principal Product Manager</h3>
+          <p class="meta">Microsoft | Analysis &amp; Experimentation / Bing | Sep 2020 &ndash; Nov 2022</p>
+          <p>Led enterprise experimentation initiatives spanning Bing release decisions, cloud compliance, and compute efficiency.</p>
           <ul>
-            <li>Restored platform trust with Microsoft's lowest sample-ratio-mismatch rate, a scorecard alert-to-bug pathway, and partner office hours.</li>
-            <li>Resolved a recurring escalation by showing with data that scorecard delivery was not a meaningful driver of experiment velocity.</li>
+            <li>Delivered <strong>$7 million in scorecard compute-cost savings with Bing</strong>; co-led optimizations that shortened Bing's release-decision cycle <strong>from six days to two</strong>.</li>
+            <li>Prioritized five core Microsoft Azure platform certifications and production readiness, enabling adoption by Dynamics 365 and the Azure Portal.</li>
+            <li>Negotiated Bing cost sharing for migration from Microsoft's internal big-data processing platform to <strong>Apache Spark</strong>.</li>
           </ul>
         </article>
         <article class="job">
-          <h3>Principal Program Manager, Analysis &amp; Experimentation</h3>
-          <p class="meta">Microsoft | Jan 2020 &ndash; Nov 2022 | Promoted to Principal PM Jan 2020</p>
+          <h3>Senior Program Manager</h3>
+          <p class="meta">Microsoft | Analysis &amp; Experimentation / Bing | Aug 2018 &ndash; Sep 2020</p>
+          <p>Improved measurement quality, targeting, and processing reliability for Microsoft's experimentation platform and Bing.</p>
           <ul>
-            <li>Prioritized and planned the experimentation platform's five core Azure certifications and Ring 1 readiness, unblocking Dynamics 365 onboarding and Azure Portal adoption.</li>
-            <li>Negotiated an Azure Compliance audit exception that removed a policy blocker to platform certification.</li>
-            <li>Co-drove a <strong>100,000 daily Cosmos compute-token reduction</strong> with Bing, cutting ship-decision time <strong>from six days to two</strong>.</li>
-            <li>Negotiated cost sharing with Bing to fund a Cosmos-to-Spark migration and staged delivery when proposed scope grew 50%.</li>
-            <li>Authored and externally published a cross-product experimentation cookbook adopted by multiple Microsoft organizations.</li>
-          </ul>
-        </article>
-        <article class="job">
-          <h3>Senior PM, Analysis &amp; Experimentation</h3>
-          <p class="meta">Microsoft | May 2018 &ndash; Jan 2020</p>
-          <ul>
-            <li>Improved pipeline fault tolerance <strong>10x</strong> and cut p90 job-submission latency from over an hour to about 15 minutes.</li>
             <li>Improved intraday alert accuracy <strong>50%</strong> with bot-tolerant, user-based metrics, virtually eliminating false positives.</li>
-            <li>Shipped metric vectorization, delivering about <strong>30% Cosmos compute-token efficiency</strong> for trigger and filter scorecards.</li>
-            <li>Delivered <strong>33% Exchange scorecard efficiency</strong> by eliminating an approximately 4x compute-token over-allocation.</li>
+            <li>Authored audience-targeting filters for customer segments and migrated the real-time experiment-assignment service under a fixed deadline.</li>
           </ul>
         </article>
         <article class="job">
-          <h3>Senior PM, Microsoft Marketing Analytics</h3>
-          <p class="meta">Microsoft | Feb 2016 &ndash; May 2018</p>
+          <h3>Senior Program Manager</h3>
+          <p class="meta">Microsoft | Marketing &amp; Store Analytics | Feb 2016 &ndash; Aug 2018</p>
+          <p>Delivered digital analytics for Microsoft Store, Windows, and news properties, improving shared data definitions, access, and operating efficiency.</p>
           <ul>
-            <li>Brought Windows 10 DAU/WAU/MAU by platform into SDX, correcting a frequently cited erroneous insights source.</li>
-            <li>Reduced Adobe Analytics sampling volume <strong>50%</strong>, delivering <strong>$60K+/month in savings</strong> while preserving business-review cadence.</li>
-            <li>Hardened analytics access by retiring 28 administrator accounts, ending account sharing, and enforcing global address library validation.</li>
+            <li>Contributed cohort and filter requirements covering identifier semantics, schema compatibility, time windows, usage metadata, and query performance for a shared analytics platform.</li>
+            <li>Retired <strong>28 administrator accounts</strong> and ended account sharing; reduced Adobe Analytics sampling volume <strong>50%</strong>, saving <strong>more than $60,000 monthly</strong>.</li>
           </ul>
         </article>
       </section>
-      <section aria-labelledby="leadership-heading">
-        <h2 id="leadership-heading">Leadership</h2>
-        <p>Set vision and charter for a 24-person experimentation team (15 engineers, five data scientists, and four product managers) through organizational changes and a team reduction. Directly managed four individual contributors.</p>
+      <section class="earlier" aria-labelledby="earlier-heading">
+        <h2 id="earlier-heading">Earlier experience</h2>
+        <article class="job">
+          <h3>Data Scientist (Client Services &amp; Strategy)</h3>
+          <p class="meta">HelloWorld (formerly ePrize) | May 2012 &ndash; Jan 2016</p>
+          <p>Applied customer data science to Microsoft's Xbox Live Rewards loyalty program, serving <strong>3 million members</strong>; translated behavioral data into marketing, personalization, and program-design decisions.</p>
+          <ul>
+            <li>Cleaned granular transaction and behavioral events into reusable machine-learning datasets; built classification, recommendation, and fraud-detection models.</li>
+            <li>Used machine learning to inform <strong>MyVIP loyalty tiers and qualifying thresholds</strong>, connecting member behavior with program incentives.</li>
+            <li>Evaluated MyVIP against stratified control groups, measuring <strong>300% more points earned</strong> in fiscal year 2015 versus controls.</li>
+          </ul>
+        </article>
+        <article class="job">
+          <h3>Database and Systems Engineer</h3>
+          <p class="meta">Apollo Data Technologies | Microsoft contract: Xbox Live Rewards | Aug 2010 &ndash; May 2012</p>
+          <p>Built the processing, reporting, and analysis foundation for a customer loyalty program, balancing performance, reliability, and hardware constraints.</p>
+          <ul>
+            <li>Helped <strong>launch Xbox Live Rewards in December 2010</strong>; designed infrastructure for a <strong>five-terabyte data-processing platform</strong>.</li>
+            <li>Reduced processing time <strong>30%</strong> and data-layer storage <strong>2.5 terabytes</strong> through code optimization, compression, and index tuning; trained developers on performance tradeoffs.</li>
+          </ul>
+        </article>
+        <article class="job">
+          <h3>Database and Systems Engineer</h3>
+          <p class="meta">Apollo Data Technologies | Microsoft contract: Global Marketing Operations | Jul 2008 &ndash; Aug 2010</p>
+          <p>Engineered database infrastructure for global marketing applications, including capacity planning, monitoring, standardized deployment, and operational handoff.</p>
+          <ul>
+            <li>Selected infrastructure within a <strong>$1 million hardware budget</strong> during threefold growth, supporting hundreds of marketing applications and thousands of databases.</li>
+            <li>Implemented monitoring for <strong>up to 500 servers</strong>; standardized SQL Server deployment and trained onshore and offshore teams.</li>
+          </ul>
+        </article>
+        <article class="job">
+          <h3>Senior Database Administrator</h3>
+          <p class="meta">Bio-Rad Laboratories | Aug 2005 &ndash; Jul 2008</p>
+          <p>Combined clinical data management, database administration, and biostatistics for a medical diagnostics manufacturer.</p>
+          <ul>
+            <li>Replaced per-trial spreadsheets with a <strong>centralized clinical-trial data management system</strong>; automated validation saved weeks of manual work. Recalled in 2013 to extend the system.</li>
+            <li>Used <strong>Statistical Analysis System (SAS)</strong> software for instrument precision and clinical analyses supporting <strong>U.S. Food and Drug Administration (FDA) submissions</strong>, including mixed-effects and survival models.</li>
+          </ul>
+        </article>
+        <article class="job">
+          <h3>BioAnalyst</h3>
+          <p class="meta">Poniard Pharmaceuticals | Nov 2004 &ndash; Aug 2005</p>
+          <p>Built clinical data capture and analysis capabilities for a pivotal Phase III oncology trial.</p>
+          <ul>
+            <li>Specified, designed, tested, and implemented a medical-chart information system; partnered with a contract research organization on trial data-quality standards.</li>
+            <li>Performed survival analysis in SAS and produced <strong>hundreds of clinical result tables</strong> for FDA submission.</li>
+          </ul>
+        </article>
+        <article class="job">
+          <h3>Systems Analyst III</h3>
+          <p class="meta">University of Miami | Aug 1999 &ndash; Nov 2004</p>
+          <p>Led development of SQL Server applications for clinical research operations and financial planning.</p>
+          <ul>
+            <li>Delivered participant-tracking systems and handheld interview data capture for multi-state and multinational clinical research.</li>
+            <li>Led an application forecasting federal grant expenditures against a <strong>$25 million departmental budget</strong>.</li>
+          </ul>
+        </article>
       </section>
       <section class="education" aria-labelledby="education-heading">
         <h2 id="education-heading">Education</h2>
-        <p><strong>Master of Science, Information Systems Management</strong><br><span>Seattle Pacific University | 2005&ndash;2007</span></p>
-        <p><strong>Master of Arts, Behavioral Psychology</strong><br><span>San Diego State University | 1997&ndash;1999</span></p>
-        <p><strong>Bachelor of Arts, Psychology</strong><br><span>Western Washington University | 1994&ndash;1997</span></p>
+        <p><strong>Master of Science, Information Systems Management</strong> &mdash; Seattle Pacific University, 2007<br>
+        <strong>Master of Arts, Behavioral Psychology</strong> &mdash; San Diego State University, 1999<br>
+        <strong>Bachelor of Arts, Psychology</strong> &mdash; Western Washington University, 1997</p>
       </section>
     </main>
   </div>
+  <footer class="screen-footer">Data Platform Governance resume &middot; Updated November 2, 2026</footer>
 </body>
 </html>
