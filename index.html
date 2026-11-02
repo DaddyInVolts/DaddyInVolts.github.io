@@ -358,6 +358,163 @@
   <div class="projects">
 
     <article class="project">
+      <div class="project-banner alt4">
+        <span class="project-tag">Product Spec</span>
+        <span class="project-tag project-status shipped">Shipped</span>
+        <h3>Give Me a Deep Analysis</h3>
+        <p class="subtitle">A deep dive on any experiment scorecard, no xCard expertise needed. Install from the plugin marketplace or Agency.</p>
+      </div>
+      <div class="project-body">
+        <p>A "Give me a deep analysis" skill that's generally available as the <strong>experiment-analyzer</strong> plugin. Anyone at Microsoft can install it from the <strong>DPG-AI-Skilling</strong> GitHub plugin marketplace into GitHub Copilot CLI or Claude Code, or through <strong>Agency</strong>, and it's required to analyze every metric set the user has access to. The user supplies the xCard link, scorecard ID, and hypothesis, and can optionally list the metrics they expect to be stat-sig. The plugin produces a standalone HTML decision brief with sections, tradeoffs to discuss, and a verdict. Reading an xCard is still a niche skill at Microsoft. This skill aims to cut a deep analysis from about 3 hours of manual work to about 5 minutes, for feature crews and for people who have never learned to read an xCard. Defines two acceptance test cases (details are kept private). Items not yet supplied or checked are marked TBD.</p>
+        <div class="project-meta">
+          <span class="chip">Plugin marketplace</span>
+          <span class="chip">Agency</span>
+          <span class="chip">xCard / Scorecards</span>
+          <span class="chip">Hypothesis-driven analysis</span>
+          <span class="chip">Data Science plugin</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/Deep-Analysis-Skill/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/Deep-Analysis-Skill" target="_blank" rel="noopener">Source ↗</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="project-banner alt">
+        <span class="project-tag">Product Spec</span>
+        <span class="project-tag project-status shipped">Shipped</span>
+        <h3>Experimentation Flight Assignments in RapidIQ</h3>
+        <p class="subtitle">Self-serve segmenting &amp; on-the-fly experimentation insights</p>
+      </div>
+      <div class="project-body">
+        <p>A product spec to onboard IDEAS flights and flight extensions into RapidIQ — turning the self-serve analytics environment into a lens on experimentation. Growth PMs and DS can filter any RapidIQ dashboard to a specific flight or variant ("self-serve segmenting"), and compute treatment-vs-control lifts on the fly across the full RapidIQ metric catalog — including provisional metrics that scorecards don't carry. Establishes a canonical flight dimension in RapidIQ's metadata-driven query engine, aligned with ExP semantics, so the same flight × metric × window reconciles across systems. Companion to Expedite / ExP scorecards: RapidIQ is the exploration lens, scorecards remain the deciding artifact.</p>
+        <div class="project-meta">
+          <span class="chip">Experimentation</span>
+          <span class="chip">Self-serve</span>
+          <span class="chip">Provisional metrics</span>
+          <span class="chip">Flights</span>
+          <span class="chip">IDEAS Growth</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/Flights-in-RapidIQ/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/Flights-in-RapidIQ" target="_blank" rel="noopener">Source ↗</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="project-banner">
+        <span class="project-tag">Product Spec · Prototype</span>
+        <span class="project-tag project-status shipped">Shipped</span>
+        <h3>Expedite — Experiment Detail Page</h3>
+        <p class="subtitle">A decision-grade view for ship / iterate / stop calls</p>
+      </div>
+      <div class="project-body">
+        <p>A decision-grade detail view that turns dense experimentation scorecards into glanceable ship/iterate/stop calls. The page surfaces an advisory Copilot recommendation, the owner's actual decision, and the guardrail evidence behind it — on a single URL. A structured exception flow captures rationale when owners ship over a failed guardrail, producing a fully auditable record of every call. The result: faster, more consistent decisions across the M365 Copilot portfolio and a single source of truth for "is this ready to ship, and why?" Replaces ad-hoc scorecard reading and email threads as the deciding artifact for experiment owners and leadership.</p>
+        <div class="project-meta">
+          <span class="chip">Experimentation</span>
+          <span class="chip">Decision UX</span>
+          <span class="chip">Guardrails</span>
+          <span class="chip">Auditability</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/Expedite-Experiment-Detail/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/Expedite-Experiment-Detail" target="_blank" rel="noopener">Source ↗</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="project-banner alt">
+        <span class="project-tag">Product Spec · Prototype</span>
+        <span class="project-tag project-status shipped">Shipped</span>
+        <h3>Copilot Metric Impact Page</h3>
+        <p class="subtitle">A metric-first lens on the experiment portfolio</p>
+      </div>
+      <div class="project-body">
+        <p>A metric-first lens for the Expedite experimentation platform that answers an executive's most common question: "Which experiments moved this metric?" Leaders pick a Copilot business metric — like Chat Seen WAU — apply ring and audience filters, and instantly see a ranked, statistically rigorous chart of every experiment that improved or degraded it. Drill-through links route to full scorecards, making it trivial to recognize a metric win or investigate a regression. The view flips the existing experiment-centric Impact page to a metric-centric perspective, replacing manual cross-referencing of scorecards with an instant, filterable, leadership-ready answer about portfolio-level impact on key business outcomes.</p>
+        <div class="project-meta">
+          <span class="chip">Leadership view</span>
+          <span class="chip">Metric impact</span>
+          <span class="chip">Stat-sig</span>
+          <span class="chip">Drill-through</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/Copilot-Metric-Impact/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/Copilot-Metric-Impact" target="_blank" rel="noopener">Source ↗</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="project-banner alt3">
+        <span class="project-tag">Product Spec</span>
+        <span class="project-tag project-status shipped">Shipped</span>
+        <h3>Guardrail Decision Framework</h3>
+        <p class="subtitle">A deterministic safe / extend / not-safe verdict for every guardrail</p>
+      </div>
+      <div class="project-body">
+        <p>A guardrails-only decision framework that turns raw scorecard confidence intervals and pre-experiment power into a deterministic per-guardrail verdict — <strong>safe</strong>, <strong>extend</strong>, or <strong>not-safe</strong> — and a single scorecard-level roll-up of <strong>Ship</strong>, <strong>Hold</strong>, or <strong>Stop</strong>. Each guardrail declares a direction (higher-is-better or lower-is-better) and a practical-significance threshold Δ; the framework runs a CI-based safety check (CI upper bound below +Δ for lower-is-better metrics; CI lower bound above −Δ otherwise), classifies powered vs. underpowered against MDE at 80% power, and treats underpowered guardrails as genuinely uninformative — closing the gap that today lets ~11% of experiments ship on signals that are statistically uninformative on harm. Multi-variant experiments are evaluated per T/C cell, every verdict carries a single-line reason, and any owner override of a not-safe ruling requires a written justification, mitigation, and follow-up captured in an auditable record. Replaces inconsistent team-by-team judgment with a single shared rule dictionary so the same scorecard yields the same verdict across PMs, DS, and leadership reviews.</p>
+        <div class="project-meta">
+          <span class="chip">Decision logic</span>
+          <span class="chip">Guardrails</span>
+          <span class="chip">Auditability</span>
+          <span class="chip">Rule dictionary</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/Guardrail-Decision-Framework/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/Guardrail-Decision-Framework" target="_blank" rel="noopener">Source ↗</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="project-banner alt2">
+        <span class="project-tag">Mini Spec</span>
+        <span class="project-tag project-status shipped">Shipped</span>
+        <h3>GPT Token &amp; AI Credit Metrics</h3>
+        <p class="subtitle">Adding cost-impact metrics to the Copilot Token Consumption Scorecard</p>
+      </div>
+      <div class="project-body">
+        <p>A mini spec that extends the existing Copilot Token Consumption Scorecard with two missing cost dimensions: GPT token consumption (input/output tokens by model) and AI Credit request volume (credits per user and per tenant). Both new metric families render with the same statistical rigor — confidence intervals, MDE, and stat-sig flags — as existing scorecard metrics, so feature crews and leadership can evaluate cost impact alongside engagement and quality metrics in a single view. Eliminates manual cross-referencing between cost dashboards and experiment scorecards, surfaces cost regressions earlier in the experiment lifecycle, and establishes a shared cost vocabulary across Copilot feature crews.</p>
+        <div class="project-meta">
+          <span class="chip">Scorecards</span>
+          <span class="chip">Cost metrics</span>
+          <span class="chip">GPT tokens</span>
+          <span class="chip">AI Credits</span>
+          <span class="chip">Copilot</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/GPT-Token-AI-Credit-Metrics/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/GPT-Token-AI-Credit-Metrics" target="_blank" rel="noopener">Source ↗</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="project-banner alt4">
+        <span class="project-tag">Product Spec</span>
+        <span class="project-tag project-status shipped">Shipped</span>
+        <h3>Anytime-Valid Inference for Experiments</h3>
+        <p class="subtitle">Continuous-monitoring safety detection for online A/B tests</p>
+      </div>
+      <div class="project-body">
+        <p>An always-on safety layer for online A/B experimentation that lets release engineers, PMs, and data scientists watch a live experiment continuously without paying the classic peeking penalty &mdash; where naive repeated looks push false-positive rates from 5% to ~70%. Built on closed-form confidence sequences (Lindon, Ham, Tingley &amp; Bojinov 2024) and a multinomial sequential SRM test (Lindon &amp; Malek, NeurIPS 2022), it computes Type-I-controlled bounds at <em>every</em> sample size from the same regression tables an experimentation platform already produces. A near-real-time data path modeled on a NRT Service feeds a shrinking-band dashboard and ICM/Geneva alerts, turning every ramped flight into a continuously-monitored canary &mdash; targeting time-to-detect under 15 minutes (vs. ~14 hours today) and 40&ndash;50% sample-size savings, with mandatory 90-day shadow-mode validation per tenant.</p>
+        <div class="project-meta">
+          <span class="chip">Anytime-valid stats</span>
+          <span class="chip">Continuous monitoring</span>
+          <span class="chip">Safety canary</span>
+          <span class="chip">NRT pipeline</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/Anytime-Valid-Inference-Spec.html" target="_blank" rel="noopener">View spec <span class="arrow">&rarr;</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/blob/main/Anytime-Valid-Inference-Spec.html" target="_blank" rel="noopener">Source &#8599;</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
       <div class="project-banner alt2">
         <span class="project-tag">Product Spec</span>
         <span class="project-tag project-status in-progress">In progress</span>
@@ -381,24 +538,47 @@
     </article>
 
     <article class="project">
-      <div class="project-banner alt4">
-        <span class="project-tag">Product Spec</span>
-        <span class="project-tag project-status shipped">Shipped</span>
-        <h3>Give Me a Deep Analysis</h3>
-        <p class="subtitle">A deep dive on any experiment scorecard, no xCard expertise needed. Install from the plugin marketplace or Agency.</p>
+      <div class="project-banner alt3">
+        <span class="project-tag">Mini Spec</span>
+        <span class="project-tag project-status in-progress">In progress</span>
+        <h3>Feature Flag Insights in Expedite</h3>
+        <p class="subtitle">Auto-inferred descriptions of every feature flag, joined to its experiment results</p>
       </div>
       <div class="project-body">
-        <p>A "Give me a deep analysis" skill that's generally available as the <strong>experiment-analyzer</strong> plugin. Anyone at Microsoft can install it from the <strong>DPG-AI-Skilling</strong> GitHub plugin marketplace into GitHub Copilot CLI or Claude Code, or through <strong>Agency</strong>, and it's required to analyze every metric set the user has access to. The user supplies the xCard link, scorecard ID, and hypothesis, and can optionally list the metrics they expect to be stat-sig. The plugin produces a standalone HTML decision brief with sections, tradeoffs to discuss, and a verdict. Reading an xCard is still a niche skill at Microsoft. This skill aims to cut a deep analysis from about 3 hours of manual work to about 5 minutes, for feature crews and for people who have never learned to read an xCard. Defines two acceptance test cases (details are kept private). Items not yet supplied or checked are marked TBD.</p>
+        <p>A mini spec that scans every indexed M365 Copilot repo for feature-flag check-sites &mdash; ExP/Iris, CCS, and in-repo gating constants &mdash; and uses an LLM to infer a structured, human-readable description of what each flag actually changes: <em>what it gates, on-vs-off behavior, affected code paths, surfaces touched.</em> Descriptions are persisted to Expedite's experiment-metadata join table and rendered directly on every scorecard row with a high/medium/low confidence pill and a "Why?" tooltip exposing the code excerpts that drove the inference. Replaces the ~64% of flags with empty or stale owner-written descriptions and supplies the semantic layer the paired Next-Iteration Recommender depends on &mdash; turning every scorecard into a self-documenting artifact without writing back to ExP/Iris source-of-truth.</p>
         <div class="project-meta">
-          <span class="chip">Plugin marketplace</span>
-          <span class="chip">Agency</span>
-          <span class="chip">xCard / Scorecards</span>
-          <span class="chip">Hypothesis-driven analysis</span>
-          <span class="chip">Data Science plugin</span>
+          <span class="chip">Feature flags</span>
+          <span class="chip">Code scanning</span>
+          <span class="chip">LLM inference</span>
+          <span class="chip">Scorecard UX</span>
+          <span class="chip">M365 Copilot</span>
         </div>
         <div class="project-actions">
-          <a class="btn primary" href="https://daddyinvolts.github.io/Deep-Analysis-Skill/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
-          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/Deep-Analysis-Skill" target="_blank" rel="noopener">Source ↗</a>
+          <a class="btn primary" href="https://daddyinvolts.github.io/Feature-Flag-Insights/" target="_blank" rel="noopener">View spec <span class="arrow">&rarr;</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/Feature-Flag-Insights" target="_blank" rel="noopener">Source &#8599;</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="project">
+      <div class="project-banner alt2">
+        <span class="project-tag">Mini Spec</span>
+        <span class="project-tag project-status in-progress">In progress</span>
+        <h3>Next-Iteration Recommender for Expedite</h3>
+        <p class="subtitle">Given the inferred flag description and the experiment results, propose what V2 should change</p>
+      </div>
+      <div class="project-body">
+        <p>A mini spec that closes the regression-to-iteration loop. When a Guardrail Decision Framework verdict returns <strong>not-safe</strong>, the recommender reads three inputs &mdash; the inferred flag description from <em>Feature Flag Insights</em>, the full scorecard with regression detail, and a retrieval over the 8,000+ experiment Copilot portfolio archive &mdash; and proposes a ranked 2&ndash;5 candidate list of concrete next-iteration changes. Each recommendation carries a hypothesis, change description, top-3 analog past experiments, expected impact direction, suggested guardrail to watch, and a confidence label. Owners <strong>Try this</strong> (creates a pre-populated follow-up flight shell), <strong>Modify</strong>, or <strong>Reject with reason</strong>. Aims to cut median time-from-regression-to-follow-up from ~38 days to ≤14 and lift the targeted-follow-up rate from ~12% to ≥40%.</p>
+        <div class="project-meta">
+          <span class="chip">AI recommender</span>
+          <span class="chip">Iteration loop</span>
+          <span class="chip">Regression follow-up</span>
+          <span class="chip">Archive retrieval</span>
+          <span class="chip">M365 Copilot</span>
+        </div>
+        <div class="project-actions">
+          <a class="btn primary" href="https://daddyinvolts.github.io/Next-Iteration-Recommender/" target="_blank" rel="noopener">View spec <span class="arrow">&rarr;</span></a>
+          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/Next-Iteration-Recommender" target="_blank" rel="noopener">Source &#8599;</a>
         </div>
       </div>
     </article>
@@ -451,29 +631,6 @@
     </article>
 
     <article class="project">
-      <div class="project-banner alt">
-        <span class="project-tag">Product Spec</span>
-        <span class="project-tag project-status shipped">Shipped</span>
-        <h3>Experimentation Flight Assignments in RapidIQ</h3>
-        <p class="subtitle">Self-serve segmenting &amp; on-the-fly experimentation insights</p>
-      </div>
-      <div class="project-body">
-        <p>A product spec to onboard IDEAS flights and flight extensions into RapidIQ — turning the self-serve analytics environment into a lens on experimentation. Growth PMs and DS can filter any RapidIQ dashboard to a specific flight or variant ("self-serve segmenting"), and compute treatment-vs-control lifts on the fly across the full RapidIQ metric catalog — including provisional metrics that scorecards don't carry. Establishes a canonical flight dimension in RapidIQ's metadata-driven query engine, aligned with ExP semantics, so the same flight × metric × window reconciles across systems. Companion to Expedite / ExP scorecards: RapidIQ is the exploration lens, scorecards remain the deciding artifact.</p>
-        <div class="project-meta">
-          <span class="chip">Experimentation</span>
-          <span class="chip">Self-serve</span>
-          <span class="chip">Provisional metrics</span>
-          <span class="chip">Flights</span>
-          <span class="chip">IDEAS Growth</span>
-        </div>
-        <div class="project-actions">
-          <a class="btn primary" href="https://daddyinvolts.github.io/Flights-in-RapidIQ/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
-          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/Flights-in-RapidIQ" target="_blank" rel="noopener">Source ↗</a>
-        </div>
-      </div>
-    </article>
-
-    <article class="project">
       <div class="project-banner alt3">
         <span class="project-tag">Product Spec · Prototype</span>
         <span class="project-tag project-status backlog">On Backlog</span>
@@ -498,50 +655,6 @@
     </article>
 
     <article class="project">
-      <div class="project-banner">
-        <span class="project-tag">Product Spec · Prototype</span>
-        <span class="project-tag project-status shipped">Shipped</span>
-        <h3>Expedite — Experiment Detail Page</h3>
-        <p class="subtitle">A decision-grade view for ship / iterate / stop calls</p>
-      </div>
-      <div class="project-body">
-        <p>A decision-grade detail view that turns dense experimentation scorecards into glanceable ship/iterate/stop calls. The page surfaces an advisory Copilot recommendation, the owner's actual decision, and the guardrail evidence behind it — on a single URL. A structured exception flow captures rationale when owners ship over a failed guardrail, producing a fully auditable record of every call. The result: faster, more consistent decisions across the M365 Copilot portfolio and a single source of truth for "is this ready to ship, and why?" Replaces ad-hoc scorecard reading and email threads as the deciding artifact for experiment owners and leadership.</p>
-        <div class="project-meta">
-          <span class="chip">Experimentation</span>
-          <span class="chip">Decision UX</span>
-          <span class="chip">Guardrails</span>
-          <span class="chip">Auditability</span>
-        </div>
-        <div class="project-actions">
-          <a class="btn primary" href="https://daddyinvolts.github.io/Expedite-Experiment-Detail/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
-          <a class="btn secondary" href="https://github.com/DaddyInVolts/Expedite-Experiment-Detail" target="_blank" rel="noopener">Source ↗</a>
-        </div>
-      </div>
-    </article>
-
-    <article class="project">
-      <div class="project-banner alt">
-        <span class="project-tag">Product Spec · Prototype</span>
-        <span class="project-tag project-status shipped">Shipped</span>
-        <h3>Copilot Metric Impact Page</h3>
-        <p class="subtitle">A metric-first lens on the experiment portfolio</p>
-      </div>
-      <div class="project-body">
-        <p>A metric-first lens for the Expedite experimentation platform that answers an executive's most common question: "Which experiments moved this metric?" Leaders pick a Copilot business metric — like Chat Seen WAU — apply ring and audience filters, and instantly see a ranked, statistically rigorous chart of every experiment that improved or degraded it. Drill-through links route to full scorecards, making it trivial to recognize a metric win or investigate a regression. The view flips the existing experiment-centric Impact page to a metric-centric perspective, replacing manual cross-referencing of scorecards with an instant, filterable, leadership-ready answer about portfolio-level impact on key business outcomes.</p>
-        <div class="project-meta">
-          <span class="chip">Leadership view</span>
-          <span class="chip">Metric impact</span>
-          <span class="chip">Stat-sig</span>
-          <span class="chip">Drill-through</span>
-        </div>
-        <div class="project-actions">
-          <a class="btn primary" href="https://daddyinvolts.github.io/Copilot-Metric-Impact/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
-          <a class="btn secondary" href="https://github.com/DaddyInVolts/Copilot-Metric-Impact" target="_blank" rel="noopener">Source ↗</a>
-        </div>
-      </div>
-    </article>
-
-    <article class="project">
       <div class="project-banner alt2">
         <span class="project-tag">Product Spec · Prototype</span>
         <span class="project-tag project-status backlog">On Backlog</span>
@@ -559,28 +672,6 @@
         <div class="project-actions">
           <a class="btn primary" href="https://daddyinvolts.github.io/oneoff-scorecard/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
           <a class="btn secondary" href="https://github.com/DaddyInVolts/oneoff-scorecard" target="_blank" rel="noopener">Source ↗</a>
-        </div>
-      </div>
-    </article>
-
-    <article class="project">
-      <div class="project-banner alt3">
-        <span class="project-tag">Product Spec</span>
-        <span class="project-tag project-status shipped">Shipped</span>
-        <h3>Guardrail Decision Framework</h3>
-        <p class="subtitle">A deterministic safe / extend / not-safe verdict for every guardrail</p>
-      </div>
-      <div class="project-body">
-        <p>A guardrails-only decision framework that turns raw scorecard confidence intervals and pre-experiment power into a deterministic per-guardrail verdict — <strong>safe</strong>, <strong>extend</strong>, or <strong>not-safe</strong> — and a single scorecard-level roll-up of <strong>Ship</strong>, <strong>Hold</strong>, or <strong>Stop</strong>. Each guardrail declares a direction (higher-is-better or lower-is-better) and a practical-significance threshold Δ; the framework runs a CI-based safety check (CI upper bound below +Δ for lower-is-better metrics; CI lower bound above −Δ otherwise), classifies powered vs. underpowered against MDE at 80% power, and treats underpowered guardrails as genuinely uninformative — closing the gap that today lets ~11% of experiments ship on signals that are statistically uninformative on harm. Multi-variant experiments are evaluated per T/C cell, every verdict carries a single-line reason, and any owner override of a not-safe ruling requires a written justification, mitigation, and follow-up captured in an auditable record. Replaces inconsistent team-by-team judgment with a single shared rule dictionary so the same scorecard yields the same verdict across PMs, DS, and leadership reviews.</p>
-        <div class="project-meta">
-          <span class="chip">Decision logic</span>
-          <span class="chip">Guardrails</span>
-          <span class="chip">Auditability</span>
-          <span class="chip">Rule dictionary</span>
-        </div>
-        <div class="project-actions">
-          <a class="btn primary" href="https://daddyinvolts.github.io/Guardrail-Decision-Framework/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
-          <a class="btn secondary" href="https://github.com/DaddyInVolts/Guardrail-Decision-Framework" target="_blank" rel="noopener">Source ↗</a>
         </div>
       </div>
     </article>
@@ -632,29 +723,6 @@
     </article>
 
     <article class="project">
-      <div class="project-banner alt2">
-        <span class="project-tag">Mini Spec</span>
-        <span class="project-tag project-status shipped">Shipped</span>
-        <h3>GPT Token &amp; AI Credit Metrics</h3>
-        <p class="subtitle">Adding cost-impact metrics to the Copilot Token Consumption Scorecard</p>
-      </div>
-      <div class="project-body">
-        <p>A mini spec that extends the existing Copilot Token Consumption Scorecard with two missing cost dimensions: GPT token consumption (input/output tokens by model) and AI Credit request volume (credits per user and per tenant). Both new metric families render with the same statistical rigor — confidence intervals, MDE, and stat-sig flags — as existing scorecard metrics, so feature crews and leadership can evaluate cost impact alongside engagement and quality metrics in a single view. Eliminates manual cross-referencing between cost dashboards and experiment scorecards, surfaces cost regressions earlier in the experiment lifecycle, and establishes a shared cost vocabulary across Copilot feature crews.</p>
-        <div class="project-meta">
-          <span class="chip">Scorecards</span>
-          <span class="chip">Cost metrics</span>
-          <span class="chip">GPT tokens</span>
-          <span class="chip">AI Credits</span>
-          <span class="chip">Copilot</span>
-        </div>
-        <div class="project-actions">
-          <a class="btn primary" href="https://daddyinvolts.github.io/GPT-Token-AI-Credit-Metrics/" target="_blank" rel="noopener">View spec <span class="arrow">→</span></a>
-          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/GPT-Token-AI-Credit-Metrics" target="_blank" rel="noopener">Source ↗</a>
-        </div>
-      </div>
-    </article>
-
-    <article class="project">
       <div class="project-banner alt4">
         <span class="project-tag">Product Spec</span>
         <span class="project-tag project-status backlog">On Backlog</span>
@@ -678,28 +746,6 @@
     </article>
 
     <article class="project">
-      <div class="project-banner alt4">
-        <span class="project-tag">Product Spec</span>
-        <span class="project-tag project-status shipped">Shipped</span>
-        <h3>Anytime-Valid Inference for Experiments</h3>
-        <p class="subtitle">Continuous-monitoring safety detection for online A/B tests</p>
-      </div>
-      <div class="project-body">
-        <p>An always-on safety layer for online A/B experimentation that lets release engineers, PMs, and data scientists watch a live experiment continuously without paying the classic peeking penalty &mdash; where naive repeated looks push false-positive rates from 5% to ~70%. Built on closed-form confidence sequences (Lindon, Ham, Tingley &amp; Bojinov 2024) and a multinomial sequential SRM test (Lindon &amp; Malek, NeurIPS 2022), it computes Type-I-controlled bounds at <em>every</em> sample size from the same regression tables an experimentation platform already produces. A near-real-time data path modeled on a NRT Service feeds a shrinking-band dashboard and ICM/Geneva alerts, turning every ramped flight into a continuously-monitored canary &mdash; targeting time-to-detect under 15 minutes (vs. ~14 hours today) and 40&ndash;50% sample-size savings, with mandatory 90-day shadow-mode validation per tenant.</p>
-        <div class="project-meta">
-          <span class="chip">Anytime-valid stats</span>
-          <span class="chip">Continuous monitoring</span>
-          <span class="chip">Safety canary</span>
-          <span class="chip">NRT pipeline</span>
-        </div>
-        <div class="project-actions">
-          <a class="btn primary" href="https://daddyinvolts.github.io/Anytime-Valid-Inference-Spec.html" target="_blank" rel="noopener">View spec <span class="arrow">&rarr;</span></a>
-          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/blob/main/Anytime-Valid-Inference-Spec.html" target="_blank" rel="noopener">Source &#8599;</a>
-        </div>
-      </div>
-    </article>
-
-    <article class="project">
       <div class="project-banner alt">
         <span class="project-tag">Mini Spec</span>
         <span class="project-tag project-status backlog">On Backlog</span>
@@ -718,52 +764,6 @@
         <div class="project-actions">
           <a class="btn primary" href="https://daddyinvolts.github.io/Saturation-Dashboard/" target="_blank" rel="noopener">View spec <span class="arrow">&rarr;</span></a>
           <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/Saturation-Dashboard" target="_blank" rel="noopener">Source &#8599;</a>
-        </div>
-      </div>
-    </article>
-
-    <article class="project">
-      <div class="project-banner alt3">
-        <span class="project-tag">Mini Spec</span>
-        <span class="project-tag project-status in-progress">In progress</span>
-        <h3>Feature Flag Insights in Expedite</h3>
-        <p class="subtitle">Auto-inferred descriptions of every feature flag, joined to its experiment results</p>
-      </div>
-      <div class="project-body">
-        <p>A mini spec that scans every indexed M365 Copilot repo for feature-flag check-sites &mdash; ExP/Iris, CCS, and in-repo gating constants &mdash; and uses an LLM to infer a structured, human-readable description of what each flag actually changes: <em>what it gates, on-vs-off behavior, affected code paths, surfaces touched.</em> Descriptions are persisted to Expedite's experiment-metadata join table and rendered directly on every scorecard row with a high/medium/low confidence pill and a "Why?" tooltip exposing the code excerpts that drove the inference. Replaces the ~64% of flags with empty or stale owner-written descriptions and supplies the semantic layer the paired Next-Iteration Recommender depends on &mdash; turning every scorecard into a self-documenting artifact without writing back to ExP/Iris source-of-truth.</p>
-        <div class="project-meta">
-          <span class="chip">Feature flags</span>
-          <span class="chip">Code scanning</span>
-          <span class="chip">LLM inference</span>
-          <span class="chip">Scorecard UX</span>
-          <span class="chip">M365 Copilot</span>
-        </div>
-        <div class="project-actions">
-          <a class="btn primary" href="https://daddyinvolts.github.io/Feature-Flag-Insights/" target="_blank" rel="noopener">View spec <span class="arrow">&rarr;</span></a>
-          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/Feature-Flag-Insights" target="_blank" rel="noopener">Source &#8599;</a>
-        </div>
-      </div>
-    </article>
-
-    <article class="project">
-      <div class="project-banner alt2">
-        <span class="project-tag">Mini Spec</span>
-        <span class="project-tag project-status in-progress">In progress</span>
-        <h3>Next-Iteration Recommender for Expedite</h3>
-        <p class="subtitle">Given the inferred flag description and the experiment results, propose what V2 should change</p>
-      </div>
-      <div class="project-body">
-        <p>A mini spec that closes the regression-to-iteration loop. When a Guardrail Decision Framework verdict returns <strong>not-safe</strong>, the recommender reads three inputs &mdash; the inferred flag description from <em>Feature Flag Insights</em>, the full scorecard with regression detail, and a retrieval over the 8,000+ experiment Copilot portfolio archive &mdash; and proposes a ranked 2&ndash;5 candidate list of concrete next-iteration changes. Each recommendation carries a hypothesis, change description, top-3 analog past experiments, expected impact direction, suggested guardrail to watch, and a confidence label. Owners <strong>Try this</strong> (creates a pre-populated follow-up flight shell), <strong>Modify</strong>, or <strong>Reject with reason</strong>. Aims to cut median time-from-regression-to-follow-up from ~38 days to ≤14 and lift the targeted-follow-up rate from ~12% to ≥40%.</p>
-        <div class="project-meta">
-          <span class="chip">AI recommender</span>
-          <span class="chip">Iteration loop</span>
-          <span class="chip">Regression follow-up</span>
-          <span class="chip">Archive retrieval</span>
-          <span class="chip">M365 Copilot</span>
-        </div>
-        <div class="project-actions">
-          <a class="btn primary" href="https://daddyinvolts.github.io/Next-Iteration-Recommender/" target="_blank" rel="noopener">View spec <span class="arrow">&rarr;</span></a>
-          <a class="btn secondary" href="https://github.com/DaddyInVolts/DaddyInVolts.github.io/tree/main/Next-Iteration-Recommender" target="_blank" rel="noopener">Source &#8599;</a>
         </div>
       </div>
     </article>
