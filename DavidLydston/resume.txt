@@ -1,0 +1,168 @@
+David Lydston
+Principal Product Manager
+Data Platforms & Governance · Experimentation · Machine Learning & Personalization
+
+david.lydston@gmail.com
+https://www.linkedin.com/in/dlydston/
+https://daddyinvolts.github.io/
+
+Summary
+
+Principal Product Manager with 10+ years leading experimentation, analytics, and shared data platforms at Microsoft , backed by earlier work in customer data science, data engineering, and clinical biostatistics. Builds governed datasets and reliable measurement that help product teams make release decisions, personalize customer experiences, and improve platform economics. Combines product strategy, cross-team leadership, and people management with hands-on understanding of the data scientists, analysts, and engineers who use analytical platforms.
+
+Microsoft experience
+
+Principal Product Manager
+Microsoft | Central Data & Experimentation
+
+August 2024 – Present
+
+Lead product strategy and roadmap for experiment-analysis services supporting Microsoft 365 and Copilot, Microsoft's generative artificial intelligence (AI) assistant. Build trusted data foundations and reusable analytical capabilities around the needs of data scientists and product teams.
+
+- Scaled shared experiment analysis to 30+ products and 3,000+ experiments each month . Relaunched Expedite , Microsoft's internal portal where product teams and leaders review test results and make release decisions.
+- Required metrics to use Microsoft's Unified Data Model , a governed shared data model; championed integrating experiment-assignment data with common user-, organization-, and device-level datasets.
+- Aligned six partner teams around a shared customer lifetime-value scorecard, standardizing measurement across hundreds of features and clarifying metric ownership, readiness, and service targets.
+- Translated data scientists' needs into specifications for reliable repeated checks of experiment results and variance reduction using pre-experiment data , including historical-data requirements, validation workflows, and false-positive controls.
+- Partnered with data science on an AI assistant for interpreting experiments ; defined product requirements for user inputs, metric coverage, acceptance testing, and auditable decision reports.
+- Cut results delivery from three days to 36 hours after daily data collection and reduced compute consumption more than 75% through leaner scorecards and faster metric processing.
+- Protected sensitive customer data by rejecting publication on unsecured scorecards during platform transitions.
+Principal Product Manager
+Microsoft | Office Product Group
+
+November 2022 – August 2024
+
+Led experimentation infrastructure for Office Product Group, helping product teams evaluate growth initiatives through reliable measurement across Office applications.
+
+- Co-authored the fiscal year 2025 experimentation strategy , adopted by senior leadership as the organization's vision for experimentation.
+- Strengthened experiment measurement by prioritizing Copilot usage scorecards and connecting data-quality alerts to engineering bug triage, helping teams identify and address unreliable results.
+- Established shared planning and issue-triage routines between product management and engineering; provided partner office hours and guidance to support adoption and improve trust in experiment results.
+Principal Product Manager
+Microsoft | Analysis & Experimentation / Bing
+
+September 2020 – November 2022
+
+Led initiatives for Microsoft's shared experimentation platform, partnering with Bing, engineering, and data science to make analysis faster and more cost-effective and support informed product-release decisions.
+
+- Delivered $7 million in experiment-analysis compute savings with Bing through platform improvements and a data science-led optimization.
+- Co-led improvements that shortened Bing's experiment-informed release-decision cycle from six days to two , accelerating access to actionable results.
+- Negotiated shared funding with Bing to migrate from Microsoft's internal big-data processing platform to Apache Spark ; aligned investment and staged delivery across teams.
+- Prioritized five core Microsoft Azure platform certifications and production readiness, enabling Dynamics 365 and Azure Portal adoption; negotiated an audit exception to remove a policy blocker.
+Senior Program Manager
+Microsoft | Analysis & Experimentation / Bing
+
+August 2018 – September 2020
+
+Improved measurement quality, audience targeting, and processing reliability for Microsoft's experimentation platform and Bing. Promoted to Principal Product Manager during this assignment in September 2020.
+
+- Reduced Bing release-decision scorecard delivery from about 13 hours to under 10 hours by shipping a caching layer for web-search jobs, using 70% fewer processing-node hours .
+- Improved intraday alert accuracy 50% with bot-tolerant, user-based metrics, virtually eliminating false positives.
+- Authored specifications for audience-targeting filters that let teams define customer segments; migrated the real-time experiment-assignment service under a fixed deadline.
+- Improved pipeline fault recovery and reduced job-submission latency at the 90th percentile from over an hour to about 15 minutes .
+Senior Program Manager
+Microsoft | Marketing & Store Analytics
+
+February 2016 – August 2018
+
+Led digital analytics initiatives for Microsoft Store, Windows, and consumer web properties. Connected customer-experience problems with business outcomes while improving shared data definitions, access, and operating efficiency.
+
+- Built a cohort-analysis proof of concept that quantified the revenue impact of customers being unable to access purchases, informing senior leadership investment in Microsoft Store improvements.
+- Contributed shared analytics requirements covering identifier semantics, schema compatibility, time windows, usage metadata, and query performance .
+- Reduced Adobe Analytics sampling volume 50% , saving more than $60,000 per month ; separately negotiated contract terms creating a potential $140,000 monthly savings opportunity , contingent on termination.
+- Strengthened analytics access controls by retiring 28 administrator accounts and ending account sharing.
+Earlier experience
+
+Data Scientist (Client Services & Strategy)
+HelloWorld (formerly ePrize)
+
+May 2012 – January 2016
+
+Applied data science to customer engagement and loyalty strategy for Microsoft's Xbox Live Rewards program, serving 3 million members . Combined hands-on data preparation, machine learning, and program evaluation to inform marketing strategies, personalization, and loyalty-program design.
+
+- Prepared reusable machine-learning datasets from granular customer events, cleaning and analyzing transaction and behavioral data for modeling and customer analysis.
+- Built models for classification, personalized recommendations, and fraud detection , translating customer activity into marketing and loyalty-program decisions.
+- Used machine learning to inform MyVIP , the program's loyalty tiers and qualifying thresholds, connecting member behavior with program structure and incentives.
+- Evaluated MyVIP against stratified control groups, measuring 300% more points earned in fiscal year 2015 versus controls .
+Database and Systems Engineer
+Apollo Data Technologies | Microsoft contract: Xbox Live Rewards
+
+August 2010 – May 2012
+
+Combined data engineering and customer analytics for Xbox Live Rewards. Built the processing, reporting, and analysis foundation supporting customer insights, marketing strategy, and loyalty-program development.
+
+- Helped launch Xbox Live Rewards in December 2010 , contributing data infrastructure and analytical capabilities for the new loyalty program.
+- Used customer analysis and machine learning to inform marketing strategies and loyalty-program design.
+- Designed infrastructure for a five-terabyte data-processing platform , balancing performance, reliability, and scalability within a limited hardware budget.
+- Reduced processing time 30% and data-layer storage 2.5 terabytes through code optimization, compression, and index tuning.
+Database and Systems Engineer
+Apollo Data Technologies | Microsoft contract: Global Marketing Operations
+
+July 2008 – August 2010
+
+Engineered database infrastructure for global marketing applications, including capacity planning, monitoring, standardized deployment, and operational handoff.
+
+- Selected infrastructure within a $1 million hardware budget during threefold growth, supporting hundreds of marketing applications and thousands of databases.
+- Implemented monitoring for up to 500 servers to improve visibility into platform health and capacity.
+- Standardized deployment of Microsoft SQL Server , a relational database platform, and trained onshore and offshore teams on operations and performance tradeoffs.
+Senior Database Administrator
+Bio-Rad Laboratories
+
+August 2005 – July 2008
+
+Combined clinical data management, database administration, and biostatistics for a medical diagnostics manufacturer, supporting reliable research data and regulatory reporting.
+
+- Replaced per-trial spreadsheets with a centralized clinical-trial data management system ; automated validation saved weeks of manual work.
+- Used Statistical Analysis System (SAS) software for instrument precision and clinical analyses supporting United States Food and Drug Administration (FDA) submissions , including mixed-effects and survival models.
+- Recalled in 2013 to extend the clinical data management system.
+BioAnalyst
+Poniard Pharmaceuticals
+
+November 2004 – August 2005
+
+Built clinical data capture and analysis capabilities for a pivotal Phase III oncology trial, connecting research requirements, data quality, and statistical reporting.
+
+- Specified, designed, tested, and implemented a medical-chart information system ; partnered with a contract research organization on trial data-quality standards.
+- Performed survival analysis in SAS and produced hundreds of clinical result tables for FDA submission .
+Systems Analyst III
+University of Miami
+
+August 1999 – November 2004
+
+Led development of SQL Server applications for clinical research operations and financial planning, translating research and administrative needs into usable information systems.
+
+- Delivered participant-tracking systems and handheld interview data capture for multi-state and multinational clinical research .
+- Led an application forecasting federal grant expenditures against a $25 million departmental budget .
+Core strengths
+
+- Product leadership: vision, strategy, roadmaps, requirements, prioritization, and cross-team investment alignment.
+- Data platforms and governance: shared data models, metric definitions, metadata and schema requirements, ownership, validation, and sensitive-data protection.
+- Experimentation: controlled product tests, reliable measurement, statistical sensitivity, and decision-support tools.
+- Customer analytics: machine learning, segmentation, recommendations, loyalty personalization, and program evaluation.
+- Platform economics: compute efficiency, delivery speed, vendor negotiation, and cloud production readiness.
+Leadership & collaboration
+
+- Provided product direction for a 24-person team spanning engineering, data science, and product management through organizational changes.
+- Directly managed four individual contributors , with regular career-development conversations and performance reviews focused on impact.
+- Aligned senior partners across Bing, Office, and Azure on priorities, shared funding, and delivery tradeoffs.
+- Supported inclusive interviewing and team participation, including remote colleagues.
+Technical foundation
+
+- Data engineering: Structured Query Language (SQL), SQL Server, data modeling, data warehousing, extract-transform-load pipelines, indexing, compression, and performance tuning.
+- Analytical platforms: Apache Spark, Microsoft Azure, Azure Data Explorer, and Adobe Analytics.
+- Statistical practice: classification, recommendation models, stratified program evaluation, survival analysis, mixed-effects models, and SAS.
+- AI product requirements: experiment-analysis assistants, historical-data retrieval, acceptance criteria, and auditable reports.
+Education
+
+Master of Science, Information Systems Management
+Seattle Pacific University, 2005-2007
+
+Master of Arts, Behavioral Psychology
+San Diego State University, 1997-1999
+
+Bachelor of Arts, Psychology
+Western Washington University, 1994-1997
+
+
+Selected product specifications:
+reliable repeated checks of experiment results: https://daddyinvolts.github.io/Anytime-Valid-Inference-Spec.html
+variance reduction using pre-experiment data: https://daddyinvolts.github.io/CUPED-Variance-Reduction/
+AI assistant for interpreting experiments: https://daddyinvolts.github.io/Deep-Analysis-Skill/
